@@ -1,0 +1,142 @@
+[gd_scene format=3 uid="uid://bxgvrhfmu0j1p"]
+
+[ext_resource type="PackedScene" uid="uid://8vffnt3dnokf" path="res://SourceArt/table.glb" id="1_uwrxv"]
+[ext_resource type="Script" uid="uid://dotpk581kmvyh" path="res://scenes/fps_label.gd" id="2_lnu2h"]
+[ext_resource type="Script" uid="uid://2bfbjx0m5cbh" path="res://scenes/opetions_setting.gd" id="2_yqjtg"]
+
+[sub_resource type="Environment" id="Environment_uwrxv"]
+background_mode = 1
+ambient_light_source = 2
+ambient_light_color = Color(0.52906674, 0.5290667, 0.5290667, 1)
+ambient_light_energy = 0.5
+reflected_light_source = 1
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+glow_enabled = true
+adjustment_enabled = true
+
+[node name="Game" type="Node3D" unique_id=1083706776]
+
+[node name="World" type="Node" parent="." unique_id=2093876012]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World" unique_id=335499126]
+environment = SubResource("Environment_uwrxv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="World" unique_id=849584970]
+transform = Transform3D(1, 0, 0, 0, 0.25881907, 0.9659258, 0, -0.9659258, 0.25881907, 0, 3, 5)
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1426354172]
+transform = Transform3D(1, 0, 0, 0, 0.08246041, 0.99659437, 0, -0.99659437, 0.08246041, 0, 0.74889445, 0.09480062)
+visible = false
+
+[node name="Table" parent="." unique_id=1071461611 instance=ExtResource("1_uwrxv")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
+
+[node name="Character" type="Node3D" parent="." unique_id=981073953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.66730326, 0, -0.3446511)
+
+[node name="Bank" type="Node3D" parent="." unique_id=1539821794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7186342, 0, 0)
+
+[node name="Board" type="Node3D" parent="." unique_id=1192981160]
+
+[node name="DiceTray" type="Node3D" parent="." unique_id=1902259859]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75236595, 0, -0.13492727)
+
+[node name="DiceCollection" type="Node3D" parent="." unique_id=655510905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7743653, 0, 0.32411867)
+
+[node name="Optionals_Example" type="Control" parent="." unique_id=1179381793]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Optionals_Example" unique_id=1621539402]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FPS_Label" type="Label" parent="Optionals_Example/HBoxContainer" unique_id=475196017]
+layout_mode = 2
+script = ExtResource("2_lnu2h")
+
+[node name="Options_Setting" type="VBoxContainer" parent="Optionals_Example/HBoxContainer" unique_id=1011513805]
+layout_mode = 2
+alignment = 1
+script = ExtResource("2_yqjtg")
+
+[node name="Resolution_OptionButton" type="OptionButton" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=1232254533]
+layout_mode = 2
+
+[node name="ScaleBox" type="HBoxContainer" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=412688235]
+layout_mode = 2
+
+[node name="ScaleSlider" type="HSlider" parent="Optionals_Example/HBoxContainer/Options_Setting/ScaleBox" unique_id=765834453]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 50.0
+max_value = 200.0
+step = 5.0
+value = 100.0
+ticks_on_borders = true
+
+[node name="ScaleLabel" type="Label" parent="Optionals_Example/HBoxContainer/Options_Setting/ScaleBox" unique_id=353697961]
+layout_mode = 2
+text = "100% - 1920x1080"
+
+[node name="Scaler" type="OptionButton" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=172203847]
+layout_mode = 2
+selected = 0
+item_count = 3
+popup/item_0/text = "SCALER"
+popup/item_0/id = 0
+popup/item_0/disabled = true
+popup/item_0/separator = true
+popup/item_1/text = "BILINEAR"
+popup/item_1/id = 1
+popup/item_2/text = "AMD FSR 2.2"
+popup/item_2/id = 2
+
+[node name="FSROptions" type="OptionButton" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=619890560]
+layout_mode = 2
+selected = 0
+item_count = 5
+popup/item_0/text = "FSR Options"
+popup/item_0/id = 0
+popup/item_0/disabled = true
+popup/item_0/separator = true
+popup/item_1/text = "Performance"
+popup/item_1/id = 1
+popup/item_2/text = "Balanced"
+popup/item_2/id = 2
+popup/item_3/text = "Quality"
+popup/item_3/id = 3
+popup/item_4/text = "Ultra Quality"
+popup/item_4/id = 4
+
+[node name="FullScreen_CheckBox" type="CheckBox" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=2108618526]
+layout_mode = 2
+text = "FullScreen"
+
+[node name="VSync_CheckBox" type="CheckBox" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=1044082349]
+layout_mode = 2
+text = "VSYNC Enabled"
+
+[node name="ScreenSelector" type="OptionButton" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=1093448811]
+layout_mode = 2
+
+[connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/Resolution_OptionButton" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_option_button_item_selected"]
+[connection signal="value_changed" from="Optionals_Example/HBoxContainer/Options_Setting/ScaleBox/ScaleSlider" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_scale_slider_value_changed"]
+[connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/Scaler" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_scaler_item_selected"]
+[connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/FSROptions" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_fsr_options_item_selected"]
+[connection signal="toggled" from="Optionals_Example/HBoxContainer/Options_Setting/FullScreen_CheckBox" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_full_screen_check_box_toggled"]
+[connection signal="toggled" from="Optionals_Example/HBoxContainer/Options_Setting/VSync_CheckBox" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_v_sync_check_box_toggled"]
+[connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/ScreenSelector" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_screen_selector_item_selected"]
