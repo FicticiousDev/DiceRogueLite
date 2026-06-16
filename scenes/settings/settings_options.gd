@@ -44,6 +44,11 @@ const RESOLUTIONS: Dictionary = {
 
 
 ## TODO - update to use DisplayServer as much as possible rather than editing properties on get_window() directly
+## TODO - tooltips
+## TODO - cleanup functions that are split in two for no reason
+## TODO - entry and exit animations
+## TODO - not scaling with resolution
+## TODO - saved data is not pulling through for resolutions
 
 
 func _ready() -> void:
@@ -55,15 +60,8 @@ func _ready() -> void:
 
 ## Adds supported resolutions to resolutions option button
 func populate_resolutions() -> void:
-	var current_resolution = get_window().get_size()
-	var id = 0
-
 	for resolution in RESOLUTIONS:
 		resolution_options.add_item(resolution)
-		
-		if RESOLUTIONS[resolution] == current_resolution:
-			resolution_options.select(id)
-		id+=1
 
 
 ## Adds existing screens to screens option button
@@ -79,13 +77,18 @@ func populate_screens() -> void:
 
 ## Restoring settings to what was saved or the default
 func check_and_apply_variables() -> void:
+	# Resolution
+	var set_resolution = SaveManager.settings_data.resolution
+	var resolution_key = str(int(set_resolution.x)) + "x" + str(int(set_resolution.y))
+	var selected_resolution = RESOLUTIONS.keys().find(resolution_key)
+	resolution_options.select(selected_resolution)
+	_on_resolution_selected(selected_resolution)	
 	# Resolution Scaling
 	resolution_scale_slider.set_value(SaveManager.settings_data.resolution_scale)
 	resolution_scaler_options.select(0 if SaveManager.settings_data.resolution_scaler == Viewport.SCALING_3D_MODE_BILINEAR else 1)
 	resolution_fsr_options.select(SaveManager.settings_data.fsr_profile)
 	if SaveManager.settings_data.resolution_scaler != Viewport.SCALING_3D_MODE_FSR2:
 		resolution_fsr_options.hide()
-	
 	# AA
 	anti_aliasing_options.select(SaveManager.settings_data.antialiasing)
 	_on_aa_profile_selected(SaveManager.settings_data.antialiasing)
@@ -93,6 +96,8 @@ func check_and_apply_variables() -> void:
 	_on_sp_aa_selected(SaveManager.settings_data.screen_space_aa)
 	# Fullscreen
 	full_screen_checkbutton.set_pressed(SaveManager.settings_data.fullscreen)
+	if SaveManager.settings_data.fullscreen:
+		resolution_options.set_disabled(true)
 	# Borderless
 	borderless_checkbutton.set_pressed(SaveManager.settings_data.borderless)
 	# VSync
@@ -183,7 +188,9 @@ func set_fullscreen(fullscreen: bool) -> void:
 		get_window().set_mode(Window.MODE_FULLSCREEN)
 	else:
 		get_window().set_mode(Window.MODE_WINDOWED)
+		get_window().set_current_screen(SaveManager.settings_data.screen)
 		centre_window()
+	resolution_options.set_disabled(fullscreen)
 
 
 ## Setting the window border status
@@ -276,6 +283,8 @@ func _on_resolution_selected(index: int) -> void:
 	set_resolution_text()
 	centre_window()
 	SaveManager.settings_data.resolution = RESOLUTIONS[resolution_id]
+	await get_tree().create_timer(0.005).timeout
+	_on_resolution_scale_value_changed(100.0)
 
 
 ## Reacting to resolution scale slider change
@@ -375,4 +384,3 @@ func _on_ui_volume_value_changed(value: float) -> void:
 	set_ui_volume(value)
 	SaveManager.settings_data.ui_volume = value
 	pass # Replace with function body.
-

@@ -15,7 +15,7 @@ class_name SettingsData
 @export var fullscreen: bool = false
 @export var borderless: bool = false
 @export var vsync: bool = true
-@export var screen: int = 1
+@export var screen: int = 0
 @export var brightness: float = 1.0
 @export var contrast: float = 1.0
 

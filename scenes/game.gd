@@ -17,9 +17,10 @@ func _on_rules_button_rules_pressed() -> void:
 
 
 func _on_settings_button_settings_pressed() -> void:
-	print("settings pressed")
+	get_node("Settings").show_settings()
 
 
 func _on_exit_button_exit_pressed() -> void:
 	# TODO - save everything, shut down gracefully, communicate with Steam?
+	SaveManager.save_data()
 	get_tree().quit()
