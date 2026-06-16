@@ -11,9 +11,9 @@ const RUN_SAVE: String = "user://run.save"					# Current run (character, dice, g
 const PROGRESSION_SAVE: String = "user://progression.save"	# Unlocks and cumulative stats
 const SETTINGS_SAVE: String = "user://settings.save"		# Settings
 
-const RunData = preload("res://saves/run_data.gd")
-const ProgressionData = preload("res://saves/progression_data.gd")
-const SettingsData = preload("res://saves/settings_data.gd")
+const RUN_DATA = preload("res://saves/run_data.gd")
+const PROGRESSION_DATA = preload("res://saves/progression_data.gd")
+const SETTINGS_DATA = preload("res://saves/settings_data.gd")
 
 # Locally stored variables for the resources
 var run_data: RunData
@@ -51,15 +51,15 @@ func _save_settings() -> void:
 
 
 func _load_current_run() -> void:
-	run_data = _load_resource_from_file(RUN_SAVE, RunData)
+	run_data = _load_resource_from_file(RUN_SAVE, RUN_DATA)
 
 
 func _load_progression() -> void:
-	progression_data = _load_resource_from_file(PROGRESSION_SAVE, ProgressionData)
+	progression_data = _load_resource_from_file(PROGRESSION_SAVE, PROGRESSION_DATA)
 
 
 func _load_settings() -> void:
-	settings_data = _load_resource_from_file(SETTINGS_SAVE, SettingsData)
+	settings_data = _load_resource_from_file(SETTINGS_SAVE, SETTINGS_DATA)
 
 
 # Helper to save a resource as a JSON file

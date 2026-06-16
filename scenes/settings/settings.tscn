@@ -1,0 +1,538 @@
+[gd_scene format=3 uid="uid://b57uwbicrtsne"]
+
+[ext_resource type="Theme" uid="uid://dg8yudjr3q5tj" path="res://themes/base_theme.tres" id="1_5p8wc"]
+[ext_resource type="Script" uid="uid://cjldire2gd7cv" path="res://scenes/settings/settings.gd" id="1_tt6xx"]
+[ext_resource type="Script" uid="uid://c6g8r0bahdwio" path="res://scenes/settings/settings_options.gd" id="2_vu5fi"]
+
+[node name="Settings" type="CanvasLayer" unique_id=743356449]
+script = ExtResource("1_tt6xx")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1350783841]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="Background" type="ColorRect" parent="." unique_id=828510961]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -346.0
+offset_top = -513.0
+offset_right = 346.0
+offset_bottom = 513.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_5p8wc")
+color = Color(0, 0, 0, 0.5686275)
+
+[node name="Label" type="Label" parent="." unique_id=1974879000]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -138.0
+offset_top = -497.0
+offset_right = 138.0
+offset_bottom = -414.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_5p8wc")
+theme_override_font_sizes/font_size = 60
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="SettingsScrollContainer" type="ScrollContainer" parent="." unique_id=1472286314]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -323.0
+offset_top = -382.0
+offset_right = 323.0
+offset_bottom = 431.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_5p8wc")
+
+[node name="SettingsOptions" type="VBoxContainer" parent="SettingsScrollContainer" unique_id=362767263]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_vu5fi")
+
+[node name="Gameplay" type="Label" parent="SettingsScrollContainer/SettingsOptions" unique_id=829871587]
+layout_mode = 2
+theme = ExtResource("1_5p8wc")
+theme_override_font_sizes/font_size = 25
+text = "GAMEPLAY"
+horizontal_alignment = 1
+
+[node name="ShowFPS" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1891374863]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/ShowFPS" unique_id=1923386268]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Show FPS Counter"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="SettingsScrollContainer/SettingsOptions/ShowFPS" unique_id=1677903130]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+
+[node name="SkipSplashScreen" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=340245799]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/SkipSplashScreen" unique_id=2119888476]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Skip Splash Screen"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="SettingsScrollContainer/SettingsOptions/SkipSplashScreen" unique_id=697722744]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+
+[node name="Graphics" type="Label" parent="SettingsScrollContainer/SettingsOptions" unique_id=927966214]
+layout_mode = 2
+theme = ExtResource("1_5p8wc")
+theme_override_font_sizes/font_size = 25
+text = "
+GRAPHICS"
+horizontal_alignment = 1
+
+[node name="Resolution" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1296864296]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Resolution" unique_id=1607466036]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Resolution"
+horizontal_alignment = 2
+
+[node name="OptionButton" type="OptionButton" parent="SettingsScrollContainer/SettingsOptions/Resolution" unique_id=887796038]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+alignment = 1
+
+[node name="ResolutionScaling" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1727728857]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/ResolutionScaling" unique_id=884592057]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "Resolution Scaling"
+horizontal_alignment = 2
+
+[node name="ScalingSettings" type="VBoxContainer" parent="SettingsScrollContainer/SettingsOptions/ResolutionScaling" unique_id=558571692]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="ScaleLabel" type="Label" parent="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=522432628]
+layout_mode = 2
+text = "100% - 1920x1080"
+horizontal_alignment = 1
+
+[node name="ScaleSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=1862229725]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_vertical = 4
+min_value = 50.0
+max_value = 200.0
+step = 5.0
+value = 100.0
+ticks_on_borders = true
+
+[node name="Scaler" type="OptionButton" parent="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=1512564634]
+layout_mode = 2
+alignment = 1
+selected = 0
+item_count = 2
+popup/item_0/text = "BILINEAR"
+popup/item_0/id = 0
+popup/item_1/text = "AMD FSR 2.2"
+popup/item_1/id = 1
+
+[node name="FSROptions" type="OptionButton" parent="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=1406646763]
+layout_mode = 2
+alignment = 1
+selected = 0
+item_count = 4
+popup/item_0/text = "Performance"
+popup/item_0/id = 0
+popup/item_1/text = "Balanced"
+popup/item_1/id = 1
+popup/item_2/text = "Quality"
+popup/item_2/id = 2
+popup/item_3/text = "Ultra Quality"
+popup/item_3/id = 3
+
+[node name="AntiAliasing" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=161983852]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/AntiAliasing" unique_id=16475869]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Anti Aliasing"
+horizontal_alignment = 2
+
+[node name="OptionButton" type="OptionButton" parent="SettingsScrollContainer/SettingsOptions/AntiAliasing" unique_id=1804665060]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+alignment = 1
+selected = 0
+item_count = 4
+popup/item_0/text = "Disabled"
+popup/item_0/id = 0
+popup/item_1/text = "MSAA 2x"
+popup/item_1/id = 1
+popup/item_2/text = "MSAA 4x"
+popup/item_2/id = 2
+popup/item_3/text = "MSAA 8x"
+popup/item_3/id = 3
+
+[node name="ScreenSpaceAA" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=2001991610]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/ScreenSpaceAA" unique_id=163097319]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Screen Space Anti Aliasing"
+horizontal_alignment = 2
+
+[node name="OptionButton" type="OptionButton" parent="SettingsScrollContainer/SettingsOptions/ScreenSpaceAA" unique_id=292823669]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+alignment = 1
+selected = 0
+item_count = 3
+popup/item_0/text = "Disabled"
+popup/item_0/id = 0
+popup/item_1/text = "FXAA"
+popup/item_1/id = 1
+popup/item_2/text = "SMAA"
+popup/item_2/id = 2
+
+[node name="Fullscreen" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1582883471]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Fullscreen" unique_id=1315584026]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Full Screen"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="SettingsScrollContainer/SettingsOptions/Fullscreen" unique_id=1909949520]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+
+[node name="Borderless" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=229239340]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Borderless" unique_id=654701984]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Borderless"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="SettingsScrollContainer/SettingsOptions/Borderless" unique_id=620280305]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+
+[node name="VSync" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=800618098]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/VSync" unique_id=1872642039]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "VSync"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="SettingsScrollContainer/SettingsOptions/VSync" unique_id=621790747]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+
+[node name="Screen" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1585295992]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Screen" unique_id=644169933]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Screen"
+horizontal_alignment = 2
+
+[node name="OptionButton" type="OptionButton" parent="SettingsScrollContainer/SettingsOptions/Screen" unique_id=1985076516]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+alignment = 1
+
+[node name="Brightness" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1498861331]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Brightness" unique_id=1407880892]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Brightness"
+horizontal_alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions/Brightness" unique_id=1926759233]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/Brightness/HBoxContainer" unique_id=1084105909]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 5.0
+theme_override_constants/center_grabber = 1
+min_value = 0.2
+max_value = 2.0
+step = 0.01
+value = 1.0
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Brightness/HBoxContainer" unique_id=2137938001]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "1.00"
+
+[node name="Contrast" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1002856027]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Contrast" unique_id=851972111]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Contrast"
+horizontal_alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions/Contrast" unique_id=517160151]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/Contrast/HBoxContainer" unique_id=2039489461]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 5.0
+theme_override_constants/center_grabber = 1
+min_value = 0.2
+max_value = 2.0
+step = 0.01
+value = 1.0
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/Contrast/HBoxContainer" unique_id=670879622]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "1.00"
+
+[node name="Audio" type="Label" parent="SettingsScrollContainer/SettingsOptions" unique_id=463516577]
+layout_mode = 2
+theme = ExtResource("1_5p8wc")
+theme_override_font_sizes/font_size = 25
+text = "
+AUDIO"
+horizontal_alignment = 1
+
+[node name="MasterVolume" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=557589436]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/MasterVolume" unique_id=375207967]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Master Volume"
+horizontal_alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions/MasterVolume" unique_id=1354301715]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/MasterVolume/HBoxContainer" unique_id=1931773377]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 5.0
+theme_override_constants/center_grabber = 1
+max_value = 1.0
+step = 0.001
+value = 1.0
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/MasterVolume/HBoxContainer" unique_id=2118601135]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "100%"
+
+[node name="MusicVolume" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1186586621]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/MusicVolume" unique_id=1509466792]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Music Volume"
+horizontal_alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions/MusicVolume" unique_id=1192617178]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/MusicVolume/HBoxContainer" unique_id=347883590]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 5.0
+theme_override_constants/center_grabber = 1
+max_value = 1.0
+step = 0.001
+value = 1.0
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/MusicVolume/HBoxContainer" unique_id=1473203652]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "100%"
+
+[node name="SFXVolume" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=1445639602]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/SFXVolume" unique_id=925837655]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SFX Volume"
+horizontal_alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions/SFXVolume" unique_id=1574684005]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/SFXVolume/HBoxContainer" unique_id=544875507]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 5.0
+theme_override_constants/center_grabber = 1
+max_value = 1.0
+step = 0.001
+value = 1.0
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/SFXVolume/HBoxContainer" unique_id=1406181226]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "100%"
+
+[node name="UIVolume" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions" unique_id=8700338]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/UIVolume" unique_id=2005361214]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI Volume"
+horizontal_alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsScrollContainer/SettingsOptions/UIVolume" unique_id=2042910877]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="HSlider" type="HSlider" parent="SettingsScrollContainer/SettingsOptions/UIVolume/HBoxContainer" unique_id=89329395]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 5.0
+theme_override_constants/center_grabber = 1
+max_value = 1.0
+step = 0.001
+value = 1.0
+
+[node name="Label" type="Label" parent="SettingsScrollContainer/SettingsOptions/UIVolume/HBoxContainer" unique_id=1401648826]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "100%"
+
+[node name="Button" type="Button" parent="." unique_id=1220412818]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = 427.0
+offset_right = 75.0
+offset_bottom = 495.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 30
+text = "DONE"
+
+[connection signal="toggled" from="SettingsScrollContainer/SettingsOptions/ShowFPS/CheckButton" to="SettingsScrollContainer/SettingsOptions" method="_on_fps_toggled"]
+[connection signal="toggled" from="SettingsScrollContainer/SettingsOptions/SkipSplashScreen/CheckButton" to="SettingsScrollContainer/SettingsOptions" method="_on_skip_splash_toggled"]
+[connection signal="item_selected" from="SettingsScrollContainer/SettingsOptions/Resolution/OptionButton" to="SettingsScrollContainer/SettingsOptions" method="_on_resolution_selected"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings/ScaleSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_resolution_scale_value_changed"]
+[connection signal="item_selected" from="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings/Scaler" to="SettingsScrollContainer/SettingsOptions" method="_on_resolution_scaler_selected"]
+[connection signal="item_selected" from="SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings/FSROptions" to="SettingsScrollContainer/SettingsOptions" method="_on_fsr_profile_selected"]
+[connection signal="item_selected" from="SettingsScrollContainer/SettingsOptions/AntiAliasing/OptionButton" to="SettingsScrollContainer/SettingsOptions" method="_on_aa_profile_selected"]
+[connection signal="item_selected" from="SettingsScrollContainer/SettingsOptions/ScreenSpaceAA/OptionButton" to="SettingsScrollContainer/SettingsOptions" method="_on_sp_aa_selected"]
+[connection signal="toggled" from="SettingsScrollContainer/SettingsOptions/Fullscreen/CheckButton" to="SettingsScrollContainer/SettingsOptions" method="_on_fullscreen_toggled"]
+[connection signal="toggled" from="SettingsScrollContainer/SettingsOptions/Borderless/CheckButton" to="SettingsScrollContainer/SettingsOptions" method="_on_borderless_toggled"]
+[connection signal="toggled" from="SettingsScrollContainer/SettingsOptions/VSync/CheckButton" to="SettingsScrollContainer/SettingsOptions" method="_on_vsync_toggled"]
+[connection signal="item_selected" from="SettingsScrollContainer/SettingsOptions/Screen/OptionButton" to="SettingsScrollContainer/SettingsOptions" method="_on_screen_selected"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/Brightness/HBoxContainer/HSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_brightness_value_changed"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/Contrast/HBoxContainer/HSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_contrast_value_changed"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/MasterVolume/HBoxContainer/HSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_master_volume_value_changed"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/MusicVolume/HBoxContainer/HSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_music_volume_value_changed"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/SFXVolume/HBoxContainer/HSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_sfx_volume_value_changed"]
+[connection signal="value_changed" from="SettingsScrollContainer/SettingsOptions/UIVolume/HBoxContainer/HSlider" to="SettingsScrollContainer/SettingsOptions" method="_on_ui_volume_value_changed"]
+[connection signal="pressed" from="Button" to="." method="_on_done_button_pressed"]

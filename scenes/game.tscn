@@ -1,8 +1,13 @@
 [gd_scene format=3 uid="uid://bxgvrhfmu0j1p"]
 
+[ext_resource type="Script" uid="uid://ds8nle36ygx3f" path="res://scenes/game.gd" id="1_lbhrr"]
 [ext_resource type="PackedScene" uid="uid://8vffnt3dnokf" path="res://SourceArt/table.glb" id="1_uwrxv"]
-[ext_resource type="Script" uid="uid://dotpk581kmvyh" path="res://scenes/fps_label.gd" id="2_lnu2h"]
+[ext_resource type="Script" uid="uid://dotpk581kmvyh" path="res://scenes/fps/fps_label.gd" id="2_lnu2h"]
 [ext_resource type="Script" uid="uid://2bfbjx0m5cbh" path="res://scenes/opetions_setting.gd" id="2_yqjtg"]
+[ext_resource type="Script" uid="uid://diy8h43dlm1pe" path="res://scenes/in-game-buttons/exit_button.gd" id="5_iywne"]
+[ext_resource type="Script" uid="uid://cmeufkej6avea" path="res://scenes/in-game-buttons/rules_button.gd" id="5_u5sy4"]
+[ext_resource type="Script" uid="uid://captmap80bi62" path="res://scenes/in-game-buttons/settings_button.gd" id="6_gee14"]
+[ext_resource type="PackedScene" uid="uid://b57uwbicrtsne" path="res://scenes/settings/settings.tscn" id="8_gee14"]
 
 [sub_resource type="Environment" id="Environment_uwrxv"]
 background_mode = 1
@@ -16,7 +21,14 @@ ssil_enabled = true
 glow_enabled = true
 adjustment_enabled = true
 
+[sub_resource type="BoxMesh" id="BoxMesh_lbhrr"]
+size = Vector3(0.09, 0.01, 0.03)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lnu2h"]
+size = Vector3(0.09, 0.01, 0.03)
+
 [node name="Game" type="Node3D" unique_id=1083706776]
+script = ExtResource("1_lbhrr")
 
 [node name="World" type="Node" parent="." unique_id=2093876012]
 
@@ -54,6 +66,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Optionals_Example" unique_id=1621539402]
 layout_mode = 1
@@ -133,6 +146,65 @@ text = "VSYNC Enabled"
 [node name="ScreenSelector" type="OptionButton" parent="Optionals_Example/HBoxContainer/Options_Setting" unique_id=1093448811]
 layout_mode = 2
 
+[node name="RulesButton" type="Area3D" parent="." unique_id=741056139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.39040712)
+script = ExtResource("5_u5sy4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RulesButton" unique_id=553933443]
+mesh = SubResource("BoxMesh_lbhrr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RulesButton" unique_id=1469616541]
+shape = SubResource("BoxShape3D_lnu2h")
+
+[node name="Label3D" type="Label3D" parent="RulesButton" unique_id=244250625]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
+pixel_size = 0.0005
+double_sided = false
+text = "RULES"
+
+[node name="SettingsButton" type="Area3D" parent="." unique_id=1672287641]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.42720136)
+script = ExtResource("6_gee14")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SettingsButton" unique_id=1428734863]
+mesh = SubResource("BoxMesh_lbhrr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SettingsButton" unique_id=1968802737]
+shape = SubResource("BoxShape3D_lnu2h")
+
+[node name="Label3D" type="Label3D" parent="SettingsButton" unique_id=2063338262]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
+pixel_size = 0.0005
+double_sided = false
+text = "SETTINGS"
+
+[node name="ExitButton" type="Area3D" parent="." unique_id=1201379859]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.4649234)
+script = ExtResource("5_iywne")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ExitButton" unique_id=123822554]
+mesh = SubResource("BoxMesh_lbhrr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ExitButton" unique_id=1233515144]
+shape = SubResource("BoxShape3D_lnu2h")
+
+[node name="Label3D" type="Label3D" parent="ExitButton" unique_id=452808007]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
+pixel_size = 0.0005
+double_sided = false
+text = "EXIT"
+
+[node name="FPSCounter" type="Label" parent="." unique_id=384976095]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+script = ExtResource("2_lnu2h")
+
+[node name="Settings" parent="." unique_id=743356449 instance=ExtResource("8_gee14")]
+
 [connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/Resolution_OptionButton" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_option_button_item_selected"]
 [connection signal="value_changed" from="Optionals_Example/HBoxContainer/Options_Setting/ScaleBox/ScaleSlider" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_scale_slider_value_changed"]
 [connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/Scaler" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_scaler_item_selected"]
@@ -140,3 +212,6 @@ layout_mode = 2
 [connection signal="toggled" from="Optionals_Example/HBoxContainer/Options_Setting/FullScreen_CheckBox" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_full_screen_check_box_toggled"]
 [connection signal="toggled" from="Optionals_Example/HBoxContainer/Options_Setting/VSync_CheckBox" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_v_sync_check_box_toggled"]
 [connection signal="item_selected" from="Optionals_Example/HBoxContainer/Options_Setting/ScreenSelector" to="Optionals_Example/HBoxContainer/Options_Setting" method="_on_screen_selector_item_selected"]
+[connection signal="input_event" from="RulesButton" to="RulesButton" method="_on_input_event"]
+[connection signal="input_event" from="SettingsButton" to="SettingsButton" method="_on_input_event"]
+[connection signal="input_event" from="ExitButton" to="ExitButton" method="_on_input_event"]
