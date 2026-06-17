@@ -1,9 +1,9 @@
 extends Node3D
 
 
-@onready var rules_button = get_node("RulesButton")
-@onready var exit_button = get_node("ExitButton")
-@onready var settings_button = get_node("SettingsButton")
+@onready var rules_button = get_node("Buttons/RulesButton")
+@onready var exit_button = get_node("Buttons/ExitButton")
+@onready var settings_button = get_node("Buttons/SettingsButton")
 
 
 func _ready() -> void:
@@ -21,6 +21,6 @@ func _on_settings_button_settings_pressed() -> void:
 
 
 func _on_exit_button_exit_pressed() -> void:
-	# TODO - save everything, shut down gracefully, communicate with Steam?
+	# TODO - shut down gracefully, communicate with Steam?
 	SaveManager.save_data()
 	get_tree().quit()

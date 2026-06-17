@@ -58,49 +58,51 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75236595, 0, -0.13492727)
 [node name="DiceCollection" type="Node3D" parent="." unique_id=655510905]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7743653, 0, 0.32411867)
 
-[node name="RulesButton" type="Area3D" parent="." unique_id=741056139]
+[node name="Buttons" type="Node3D" parent="." unique_id=1388815829]
+
+[node name="RulesButton" type="Area3D" parent="Buttons" unique_id=741056139]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.39040712)
 script = ExtResource("5_u5sy4")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RulesButton" unique_id=553933443]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/RulesButton" unique_id=553933443]
 mesh = SubResource("BoxMesh_lbhrr")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RulesButton" unique_id=1469616541]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buttons/RulesButton" unique_id=1469616541]
 shape = SubResource("BoxShape3D_lnu2h")
 
-[node name="Label3D" type="Label3D" parent="RulesButton" unique_id=244250625]
+[node name="Label3D" type="Label3D" parent="Buttons/RulesButton" unique_id=244250625]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
 pixel_size = 0.0005
 double_sided = false
 text = "RULES"
 
-[node name="SettingsButton" type="Area3D" parent="." unique_id=1672287641]
+[node name="SettingsButton" type="Area3D" parent="Buttons" unique_id=1672287641]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.42720136)
 script = ExtResource("6_gee14")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SettingsButton" unique_id=1428734863]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/SettingsButton" unique_id=1428734863]
 mesh = SubResource("BoxMesh_lbhrr")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SettingsButton" unique_id=1968802737]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buttons/SettingsButton" unique_id=1968802737]
 shape = SubResource("BoxShape3D_lnu2h")
 
-[node name="Label3D" type="Label3D" parent="SettingsButton" unique_id=2063338262]
+[node name="Label3D" type="Label3D" parent="Buttons/SettingsButton" unique_id=2063338262]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
 pixel_size = 0.0005
 double_sided = false
 text = "SETTINGS"
 
-[node name="ExitButton" type="Area3D" parent="." unique_id=1201379859]
+[node name="ExitButton" type="Area3D" parent="Buttons" unique_id=1201379859]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.4649234)
 script = ExtResource("5_iywne")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="ExitButton" unique_id=123822554]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/ExitButton" unique_id=123822554]
 mesh = SubResource("BoxMesh_lbhrr")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ExitButton" unique_id=1233515144]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Buttons/ExitButton" unique_id=1233515144]
 shape = SubResource("BoxShape3D_lnu2h")
 
-[node name="Label3D" type="Label3D" parent="ExitButton" unique_id=452808007]
+[node name="Label3D" type="Label3D" parent="Buttons/ExitButton" unique_id=452808007]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
 pixel_size = 0.0005
 double_sided = false
@@ -116,7 +118,8 @@ grow_horizontal = 0
 script = ExtResource("2_lnu2h")
 
 [node name="Settings" parent="." unique_id=743356449 instance=ExtResource("8_gee14")]
+visible = false
 
-[connection signal="input_event" from="RulesButton" to="RulesButton" method="_on_input_event"]
-[connection signal="input_event" from="SettingsButton" to="SettingsButton" method="_on_input_event"]
-[connection signal="input_event" from="ExitButton" to="ExitButton" method="_on_input_event"]
+[connection signal="input_event" from="Buttons/RulesButton" to="Buttons/RulesButton" method="_on_input_event"]
+[connection signal="input_event" from="Buttons/SettingsButton" to="Buttons/SettingsButton" method="_on_input_event"]
+[connection signal="input_event" from="Buttons/ExitButton" to="Buttons/ExitButton" method="_on_input_event"]

@@ -43,46 +43,25 @@ const RESOLUTIONS: Dictionary = {
 }
 
 
-## TODO - update to use DisplayServer as much as possible rather than editing properties on get_window() directly
-## TODO - tooltips
-## TODO - cleanup functions that are split in two for no reason
-## TODO - entry and exit animations
-## TODO - not scaling with resolution
-## TODO - saved data is not pulling through for resolutions
-
-
 func _ready() -> void:
-	populate_resolutions()
-	populate_screens()
-	check_and_apply_variables()
-	centre_window()
-
-
-## Adds supported resolutions to resolutions option button
-func populate_resolutions() -> void:
+	# Populate resolutions option button
 	for resolution in RESOLUTIONS:
 		resolution_options.add_item(resolution)
 
-
-## Adds existing screens to screens option button
-func populate_screens() -> void:
+	# Populate screens option button
 	var screens = DisplayServer.get_screen_count()
 	var current_screen = DisplayServer.window_get_current_screen()
-
 	for screen in screens:
 		screen_options.add_item("Screen: " + str(screen))
-	
 	screen_options.select(current_screen)
 
-
-## Restoring settings to what was saved or the default
-func check_and_apply_variables() -> void:
+	# Restoring settings to what was saved or the default
 	# Resolution
 	var set_resolution = SaveManager.settings_data.resolution
 	var resolution_key = str(int(set_resolution.x)) + "x" + str(int(set_resolution.y))
 	var selected_resolution = RESOLUTIONS.keys().find(resolution_key)
 	resolution_options.select(selected_resolution)
-	_on_resolution_selected(selected_resolution)	
+	_on_resolution_selected(selected_resolution)
 	# Resolution Scaling
 	resolution_scale_slider.set_value(SaveManager.settings_data.resolution_scale)
 	resolution_scaler_options.select(0 if SaveManager.settings_data.resolution_scaler == Viewport.SCALING_3D_MODE_BILINEAR else 1)
@@ -129,142 +108,23 @@ func check_and_apply_variables() -> void:
 	# Skip splash
 	skip_splash_checkbutton.set_pressed(SaveManager.settings_data.skip_splash)
 
-
-## Setting the resolution scaling method to use
-func set_scaler(scale_mode: int) -> void:
-	var viewport = get_viewport()
-
-	match scale_mode:
-		Viewport.SCALING_3D_MODE_BILINEAR: 
-			viewport.set_scaling_3d_mode(Viewport.SCALING_3D_MODE_BILINEAR)
-			resolution_scale_slider.set_editable(true)
-			resolution_fsr_options.hide()
-		Viewport.SCALING_3D_MODE_FSR2: 
-			viewport.set_scaling_3d_mode(Viewport.SCALING_3D_MODE_FSR2)
-			resolution_scale_slider.set_editable(false)
-			resolution_fsr_options.show()
-
-
-## Setting the scale slider to the scale that matches FSR profile presets
-func set_fsr_scale(scale_profile: int) -> void:
-	match scale_profile:
-		0: 
-			_on_resolution_scale_value_changed(50.0)
-		1: 
-			_on_resolution_scale_value_changed(59.0)
-		2: 
-			_on_resolution_scale_value_changed(67.0)
-		3: 
-			_on_resolution_scale_value_changed(77.0)
-
-
-## Setting the anti-aliasing profile to use
-func set_anti_aliasing_mode(anti_aliasing_mode: int) -> void:
-	match anti_aliasing_mode:
-		0: 
-			get_viewport().msaa_3d = Viewport.MSAA_DISABLED
-		1: 
-			get_viewport().msaa_3d = Viewport.MSAA_2X
-		2: 
-			get_viewport().msaa_3d = Viewport.MSAA_4X
-		3: 
-			get_viewport().msaa_3d = Viewport.MSAA_8X
-
-
-## Setting the screen space anti-aliasing profile to use
-func set_screen_space_aa_mode(anti_aliasing_mode: int) -> void:
-	match anti_aliasing_mode:
-		0: 
-			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
-		1: 
-			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
-		2: 
-			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
-
-
-## Setting window fullscreen status
-func set_fullscreen(fullscreen: bool) -> void:
-	if fullscreen:
-		get_window().set_mode(Window.MODE_FULLSCREEN)
-	else:
-		get_window().set_mode(Window.MODE_WINDOWED)
-		get_window().set_current_screen(SaveManager.settings_data.screen)
-		centre_window()
-	resolution_options.set_disabled(fullscreen)
-
-
-## Setting the window border status
-func set_borderless(borderless: bool) -> void:
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, borderless)
-
-
-## Setting the window vsync status
-func set_vsync(vsync: bool) -> void:
-	DisplayServer.window_set_vsync_mode(1 if vsync else 0)
-
-
-## Setting the screen to display window on
-func set_screen(screen: int) -> void:
-	get_window().set_current_screen(screen)
-
-
-## Setting the brightness
-func set_brightness(brightness: float) -> void:
-	get_tree().get_root().get_node("Game/World/WorldEnvironment").environment.adjustment_brightness = brightness
-	brightness_label.set_text(str(brightness))
-
-
-## Setting the contrast
-func set_contrast(contrast: float) -> void:
-	get_tree().get_root().get_node("Game/World/WorldEnvironment").environment.adjustment_contrast = contrast
-	contrast_label.set_text(str(contrast))
-
-
-## Setting the master volume
-func set_master_volume(percentage: float) -> void:
-	var db_value = linear_to_db(percentage)
-	AudioServer.set_bus_volume_db(0, db_value)
-	master_volume_label.set_text(str(int(percentage * 100.0)))
-
-
-## Setting the music volume
-func set_music_volume(percentage: float) -> void:
-	var db_value = linear_to_db(percentage)
-	AudioServer.set_bus_volume_db(1, db_value)
-	music_volume_label.set_text(str(int(percentage * 100.0)))
-
-
-## Setting the SFX volume
-func set_sfx_volume(percentage: float) -> void:
-	var db_value = linear_to_db(percentage)
-	AudioServer.set_bus_volume_db(2, db_value)
-	sfx_volume_label.set_text(str(int(percentage * 100.0)))
-
-
-## Setting the UI volume
-func set_ui_volume(percentage: float) -> void:
-	var db_value = linear_to_db(percentage)
-	AudioServer.set_bus_volume_db(3, db_value)
-	ui_volume_label.set_text(str(int(percentage * 100.0)))
+	centre_window()
 
 
 ## Centring the window after its size is set
 func centre_window() -> void:
 	var centre_screen = DisplayServer.screen_get_position() + Vector2i(DisplayServer.screen_get_size() / 2.0)
 	var window_size = get_window().get_size_with_decorations()
-	DisplayServer.window_set_position(centre_screen - Vector2i(window_size / 2.0))
+	get_window().position = centre_screen - Vector2i(window_size / 2.0)
 
 
 ## Setting the text that shows on the resolutions options button - called when resolution is changed independently - resets resolution scale
 func set_resolution_text() -> void:
 	var resolution_text = str(get_window().get_size().x) + "x" + str(get_window().get_size().y)
 	resolution_options.set_text(resolution_text)
-	resolution_scale_slider.set_value(100.0)
+	resolution_scale_slider.set_value(50.0)
+	resolution_scale_slider.set_value(100.0) # Two changes so that it calls the value changed signal
 
-
-## =============================================================
-## Incoming signals
-## =============================================================
 
 ## Reacting to FPS button press
 func _on_fps_toggled(toggled_on: bool) -> void:
@@ -301,31 +161,70 @@ func _on_resolution_scale_value_changed(value: float) -> void:
 ## Reacting to resolution scaler options button press
 func _on_resolution_scaler_selected(index: int) -> void:
 	var scaler = Viewport.SCALING_3D_MODE_BILINEAR if index == 0 else Viewport.SCALING_3D_MODE_FSR2
-	set_scaler(scaler)
+	var viewport = get_viewport()
+	match scaler:
+		Viewport.SCALING_3D_MODE_BILINEAR: 
+			viewport.set_scaling_3d_mode(Viewport.SCALING_3D_MODE_BILINEAR)
+			resolution_scale_slider.set_editable(true)
+			resolution_fsr_options.hide()
+		Viewport.SCALING_3D_MODE_FSR2: 
+			viewport.set_scaling_3d_mode(Viewport.SCALING_3D_MODE_FSR2)
+			resolution_scale_slider.set_editable(false)
+			resolution_fsr_options.show()
 	SaveManager.settings_data.resolution_scaler = scaler
 
 
 ## Reacting to FSR profile options button press
 func _on_fsr_profile_selected(index: int) -> void:
-	set_fsr_scale(index)
+	match index:
+		0: 
+			_on_resolution_scale_value_changed(50.0)
+		1: 
+			_on_resolution_scale_value_changed(59.0)
+		2: 
+			_on_resolution_scale_value_changed(67.0)
+		3: 
+			_on_resolution_scale_value_changed(77.0)
 	SaveManager.settings_data.fsr_profile = index
 
 
 ## Reacting to anti-aliasing profile options button press
 func _on_aa_profile_selected(index: int) -> void:
-	set_anti_aliasing_mode(index)
+	match index:
+		0: 
+			get_viewport().msaa_3d = Viewport.MSAA_DISABLED
+		1: 
+			get_viewport().msaa_3d = Viewport.MSAA_2X
+		2: 
+			get_viewport().msaa_3d = Viewport.MSAA_4X
+		3: 
+			get_viewport().msaa_3d = Viewport.MSAA_8X
+
 	SaveManager.settings_data.antialiasing = index
 
 
 ## Reacting to screen space anti-aliasing profile options button press
 func _on_sp_aa_selected(index: int) -> void:
-	set_screen_space_aa_mode(index)
+	match index:
+		0: 
+			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		1: 
+			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+		2: 
+			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
+	
 	SaveManager.settings_data.screen_space_aa = index
 
 
 ## Reacting to fullscreen button press
 func _on_fullscreen_toggled(toggled_on: bool) -> void:
-	set_fullscreen(toggled_on)
+	if toggled_on:
+		get_window().set_mode(Window.MODE_FULLSCREEN)
+	else:
+		get_window().set_mode(Window.MODE_WINDOWED)
+		get_window().set_current_screen(SaveManager.settings_data.screen)
+		centre_window()
+	resolution_options.set_disabled(toggled_on)
 	SaveManager.settings_data.fullscreen = toggled_on
 	await get_tree().create_timer(0.05).timeout
 	set_resolution_text()
@@ -333,54 +232,63 @@ func _on_fullscreen_toggled(toggled_on: bool) -> void:
 
 ## Reacting to borderless button press
 func _on_borderless_toggled(toggled_on: bool) -> void:
-	set_borderless(toggled_on)
+	get_window().borderless = toggled_on
 	SaveManager.settings_data.borderless = toggled_on
 
 
 ## Reacting to vsync button press
 func _on_vsync_toggled(toggled_on: bool) -> void:
-	set_vsync(toggled_on)
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if toggled_on else DisplayServer.VSYNC_DISABLED)
 	SaveManager.settings_data.vsync = toggled_on
 
 
 ## Reacting to screen selector button press
 func _on_screen_selected(index: int) -> void:
-	set_screen(index)
+	get_window().set_current_screen(index)
 	SaveManager.settings_data.screen = index
 
 
 ## Reacting to brightness slider change
 func _on_brightness_value_changed(value: float) -> void:
-	set_brightness(value)
+	get_tree().get_root().get_node("Game/World/WorldEnvironment").environment.adjustment_brightness = value
+	brightness_label.set_text(str(value).pad_decimals(2))
 	SaveManager.settings_data.brightness = value
 
 
 ## Reacting to contrast slider change
 func _on_contrast_value_changed(value: float) -> void:
-	set_contrast(value)
+	get_tree().get_root().get_node("Game/World/WorldEnvironment").environment.adjustment_contrast = value
+	contrast_label.set_text(str(value).pad_decimals(2))
 	SaveManager.settings_data.contrast = value
 
 
 ## Reacting to master volume slider change
 func _on_master_volume_value_changed(value: float) -> void:
-	set_master_volume(value)
+	var db_value = linear_to_db(value)
+	AudioServer.set_bus_volume_db(0, db_value)
+	master_volume_label.set_text(str(int(value * 100.0)))
 	SaveManager.settings_data.master_volume = value
 
 
 ## Reacting to music volume slider change
 func _on_music_volume_value_changed(value: float) -> void:
-	set_music_volume(value)
+	var db_value = linear_to_db(value)
+	AudioServer.set_bus_volume_db(1, db_value)
+	music_volume_label.set_text(str(int(value * 100.0)))
 	SaveManager.settings_data.music_volume = value
 
 
 ## Reacting to SFX volume slider change
 func _on_sfx_volume_value_changed(value: float) -> void:
-	set_sfx_volume(value)
+	var db_value = linear_to_db(value)
+	AudioServer.set_bus_volume_db(2, db_value)
+	sfx_volume_label.set_text(str(int(value * 100.0)))
 	SaveManager.settings_data.sfx_volume = value
 
 
 ## Reacting to UI volume slider change
 func _on_ui_volume_value_changed(value: float) -> void:
-	set_ui_volume(value)
+	var db_value = linear_to_db(value)
+	AudioServer.set_bus_volume_db(3, db_value)
+	ui_volume_label.set_text(str(int(value * 100.0)))
 	SaveManager.settings_data.ui_volume = value
-	pass # Replace with function body.

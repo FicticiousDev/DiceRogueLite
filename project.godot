@@ -27,6 +27,7 @@ SaveManager="*uid://c8brsiarx6dy"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
 
 [physics]
 

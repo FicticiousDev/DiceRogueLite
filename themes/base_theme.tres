@@ -215,3 +215,4 @@ PanelContainer/styles/panel = SubResource("StyleBoxFlat_u2qju")
 PopupMenu/font_sizes/font_size = 16
 ProgressBar/styles/background = SubResource("StyleBoxEmpty_lqa7g")
 ProgressBar/styles/fill = SubResource("StyleBoxFlat_3cr1a")
+TooltipLabel/font_sizes/font_size = 16
