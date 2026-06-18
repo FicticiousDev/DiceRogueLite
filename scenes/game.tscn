@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://diy8h43dlm1pe" path="res://scenes/in-game-buttons/exit_button.gd" id="5_iywne"]
 [ext_resource type="Script" uid="uid://cmeufkej6avea" path="res://scenes/in-game-buttons/rules_button.gd" id="5_u5sy4"]
 [ext_resource type="Script" uid="uid://captmap80bi62" path="res://scenes/in-game-buttons/settings_button.gd" id="6_gee14"]
+[ext_resource type="PackedScene" uid="uid://j6dm0mmlnui0" path="res://scenes/splash/splash_screen.tscn" id="8_0tnpc"]
 [ext_resource type="PackedScene" uid="uid://b57uwbicrtsne" path="res://scenes/settings/settings.tscn" id="8_gee14"]
 
 [sub_resource type="Environment" id="Environment_uwrxv"]
@@ -77,7 +78,7 @@ double_sided = false
 text = "RULES"
 
 [node name="SettingsButton" type="Area3D" parent="Buttons" unique_id=1672287641]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.42720136)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.42777073)
 script = ExtResource("6_gee14")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/SettingsButton" unique_id=1428734863]
@@ -119,6 +120,8 @@ script = ExtResource("2_lnu2h")
 
 [node name="Settings" parent="." unique_id=743356449 instance=ExtResource("8_gee14")]
 visible = false
+
+[node name="SplashScreen" parent="." unique_id=632976299 instance=ExtResource("8_0tnpc")]
 
 [connection signal="input_event" from="Buttons/RulesButton" to="Buttons/RulesButton" method="_on_input_event"]
 [connection signal="input_event" from="Buttons/SettingsButton" to="Buttons/SettingsButton" method="_on_input_event"]

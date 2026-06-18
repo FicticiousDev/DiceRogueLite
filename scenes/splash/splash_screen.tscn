@@ -1,0 +1,181 @@
+[gd_scene format=3 uid="uid://j6dm0mmlnui0"]
+
+[ext_resource type="Script" uid="uid://basyvpkkjjnm" path="res://scenes/splash/splash_screen.gd" id="1_oj7jr"]
+[ext_resource type="Texture2D" uid="uid://dwehd31yx1epp" path="res://assets/splash/studio.png" id="1_pxl2w"]
+[ext_resource type="Texture2D" uid="uid://dbn8ogwtneo2" path="res://assets/splash/engine.png" id="2_oj7jr"]
+[ext_resource type="Texture2D" uid="uid://b24y434misces" path="res://assets/splash/game.png" id="4_vjk7c"]
+
+[node name="SplashScreen" type="CanvasLayer" unique_id=632976299]
+script = ExtResource("1_oj7jr")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1322027994]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Studio" type="Control" parent="." unique_id=952803934]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Image" type="TextureRect" parent="Studio" unique_id=2147325062]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -411.00003
+offset_top = -424.00003
+offset_right = 613.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("1_pxl2w")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="Studio" unique_id=1457635350]
+layout_mode = 0
+offset_left = -103.0
+offset_top = 305.0
+offset_right = 138.0
+offset_bottom = 374.0
+theme_override_font_sizes/font_size = 50
+text = "PRESENTS"
+horizontal_alignment = 1
+
+[node name="Target" type="TextureRect" parent="Studio" unique_id=899356947]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -915.0
+offset_top = 285.99994
+offset_right = 109.0
+offset_bottom = 1310.0
+grow_vertical = 0
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("1_pxl2w")
+expand_mode = 1
+
+[node name="Engine" type="Control" parent="." unique_id=445644082]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Image" type="TextureRect" parent="Engine" unique_id=1092904095]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_oj7jr")
+
+[node name="Label" type="Label" parent="Engine" unique_id=853740791]
+layout_mode = 0
+offset_left = -213.0
+offset_top = 319.0
+offset_right = 265.0
+offset_bottom = 388.0
+theme_override_font_sizes/font_size = 50
+text = "MADE WITH GODOT"
+horizontal_alignment = 1
+
+[node name="Target" type="TextureRect" parent="Engine" unique_id=453685651]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 711.0
+offset_top = 287.99994
+offset_right = 1735.0
+offset_bottom = 1312.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_oj7jr")
+
+[node name="Game" type="Control" parent="." unique_id=1246989894]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Image" type="TextureRect" parent="Game" unique_id=1774601834]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+texture = ExtResource("4_vjk7c")
+
+[node name="Target" type="TextureRect" parent="Game" unique_id=453833020]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -512.0
+offset_top = -512.0
+offset_right = 512.0
+offset_bottom = 512.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.1675516
+scale = Vector2(0.3, 0.2)
+pivot_offset_ratio = Vector2(0.5, 0.5)
+texture = ExtResource("4_vjk7c")
