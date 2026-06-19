@@ -27,7 +27,7 @@ func show_logo(logo: Control) -> void:
 	await fade_in_and_hold(logo)
 	
 	# Fade out label and move image
-	var fade_out_label_tween := create_tween().tween_property(logo.get_node("Label"), "modulate", Color(1,1,1,0), fade_out_label_time)
+	create_tween().tween_property(logo.get_node("Label"), "modulate", Color(1,1,1,0), fade_out_label_time)
 	await translate_iamge_to_target(logo.get_node("Image"), logo.get_node("Target"))
 
 

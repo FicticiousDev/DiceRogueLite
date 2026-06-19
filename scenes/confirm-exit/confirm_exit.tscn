@@ -1,0 +1,106 @@
+[gd_scene format=3 uid="uid://ddd2axbblo5i3"]
+
+[ext_resource type="Script" uid="uid://bspbhq7ueyfed" path="res://scenes/confirm-exit/confirm_exit.gd" id="1_pim5u"]
+[ext_resource type="Texture2D" uid="uid://d2a4y6xkigyt5" path="res://assets/ui/doneButton.png" id="1_ulshi"]
+[ext_resource type="Texture2D" uid="uid://3584u2308qbj" path="res://assets/ui/doneButtonDisabled.png" id="2_pim5u"]
+[ext_resource type="Texture2D" uid="uid://b07ir3eojna2q" path="res://assets/ui/doneButtonHover.png" id="3_1g6xk"]
+[ext_resource type="Texture2D" uid="uid://vr1he5lbhgqi" path="res://assets/ui/cancelButton.png" id="4_2tqfx"]
+[ext_resource type="Texture2D" uid="uid://wdmdb7tgo2l1" path="res://assets/ui/cancelButtonDisabled.png" id="5_pjw1s"]
+[ext_resource type="Texture2D" uid="uid://dxhan38w85dda" path="res://assets/ui/cancelButtonHover.png" id="6_2jycb"]
+
+[node name="ConfirmExit" type="CanvasLayer" unique_id=68019965]
+script = ExtResource("1_pim5u")
+
+[node name="MouseBlocker" type="ColorRect" parent="." unique_id=1344213311]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="Panel" type="Panel" parent="." unique_id=1363982923]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -365.0
+offset_top = -205.0
+offset_right = 365.0
+offset_bottom = 205.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="Panel" unique_id=579215222]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -163.0
+offset_right = 56.0
+offset_bottom = -140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 34
+text = "CONFIRM EXIT"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="Panel" unique_id=1063733550]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -146.0
+offset_top = -61.0
+offset_right = 147.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "Are you sure you want to exit?
+Current run will be ended and progress lost."
+horizontal_alignment = 1
+
+[node name="Confirm" type="TextureButton" parent="Panel" unique_id=488855398]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 45.0
+offset_right = -50.0
+offset_bottom = 144.99963
+grow_horizontal = 2
+grow_vertical = 2
+texture_normal = ExtResource("1_ulshi")
+texture_pressed = ExtResource("2_pim5u")
+texture_hover = ExtResource("3_1g6xk")
+ignore_texture_size = true
+stretch_mode = 4
+
+[node name="Cancel" type="TextureButton" parent="Panel" unique_id=1681132605]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 50.0
+offset_top = 45.0
+offset_right = 150.0
+offset_bottom = 144.99963
+grow_horizontal = 2
+grow_vertical = 2
+texture_normal = ExtResource("4_2tqfx")
+texture_pressed = ExtResource("5_pjw1s")
+texture_hover = ExtResource("6_2jycb")
+ignore_texture_size = true
+stretch_mode = 4

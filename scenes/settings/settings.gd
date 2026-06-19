@@ -1,4 +1,5 @@
 extends CanvasLayer
+class_name SettingsScene
 
 @onready var menu = $Menu
 

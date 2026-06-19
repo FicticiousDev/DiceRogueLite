@@ -3,11 +3,14 @@
 [ext_resource type="Script" uid="uid://ds8nle36ygx3f" path="res://scenes/game.gd" id="1_lbhrr"]
 [ext_resource type="PackedScene" uid="uid://8vffnt3dnokf" path="res://SourceArt/table.glb" id="1_uwrxv"]
 [ext_resource type="Script" uid="uid://dotpk581kmvyh" path="res://scenes/fps/fps_label.gd" id="2_lnu2h"]
-[ext_resource type="Script" uid="uid://diy8h43dlm1pe" path="res://scenes/in-game-buttons/exit_button.gd" id="5_iywne"]
-[ext_resource type="Script" uid="uid://cmeufkej6avea" path="res://scenes/in-game-buttons/rules_button.gd" id="5_u5sy4"]
-[ext_resource type="Script" uid="uid://captmap80bi62" path="res://scenes/in-game-buttons/settings_button.gd" id="6_gee14"]
+[ext_resource type="Script" uid="uid://cmeufkej6avea" path="res://scenes/rules/rules_button.gd" id="5_u5sy4"]
+[ext_resource type="Texture2D" uid="uid://bvfuns4bv5ewx" path="res://assets/ui/SettingsButtonActive.png" id="7_dinhu"]
 [ext_resource type="PackedScene" uid="uid://j6dm0mmlnui0" path="res://scenes/splash/splash_screen.tscn" id="8_0tnpc"]
 [ext_resource type="PackedScene" uid="uid://b57uwbicrtsne" path="res://scenes/settings/settings.tscn" id="8_gee14"]
+[ext_resource type="Texture2D" uid="uid://dpxu7mcxh327t" path="res://assets/ui/SettingsButtonPressed.png" id="8_kvuet"]
+[ext_resource type="Texture2D" uid="uid://bwq5r7hhi6ak4" path="res://assets/ui/quitButton.png" id="9_trtic"]
+[ext_resource type="Texture2D" uid="uid://dcvpwnc6qs0ro" path="res://assets/ui/quitButtonPressed.png" id="10_ir15t"]
+[ext_resource type="PackedScene" uid="uid://ddd2axbblo5i3" path="res://scenes/confirm-exit/confirm_exit.tscn" id="10_kvpfn"]
 
 [sub_resource type="Environment" id="Environment_uwrxv"]
 background_mode = 1
@@ -21,11 +24,18 @@ ssil_enabled = true
 glow_enabled = true
 adjustment_enabled = true
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kvpfn"]
+albedo_color = Color(0.0018410676, 0.0018410684, 0.0018410675, 1)
+metallic = 0.61
+metallic_specular = 0.79
+roughness = 0.3
+
 [sub_resource type="BoxMesh" id="BoxMesh_lbhrr"]
-size = Vector3(0.09, 0.01, 0.03)
+material = SubResource("StandardMaterial3D_kvpfn")
+size = Vector3(0.2, 0.01, 0.26)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_lnu2h"]
-size = Vector3(0.09, 0.01, 0.03)
+size = Vector3(0.2, 0.01, 0.26)
 
 [node name="Game" type="Node3D" unique_id=1083706776]
 script = ExtResource("1_lbhrr")
@@ -59,55 +69,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75236595, 0, -0.13492727)
 [node name="DiceCollection" type="Node3D" parent="." unique_id=655510905]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7743653, 0, 0.32411867)
 
-[node name="Buttons" type="Node3D" parent="." unique_id=1388815829]
-
-[node name="RulesButton" type="Area3D" parent="Buttons" unique_id=741056139]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.39040712)
+[node name="Rulebook" type="Area3D" parent="." unique_id=741056139]
+transform = Transform3D(0.86602545, 0, 0.50000006, 0, 1, 0, -0.50000006, 0, 0.86602545, -0.8158141, 0.033033684, 0.34398624)
 script = ExtResource("5_u5sy4")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/RulesButton" unique_id=553933443]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Rulebook" unique_id=553933443]
 mesh = SubResource("BoxMesh_lbhrr")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Buttons/RulesButton" unique_id=1469616541]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rulebook" unique_id=1469616541]
 shape = SubResource("BoxShape3D_lnu2h")
 
-[node name="Label3D" type="Label3D" parent="Buttons/RulesButton" unique_id=244250625]
+[node name="Label3D" type="Label3D" parent="Rulebook" unique_id=244250625]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
 pixel_size = 0.0005
 double_sided = false
 text = "RULES"
-
-[node name="SettingsButton" type="Area3D" parent="Buttons" unique_id=1672287641]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.42777073)
-script = ExtResource("6_gee14")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/SettingsButton" unique_id=1428734863]
-mesh = SubResource("BoxMesh_lbhrr")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Buttons/SettingsButton" unique_id=1968802737]
-shape = SubResource("BoxShape3D_lnu2h")
-
-[node name="Label3D" type="Label3D" parent="Buttons/SettingsButton" unique_id=2063338262]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
-pixel_size = 0.0005
-double_sided = false
-text = "SETTINGS"
-
-[node name="ExitButton" type="Area3D" parent="Buttons" unique_id=1201379859]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7956936, 0.033033684, 0.4649234)
-script = ExtResource("5_iywne")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Buttons/ExitButton" unique_id=123822554]
-mesh = SubResource("BoxMesh_lbhrr")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Buttons/ExitButton" unique_id=1233515144]
-shape = SubResource("BoxShape3D_lnu2h")
-
-[node name="Label3D" type="Label3D" parent="Buttons/ExitButton" unique_id=452808007]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
-pixel_size = 0.0005
-double_sided = false
-text = "EXIT"
 
 [node name="FPSCounter" type="Label" parent="." unique_id=384976095]
 anchors_preset = 1
@@ -118,11 +94,35 @@ offset_bottom = 23.0
 grow_horizontal = 0
 script = ExtResource("2_lnu2h")
 
+[node name="SettingsButton" type="TextureButton" parent="." unique_id=869977994]
+offset_left = 60.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 50.0
+texture_normal = ExtResource("7_dinhu")
+texture_pressed = ExtResource("8_kvuet")
+ignore_texture_size = true
+stretch_mode = 4
+
+[node name="ExitButton" type="TextureButton" parent="." unique_id=305539373]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 50.0
+offset_bottom = 50.0
+texture_normal = ExtResource("9_trtic")
+texture_pressed = ExtResource("10_ir15t")
+ignore_texture_size = true
+stretch_mode = 4
+
 [node name="Settings" parent="." unique_id=743356449 instance=ExtResource("8_gee14")]
 visible = false
 
-[node name="SplashScreen" parent="." unique_id=632976299 instance=ExtResource("8_0tnpc")]
+[node name="ConfirmExit" parent="." unique_id=68019965 instance=ExtResource("10_kvpfn")]
+visible = false
 
-[connection signal="input_event" from="Buttons/RulesButton" to="Buttons/RulesButton" method="_on_input_event"]
-[connection signal="input_event" from="Buttons/SettingsButton" to="Buttons/SettingsButton" method="_on_input_event"]
-[connection signal="input_event" from="Buttons/ExitButton" to="Buttons/ExitButton" method="_on_input_event"]
+[node name="SplashScreen" parent="." unique_id=632976299 instance=ExtResource("8_0tnpc")]
+visible = false
+
+[connection signal="input_event" from="Rulebook" to="Rulebook" method="_on_input_event"]
+[connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_settings_pressed"]
+[connection signal="pressed" from="ExitButton" to="." method="_on_exit_button_exit_pressed"]
