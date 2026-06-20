@@ -47,6 +47,7 @@ environment = SubResource("Environment_uwrxv")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="World" unique_id=849584970]
 transform = Transform3D(1, 0, 0, 0, 0.25881907, 0.9659258, 0, -0.9659258, 0.25881907, 0, 3, 5)
+shadow_enabled = true
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1426354172]
 transform = Transform3D(1, 0, 0, 0, 0.08246041, 0.99659437, 0, -0.99659437, 0.08246041, 0, 0.74889445, 0.09480062)

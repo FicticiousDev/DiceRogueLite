@@ -68,6 +68,8 @@ func _ready() -> void:
 	resolution_fsr_options.select(SaveManager.settings_data.fsr_profile)
 	if SaveManager.settings_data.resolution_scaler != Viewport.SCALING_3D_MODE_FSR2:
 		resolution_fsr_options.hide()
+	# else:
+	# 	_on_fsr_profile_selected(SaveManager.settings_data.fsr_profile)
 	# AA
 	anti_aliasing_options.select(SaveManager.settings_data.antialiasing)
 	_on_aa_profile_selected(SaveManager.settings_data.antialiasing)
@@ -122,8 +124,6 @@ func centre_window() -> void:
 func set_resolution_text() -> void:
 	var resolution_text = str(get_window().get_size().x) + "x" + str(get_window().get_size().y)
 	resolution_options.set_text(resolution_text)
-	resolution_scale_slider.set_value(50.0)
-	resolution_scale_slider.set_value(100.0) # Two changes so that it calls the value changed signal
 
 
 ## Reacting to FPS button press
@@ -143,8 +143,6 @@ func _on_resolution_selected(index: int) -> void:
 	set_resolution_text()
 	centre_window()
 	SaveManager.settings_data.resolution = RESOLUTIONS[resolution_id]
-	await get_tree().create_timer(0.005).timeout
-	_on_resolution_scale_value_changed(100.0)
 
 
 ## Reacting to resolution scale slider change
@@ -171,6 +169,7 @@ func _on_resolution_scaler_selected(index: int) -> void:
 			viewport.set_scaling_3d_mode(Viewport.SCALING_3D_MODE_FSR2)
 			resolution_scale_slider.set_editable(false)
 			resolution_fsr_options.show()
+			_on_fsr_profile_selected(SaveManager.settings_data.fsr_profile)
 	SaveManager.settings_data.resolution_scaler = scaler
 
 
@@ -178,13 +177,13 @@ func _on_resolution_scaler_selected(index: int) -> void:
 func _on_fsr_profile_selected(index: int) -> void:
 	match index:
 		0: 
-			_on_resolution_scale_value_changed(50.0)
+			resolution_scale_slider.set_value(50.0)
 		1: 
-			_on_resolution_scale_value_changed(59.0)
+			resolution_scale_slider.set_value(59.0)
 		2: 
-			_on_resolution_scale_value_changed(67.0)
+			resolution_scale_slider.set_value(67.0)
 		3: 
-			_on_resolution_scale_value_changed(77.0)
+			resolution_scale_slider.set_value(77.0)
 	SaveManager.settings_data.fsr_profile = index
 
 
