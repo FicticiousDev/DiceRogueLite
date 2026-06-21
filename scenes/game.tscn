@@ -11,12 +11,13 @@
 [ext_resource type="Texture2D" uid="uid://bwq5r7hhi6ak4" path="res://assets/ui/quitButton.png" id="9_trtic"]
 [ext_resource type="Texture2D" uid="uid://dcvpwnc6qs0ro" path="res://assets/ui/quitButtonPressed.png" id="10_ir15t"]
 [ext_resource type="PackedScene" uid="uid://ddd2axbblo5i3" path="res://scenes/confirm-exit/confirm_exit.tscn" id="10_kvpfn"]
+[ext_resource type="PackedScene" uid="uid://3uff0ai2xake" path="res://scenes/rules/rules_ui.tscn" id="11_rules_ui"]
 
 [sub_resource type="Environment" id="Environment_uwrxv"]
 background_mode = 1
 ambient_light_source = 2
-ambient_light_color = Color(0.52906674, 0.5290667, 0.5290667, 1)
-ambient_light_energy = 0.5
+ambient_light_color = Color(0.8474744, 0.84747446, 0.8474743, 1)
+ambient_light_energy = 1.5
 reflected_light_source = 1
 ssr_enabled = true
 ssao_enabled = true
@@ -37,6 +38,27 @@ size = Vector3(0.2, 0.01, 0.26)
 [sub_resource type="BoxShape3D" id="BoxShape3D_lnu2h"]
 size = Vector3(0.2, 0.01, 0.26)
 
+[sub_resource type="Animation" id="Animation_open_rules"]
+resource_name = "open_rules"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rules_open_ratio")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(0.3, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_rules"]
+_data = {
+&"open_rules": SubResource("Animation_open_rules")
+}
+
 [node name="Game" type="Node3D" unique_id=1083706776]
 script = ExtResource("1_lbhrr")
 
@@ -47,7 +69,11 @@ environment = SubResource("Environment_uwrxv")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="World" unique_id=849584970]
 transform = Transform3D(1, 0, 0, 0, 0.25881907, 0.9659258, 0, -0.9659258, 0.25881907, 0, 3, 5)
+visible = false
 shadow_enabled = true
+
+[node name="OmniLight3D" type="OmniLight3D" parent="World" unique_id=364497455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.140948, -1.3736076)
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1426354172]
 transform = Transform3D(1, 0, 0, 0, 0.08246041, 0.99659437, 0, -0.99659437, 0.08246041, 0, 0.74889445, 0.09480062)
@@ -123,6 +149,12 @@ visible = false
 
 [node name="SplashScreen" parent="." unique_id=632976299 instance=ExtResource("8_0tnpc")]
 visible = false
+
+[node name="RulesUI" parent="." unique_id=987162541 instance=ExtResource("11_rules_ui")]
+visible = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1990573726]
+libraries/ = SubResource("AnimationLibrary_rules")
 
 [connection signal="input_event" from="Rulebook" to="Rulebook" method="_on_input_event"]
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_settings_pressed"]
