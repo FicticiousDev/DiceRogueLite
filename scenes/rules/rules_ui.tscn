@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://cptnwsjj0rtgr" path="res://assets/rules/rule_placeholder_1.png" id="3_h08ta"]
 [ext_resource type="Texture2D" uid="uid://djxur7qhakksw" path="res://assets/rules/rule_placeholder_2.png" id="4_cud3e"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h08ta"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bookmarks"]
 bg_color = Color(0.0627451, 0.0627451, 0.0823529, 0.941176)
 border_width_right = 3
@@ -38,43 +40,43 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 500
 theme_override_constants/margin_bottom = 20
 
-[node name="AspectRatioContainer" type="AspectRatioContainer" parent="." unique_id=370492072]
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=289318042]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -440.0
+offset_left = -422.0
 offset_top = -524.0
-offset_right = 440.0
+offset_right = 422.0
 offset_bottom = 524.0
 grow_horizontal = 2
 grow_vertical = 2
-ratio = 0.8
+theme_override_styles/panel = SubResource("StyleBoxEmpty_h08ta")
 
-[node name="Rules" type="HBoxContainer" parent="AspectRatioContainer" unique_id=643765473]
+[node name="Rules" type="HBoxContainer" parent="PanelContainer" unique_id=643765473]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="BookmarksPanel" type="PanelContainer" parent="AspectRatioContainer/Rules" unique_id=200545585]
+[node name="BookmarksPanel" type="PanelContainer" parent="PanelContainer/Rules" unique_id=200545585]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.25
 theme_override_styles/panel = SubResource("StyleBoxFlat_bookmarks")
 
-[node name="VBox" type="VBoxContainer" parent="AspectRatioContainer/Rules/BookmarksPanel" unique_id=566113532]
+[node name="VBox" type="VBoxContainer" parent="PanelContainer/Rules/BookmarksPanel" unique_id=566113532]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_constants/separation = 8
 
-[node name="TitleMargin" type="MarginContainer" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=168391928]
+[node name="TitleMargin" type="MarginContainer" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=168391928]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 30
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="Title" type="Label" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox/TitleMargin" unique_id=503432118]
+[node name="Title" type="Label" parent="PanelContainer/Rules/BookmarksPanel/VBox/TitleMargin" unique_id=503432118]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.764706, 1, 1)
 theme_override_font_sizes/font_size = 26
@@ -82,19 +84,19 @@ text = "Game Rules"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Separator" type="ColorRect" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=712466133]
+[node name="Separator" type="ColorRect" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=712466133]
 custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 color = Color(0, 0.764706, 1, 0.3)
 
-[node name="BtnMargin" type="MarginContainer" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=1694927968]
+[node name="BtnMargin" type="MarginContainer" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=1694927968]
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_right = 15
 
-[node name="IntroductionBtn" type="Button" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=782265989]
+[node name="IntroductionBtn" type="Button" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=782265989]
 layout_mode = 2
 size_flags_vertical = 4
 theme = ExtResource("2_base_theme")
@@ -102,149 +104,149 @@ theme_override_font_sizes/font_size = 18
 text = "Introduction"
 alignment = 0
 
-[node name="CombatBtn" type="Button" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=693019796]
+[node name="CombatBtn" type="Button" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=693019796]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
 text = "Dice & Combat"
 alignment = 0
 
-[node name="ProgressionBtn" type="Button" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=1775240065]
+[node name="ProgressionBtn" type="Button" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=1775240065]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
 text = "Progression"
 alignment = 0
 
-[node name="CreditsBtn" type="Button" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=1961362540]
+[node name="CreditsBtn" type="Button" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=1961362540]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
 text = "Credits"
 alignment = 0
 
-[node name="Spacer" type="Control" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=416937793]
+[node name="Spacer" type="Control" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=416937793]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ExitBtn" type="Button" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=1329868571]
+[node name="ExitBtn" type="Button" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=1329868571]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 22
 text = "Exit"
 
-[node name="ExitMargin" type="Control" parent="AspectRatioContainer/Rules/BookmarksPanel/VBox" unique_id=126231344]
+[node name="ExitMargin" type="Control" parent="PanelContainer/Rules/BookmarksPanel/VBox" unique_id=126231344]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="RulesSection" type="PanelContainer" parent="AspectRatioContainer/Rules" unique_id=1281641135]
+[node name="RulesSection" type="PanelContainer" parent="PanelContainer/Rules" unique_id=1281641135]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxEmpty_rules")
 
-[node name="ColorRect" type="ColorRect" parent="AspectRatioContainer/Rules/RulesSection" unique_id=1281054341]
+[node name="ColorRect" type="ColorRect" parent="PanelContainer/Rules/RulesSection" unique_id=1281054341]
 layout_mode = 2
 color = Color(0, 0, 0, 1)
 
-[node name="ScrollContainer" type="ScrollContainer" parent="AspectRatioContainer/Rules/RulesSection" unique_id=233006130]
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/Rules/RulesSection" unique_id=233006130]
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer" unique_id=2018807256]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/Rules/RulesSection/ScrollContainer" unique_id=2018807256]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_right = 10
 
-[node name="SectionsVBox" type="VBoxContainer" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer" unique_id=454015352]
+[node name="SectionsVBox" type="VBoxContainer" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer" unique_id=454015352]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 40
 
-[node name="TopMargin" type="Control" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=1819617730]
+[node name="TopMargin" type="Control" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=1819617730]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="Introduction" type="VBoxContainer" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=1751218179]
+[node name="Introduction" type="VBoxContainer" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=1751218179]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Title" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Introduction" unique_id=596754658]
+[node name="Title" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Introduction" unique_id=596754658]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_colors/font_color = Color(0, 0.764706, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "1. Introduction"
 
-[node name="Body" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Introduction" unique_id=162307009]
+[node name="Body" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Introduction" unique_id=162307009]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
 text = "Welcome to Dice RogueLite! In this game, you embark on a perilous journey through dangerous dungeons, using your custom dice pool to defeat enemies, collect treasure, and survive the trials."
 autowrap_mode = 2
 
-[node name="Combat" type="VBoxContainer" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=948751350]
+[node name="Combat" type="VBoxContainer" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=948751350]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Title" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat" unique_id=1212335201]
+[node name="Title" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat" unique_id=1212335201]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_colors/font_color = Color(0, 0.764706, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "2. Dice & Combat"
 
-[node name="Body" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat" unique_id=770244295]
+[node name="Body" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat" unique_id=770244295]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
 text = "Roll your dice to perform actions. Red dice represent attack and offense. Blue dice represent defense and shields. Gold dice are utility dice. Each turn, roll your hand, choose which dice to play, and execute your strategy!"
 autowrap_mode = 2
 
-[node name="Image" type="TextureRect" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat" unique_id=975968245]
+[node name="Image" type="TextureRect" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat" unique_id=975968245]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 texture = ExtResource("3_h08ta")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Progression" type="VBoxContainer" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=974145824]
+[node name="Progression" type="VBoxContainer" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=974145824]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Title" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression" unique_id=1452826747]
+[node name="Title" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression" unique_id=1452826747]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_colors/font_color = Color(0, 0.764706, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "3. Progression & Upgrades"
 
-[node name="Body" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression" unique_id=500649894]
+[node name="Body" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression" unique_id=500649894]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
 text = "Between combat encounters, visit the shop or campfire to upgrade your dice, add new rare dice to your bag, or purchase powerful relics that modify your dice effects. Choose your path wisely!"
 autowrap_mode = 2
 
-[node name="Image" type="TextureRect" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression" unique_id=652287880]
+[node name="Image" type="TextureRect" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression" unique_id=652287880]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 texture = ExtResource("4_cud3e")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Credits" type="VBoxContainer" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=2023590769]
+[node name="Credits" type="VBoxContainer" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=2023590769]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Title" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Credits" unique_id=1210037491]
+[node name="Title" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Credits" unique_id=1210037491]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_colors/font_color = Color(0, 0.764706, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "4. Credits"
 
-[node name="Body" type="Label" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Credits" unique_id=325330800]
+[node name="Body" type="Label" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Credits" unique_id=325330800]
 layout_mode = 2
 theme = ExtResource("2_base_theme")
 theme_override_font_sizes/font_size = 18
@@ -254,6 +256,6 @@ Audio & Sound FX: Ficticious
 Engine: Godot"
 autowrap_mode = 2
 
-[node name="BottomMargin" type="Control" parent="AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=710152307]
+[node name="BottomMargin" type="Control" parent="PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox" unique_id=710152307]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2

@@ -38,24 +38,40 @@ size = Vector3(0.2, 0.01, 0.26)
 [sub_resource type="BoxShape3D" id="BoxShape3D_lnu2h"]
 size = Vector3(0.2, 0.01, 0.26)
 
+[sub_resource type="Animation" id="Animation_dinhu"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Rulebook:rules_open_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
 [sub_resource type="Animation" id="Animation_open_rules"]
 resource_name = "open_rules"
 length = 0.5
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath(".:rules_open_ratio")
-tracks/0/interp = 2
+tracks/0/path = NodePath("Rulebook:rules_open_ratio")
+tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(0.3, 1),
+"transitions": PackedFloat32Array(0.35, 1),
 "update": 0,
 "values": [0.0, 1.0]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_rules"]
 _data = {
+&"RESET": SubResource("Animation_dinhu"),
 &"open_rules": SubResource("Animation_open_rules")
 }
 
@@ -112,6 +128,10 @@ pixel_size = 0.0005
 double_sided = false
 text = "RULES"
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Rulebook" unique_id=1990573726]
+root_node = NodePath("../..")
+libraries/ = SubResource("AnimationLibrary_rules")
+
 [node name="FPSCounter" type="Label" parent="." unique_id=384976095]
 anchors_preset = 1
 anchor_left = 1.0
@@ -148,13 +168,9 @@ visible = false
 visible = false
 
 [node name="SplashScreen" parent="." unique_id=632976299 instance=ExtResource("8_0tnpc")]
-visible = false
 
 [node name="RulesUI" parent="." unique_id=987162541 instance=ExtResource("11_rules_ui")]
 visible = false
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1990573726]
-libraries/ = SubResource("AnimationLibrary_rules")
 
 [connection signal="input_event" from="Rulebook" to="Rulebook" method="_on_input_event"]
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_settings_pressed"]

@@ -4,7 +4,7 @@ extends CanvasLayer
 @export var fade_out_label_time: float = 0.1
 @export var fade_out_time: float = 0.5
 @export var hold_time: float = 1.5
-@export var translate_time: float = 0.5
+@export var translate_time: float = 0.3
 @export var start_delay: float = 0.8
 
 @onready var background: ColorRect = $Background
@@ -42,9 +42,9 @@ func fade_in_and_hold(control: Control) -> void:
 func translate_iamge_to_target(source: TextureRect, target: TextureRect) -> void:
 	var translate_tween := create_tween()
 	translate_tween.set_parallel(true)
-	translate_tween.tween_property(source, "position", target.position, translate_time)
-	translate_tween.tween_property(source, "scale", target.scale, translate_time)
-	translate_tween.tween_property(source, "rotation", target.rotation, translate_time)
+	translate_tween.tween_property(source, "position", target.position, translate_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUART)
+	translate_tween.tween_property(source, "scale", target.scale, translate_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUART)
+	translate_tween.tween_property(source, "rotation", target.rotation, translate_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUART)
 	await translate_tween.finished
 
 

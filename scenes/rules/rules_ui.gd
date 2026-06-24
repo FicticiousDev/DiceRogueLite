@@ -2,28 +2,28 @@ extends CanvasLayer
 
 signal close_requested
 
-@onready var scroll_container: ScrollContainer = $AspectRatioContainer/Rules/RulesSection/ScrollContainer
-@onready var rules_section: Control = $AspectRatioContainer/Rules/RulesSection
-@onready var rules_rect: Control = $AspectRatioContainer/Rules
-@onready var sections_vbox: VBoxContainer = $AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox
+@onready var scroll_container: ScrollContainer = $PanelContainer/Rules/RulesSection/ScrollContainer
+@onready var rules_section: Control = $PanelContainer/Rules/RulesSection
+@onready var rules_rect: Control = $PanelContainer/Rules
+@onready var sections_vbox: VBoxContainer = $PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox
 
-@onready var intro_section: Control = $AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Introduction
-@onready var combat_section: Control = $AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat
-@onready var progression_section: Control = $AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression
-@onready var credits_section: Control = $AspectRatioContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Credits
+@onready var intro_section: Control = $PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Introduction
+@onready var combat_section: Control = $PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Combat
+@onready var progression_section: Control = $PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Progression
+@onready var credits_section: Control = $PanelContainer/Rules/RulesSection/ScrollContainer/MarginContainer/SectionsVBox/Credits
 
 var _scroll_tween: Tween
 
 
 func _ready() -> void:
 	# Connect bookmarks
-	$AspectRatioContainer/Rules/BookmarksPanel/VBox/IntroductionBtn.pressed.connect(func(): scroll_to_section(intro_section))
-	$AspectRatioContainer/Rules/BookmarksPanel/VBox/CombatBtn.pressed.connect(func(): scroll_to_section(combat_section))
-	$AspectRatioContainer/Rules/BookmarksPanel/VBox/ProgressionBtn.pressed.connect(func(): scroll_to_section(progression_section))
-	$AspectRatioContainer/Rules/BookmarksPanel/VBox/CreditsBtn.pressed.connect(func(): scroll_to_section(credits_section))
+	$PanelContainer/Rules/BookmarksPanel/VBox/IntroductionBtn.pressed.connect(func(): scroll_to_section(intro_section))
+	$PanelContainer/Rules/BookmarksPanel/VBox/CombatBtn.pressed.connect(func(): scroll_to_section(combat_section))
+	$PanelContainer/Rules/BookmarksPanel/VBox/ProgressionBtn.pressed.connect(func(): scroll_to_section(progression_section))
+	$PanelContainer/Rules/BookmarksPanel/VBox/CreditsBtn.pressed.connect(func(): scroll_to_section(credits_section))
 	
 	# Connect exit button
-	$AspectRatioContainer/Rules/BookmarksPanel/VBox/ExitBtn.pressed.connect(_on_exit_pressed)
+	$PanelContainer/Rules/BookmarksPanel/VBox/ExitBtn.pressed.connect(_on_exit_pressed)
 
 
 func get_rules_rect() -> Control:
