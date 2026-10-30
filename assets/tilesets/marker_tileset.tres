@@ -1,0 +1,22 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/tilesets/marker_tiles.png" id="1_ykxnu"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4hj6a"]
+texture = ExtResource("1_ykxnu")
+texture_region_size = Vector2i(128, 148)
+0:0/0 = 0
+1:0/0 = 0
+1:0/0/custom_data_0 = 1
+2:0/0 = 0
+2:0/0/custom_data_0 = 2
+3:0/0 = 0
+3:0/0/custom_data_0 = 3
+
+[resource]
+tile_shape = 3
+tile_layout = 5
+tile_size = Vector2i(128, 148)
+custom_data_layer_0/name = "marker"
+custom_data_layer_0/type = 2
+sources/0 = SubResource("TileSetAtlasSource_4hj6a")

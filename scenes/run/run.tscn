@@ -1,24 +1,13 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog/confirm_dialog.tscn" id="dialog"]
-[ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="icon"]
-[ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
-[ext_resource type="Texture2D" path="res://assets/ui/quitButton.png" id="quit_tex"]
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="script"]
-[ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonPressed.png" id="settings_pressed_tex"]
+[ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
+[ext_resource type="PackedScene" path="res://scenes/board/camera_rig.tscn" id="camera_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog/confirm_dialog.tscn" id="dialog"]
+[ext_resource type="Texture2D" path="res://assets/ui/quitButton.png" id="quit_tex"]
+[ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonActive.png" id="settings_tex"]
-
-[sub_resource type="StandardMaterial3D" id="hex_mat"]
-albedo_color = Color(0.43, 0.56, 0.36, 1)
-
-[sub_resource type="CylinderMesh" id="hex_mesh"]
-material = SubResource("hex_mat")
-top_radius = 1.0
-bottom_radius = 1.0
-height = 0.3
-radial_segments = 6
-rings = 1
+[ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonPressed.png" id="settings_pressed_tex"]
 
 [node name="Run" type="Node3D"]
 script = ExtResource("script")
@@ -27,22 +16,12 @@ script = ExtResource("script")
 environment = ExtResource("env")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 4, 0)
+transform = Transform3D(0.866025, -0.383022, 0.321394, 0, 0.642788, 0.766044, -0.5, -0.663414, 0.556670, 0, 6, 0)
 shadow_enabled = true
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.642788, 0.766044, 0, -0.766044, 0.642788, 0, 3.2, 3.2)
-fov = 45.0
+[node name="CameraRig" parent="." instance=ExtResource("camera_rig")]
 
-[node name="Hex" type="MeshInstance3D" parent="."]
-mesh = SubResource("hex_mesh")
-
-[node name="Piece" type="Sprite3D" parent="Hex"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.66, 0)
-pixel_size = 0.008
-shaded = true
-alpha_cut = 1
-texture = ExtResource("icon")
+[node name="Level" type="Node3D" parent="."]
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -68,20 +47,16 @@ texture_pressed = ExtResource("settings_pressed_tex")
 ignore_texture_size = true
 stretch_mode = 4
 
-[node name="Placeholder" type="Label" parent="HUD"]
-anchors_preset = 7
-anchor_left = 0.5
+[node name="DebugLabel" type="Label" parent="HUD"]
+unique_name_in_owner = true
+anchors_preset = 2
 anchor_top = 1.0
-anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -400.0
-offset_top = -120.0
-offset_right = 400.0
-offset_bottom = -60.0
-grow_horizontal = 2
+offset_left = 20.0
+offset_top = -50.0
+offset_right = 900.0
+offset_bottom = -20.0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 30
-text = "RUN PLACEHOLDER - the board arrives in Phase 02"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
 
 [node name="ConfirmDialog" parent="." instance=ExtResource("dialog")]
