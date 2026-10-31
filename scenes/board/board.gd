@@ -35,6 +35,9 @@ var last_pick_point: Vector3
 ## Walkable tiles weighted by terrain cost; tiles with movement-blocking pieces are disabled
 var _astar: AStar2D = AStar2D.new()
 var _selected: int = -1
+## Floating popups waiting per piece (instance id -> [[text, color], ...]) and where each piece was last seen
+var _popups: Dictionary[int, Array] = {}
+var _popup_anchors: Dictionary[int, Vector3] = {}
 
 
 func _ready() -> void:
@@ -95,6 +98,67 @@ func play_intro() -> void:
 func add_piece(piece: BoardPiece, cell: Vector2i) -> void:
 	pieces_root.add_child(piece)
 	piece.place(self, Hex.id(cell))
+
+
+# ===========================================================================================================================================
+# Popups
+# ===========================================================================================================================================
+
+
+const POPUP_FONT_SIZE: int = 72
+## Popups start this high above a piece (clear of the enemy stats bar) and rise this far
+const POPUP_HEIGHT: float = 1.75
+const POPUP_RISE: float = 0.55
+
+
+## Shows [text] rising above [piece], after any popups already queued for it. Keeps going if the piece is freed.
+func popup(piece: BoardPiece, text: String, color: Color) -> void:
+	var key := piece.get_instance_id()
+	_popup_anchors[key] = piece.position
+	if _popups.has(key):
+		_popups[key].append([text, color])
+		return
+	_popups[key] = [[text, color]]
+	while _popups[key].size() > 0:
+		var entry: Array = _popups[key].pop_front()
+		if is_instance_valid(piece):
+			_popup_anchors[key] = piece.position
+		await _show_popup(_popup_anchors[key], entry[0], entry[1])
+	_popups.erase(key)
+	_popup_anchors.erase(key)
+
+
+func _show_popup(at: Vector3, text: String, color: Color) -> void:
+	var label := Label3D.new()
+	label.text = text
+	label.modulate = color
+	label.font_size = POPUP_FONT_SIZE
+	label.outline_size = 18
+	label.pixel_size = 0.006
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.render_priority = 10
+	add_child(label)
+	label.position = at + Vector3.UP * POPUP_HEIGHT
+	label.scale = Vector3.ONE * 0.4
+	var tween := label.create_tween().set_parallel(true)
+	tween.tween_property(label, "scale", Vector3.ONE, Anim.t(0.2)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "position:y", label.position.y + POPUP_RISE, Anim.t(0.6)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, Anim.t(0.2)).set_delay(Anim.t(0.45))
+	await tween.finished
+	label.queue_free()
+
+
+## Shows a ranged attack arc from [attacker] to [target] and waits while it draws in. Returns the arc so the
+## caller can fade it out after the hit; null if they're adjacent (melee).
+func show_attack_arc(attacker: BoardPiece, target: BoardPiece) -> AttackArc:
+	if Hex.distance(Hex.coords(attacker.tile_id), Hex.coords(target.tile_id)) <= 1:
+		return null
+	var arc := AttackArc.new()
+	add_child(arc)
+	arc.setup(attacker.position, target.position, 0.0)
+	await arc.play()
+	return arc
 
 
 ## Living enemies on the board.

@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_jwju4"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_02goe"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_3ookv"]
+
+[sub_resource type="Resource" id="Resource_jwju4"]
+script = ExtResource("2_02goe")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_02goe"]
+script = ExtResource("1_jwju4")
+symbols = Array[ExtResource("2_02goe")]([SubResource("Resource_jwju4")])
+
+[sub_resource type="Resource" id="Resource_3ookv"]
+script = ExtResource("2_02goe")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_3l0dr"]
+script = ExtResource("1_jwju4")
+symbols = Array[ExtResource("2_02goe")]([SubResource("Resource_3ookv")])
+
+[sub_resource type="Resource" id="Resource_6m6gp"]
+script = ExtResource("2_02goe")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_xk67m"]
+script = ExtResource("1_jwju4")
+symbols = Array[ExtResource("2_02goe")]([SubResource("Resource_6m6gp")])
+
+[sub_resource type="Resource" id="Resource_mbo4i"]
+script = ExtResource("2_02goe")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_s4byo"]
+script = ExtResource("1_jwju4")
+symbols = Array[ExtResource("2_02goe")]([SubResource("Resource_mbo4i")])
+
+[sub_resource type="Resource" id="Resource_bhxdv"]
+script = ExtResource("2_02goe")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_br51s"]
+script = ExtResource("1_jwju4")
+symbols = Array[ExtResource("2_02goe")]([SubResource("Resource_bhxdv")])
+
+[sub_resource type="Resource" id="Resource_kgxnp"]
+script = ExtResource("2_02goe")
+symbol = 1
+count = 3
+
+[sub_resource type="Resource" id="Resource_fcq2x"]
+script = ExtResource("1_jwju4")
+symbols = Array[ExtResource("2_02goe")]([SubResource("Resource_kgxnp")])
+
+[resource]
+script = ExtResource("3_3ookv")
+id = &"warden"
+display_name = "Warden Die"
+rarity = 1
+faces = Array[ExtResource("1_jwju4")]([SubResource("Resource_02goe"), SubResource("Resource_3l0dr"), SubResource("Resource_xk67m"), SubResource("Resource_s4byo"), SubResource("Resource_br51s"), SubResource("Resource_fcq2x")])

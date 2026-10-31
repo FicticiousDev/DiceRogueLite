@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_h4ooa"]
+[ext_resource type="Script" path="res://resources/abilities/defence_bonus_ability.gd" id="2_db1m4"]
+[ext_resource type="Script" path="res://resources/abilities/block_attack_ability.gd" id="2_nspk1"]
+[ext_resource type="Script" path="res://resources/character_data.gd" id="3_db1m4"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="4_e0c6x"]
+
+[sub_resource type="Resource" id="Resource_e0c6x"]
+script = ExtResource("2_db1m4")
+id = &"bulwark"
+display_name = "Bulwark"
+description = "Passive: every defence die you roll gets +1 shield."
+
+[sub_resource type="Resource" id="Resource_qt3iu"]
+script = ExtResource("2_nspk1")
+id = &"shield_block"
+display_name = "Shield Block"
+description = "Once per level: completely block one attack."
+active = true
+use = 1
+uses_per_level = 1
+
+[resource]
+script = ExtResource("3_db1m4")
+id = &"knight"
+display_name = "Knight"
+tint = Color(0.55, 0.75, 1, 1)
+abilities = Array[ExtResource("1_h4ooa")]([SubResource("Resource_e0c6x"), SubResource("Resource_qt3iu")])
+starting_dice = Array[StringName]([&"normal", &"normal", &"normal", &"normal", &"normal", &"warden"])

@@ -18,6 +18,14 @@ const LAYOUTS: Dictionary = {
 	6: [[Vector2(0.28, 0.2), Vector2(0.72, 0.2), Vector2(0.28, 0.5), Vector2(0.72, 0.5), Vector2(0.28, 0.8), Vector2(0.72, 0.8)], 0.28],
 }
 
+const DIGITS: Array[Texture2D] = [
+	preload("res://assets/dice/symbols/digits/0.png"), preload("res://assets/dice/symbols/digits/1.png"),
+	preload("res://assets/dice/symbols/digits/2.png"), preload("res://assets/dice/symbols/digits/3.png"),
+	preload("res://assets/dice/symbols/digits/4.png"), preload("res://assets/dice/symbols/digits/5.png"),
+	preload("res://assets/dice/symbols/digits/6.png"), preload("res://assets/dice/symbols/digits/7.png"),
+	preload("res://assets/dice/symbols/digits/8.png"), preload("res://assets/dice/symbols/digits/9.png"),
+]
+
 static var _cache: Dictionary = {}
 static var _icon_images: Dictionary = {}
 static var _tinted_images: Dictionary = {}
@@ -37,10 +45,14 @@ static func _build(face: DieFace) -> Array[Texture2D]:
 	var height := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
 	height.fill(Color.WHITE)
 
+	# One slot per symbol; numbered modifiers take a single slot with their count drawn beside the icon
 	var symbols: Array[Symbol.Type] = []
+	var numbers: Array[int] = []
 	for face_symbol in face.display_symbols():
-		for i in face_symbol.count:
+		var repeats := 1 if Symbol.NUMBERED.has(face_symbol.symbol) else face_symbol.count
+		for i in repeats:
 			symbols.append(face_symbol.symbol)
+			numbers.append(face_symbol.count if repeats == 1 and Symbol.NUMBERED.has(face_symbol.symbol) else 0)
 	var layout: Array = _layout(symbols.size())
 	var icon_px := int(SIZE * layout[1])
 	for i in symbols.size():
@@ -48,6 +60,14 @@ static func _build(face: DieFace) -> Array[Texture2D]:
 		var rect := Rect2i(0, 0, icon_px, icon_px)
 		ink.blend_rect(_tinted(symbols[i], icon_px, Symbol.INK[symbols[i]]), rect, at)
 		height.blend_rect(_tinted(symbols[i], icon_px, Color.BLACK), rect, at)
+		if numbers[i] > 0:
+			# Small digit over the icon's lower-right corner
+			var digit_px := int(icon_px * 0.55)
+			var digit_at := at + Vector2i(icon_px - digit_px * 2 / 3, icon_px - digit_px * 2 / 3)
+			digit_at = digit_at.clamp(Vector2i.ZERO, Vector2i(SIZE - digit_px, SIZE - digit_px))
+			var digit_rect := Rect2i(0, 0, digit_px, digit_px)
+			ink.blend_rect(_tinted_mask(DIGITS[mini(numbers[i], 9)], digit_px, Symbol.INK[symbols[i]]), digit_rect, digit_at)
+			height.blend_rect(_tinted_mask(DIGITS[mini(numbers[i], 9)], digit_px, Color.BLACK), digit_rect, digit_at)
 
 	# Symbols are low (black) in the height map, so they read as carved
 	height.bump_map_to_normal_map(BUMP_SCALE)
@@ -70,9 +90,13 @@ static func _layout(count: int) -> Array:
 
 ## Icon mask scaled to [px], cached.
 static func _icon_mask(type: Symbol.Type, px: int) -> Image:
-	var key := "%d:%d" % [type, px]
+	return _mask(Symbol.ICONS[type], px)
+
+
+static func _mask(texture: Texture2D, px: int) -> Image:
+	var key := "%s:%d" % [texture.resource_path, px]
 	if not _icon_images.has(key):
-		var image := Symbol.ICONS[type].get_image()
+		var image := texture.get_image()
 		if image.is_compressed():
 			image.decompress()
 		image.convert(Image.FORMAT_RGBA8)
@@ -83,9 +107,13 @@ static func _icon_mask(type: Symbol.Type, px: int) -> Image:
 
 ## Solid [color] with the icon mask's brightness as alpha, cached.
 static func _tinted(type: Symbol.Type, px: int, color: Color) -> Image:
-	var key := "%d:%d:%s" % [type, px, color.to_html()]
+	return _tinted_mask(Symbol.ICONS[type], px, color)
+
+
+static func _tinted_mask(texture: Texture2D, px: int, color: Color) -> Image:
+	var key := "%s:%d:%s" % [texture.resource_path, px, color.to_html()]
 	if not _tinted_images.has(key):
-		var mask := _icon_mask(type, px)
+		var mask := _mask(texture, px)
 		var result := Image.create(px, px, false, Image.FORMAT_RGBA8)
 		for y in px:
 			for x in px:

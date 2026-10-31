@@ -13,12 +13,14 @@ signal moved(from_id: int, to_id: int)
 @export var intro_duration: float = 0.5
 @export var intro_drop: float = 2.0
 
-const POPUP_FONT_SIZE: int = 72
-
 @onready var cutout: Cutout = get_node_or_null("Cutout")
 
 var board: Board
 var tile_id: int = -1
+## Status effects: stunned pieces skip their next action, poisoned ones take 1 damage at the start of each of
+## their turns (healing cures it)
+var stunned: bool = false
+var poisoned: bool = false
 
 
 ## Puts the piece on a tile instantly. Called by Board.add_piece.
@@ -124,26 +126,9 @@ func hurt() -> void:
 	create_tween().tween_property(cutout, "flash", Color(1, 0.15, 0.1, 0.0), Anim.t(0.35))
 
 
-## Floating text above the piece, e.g. damage numbers.
+## Floating text rising from above the piece, e.g. damage numbers. Queued per piece (one at a time) by the board.
 func popup(text: String, color: Color) -> void:
-	var label := Label3D.new()
-	label.text = text
-	label.modulate = color
-	label.font_size = POPUP_FONT_SIZE
-	label.outline_size = 18
-	label.pixel_size = 0.006
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.render_priority = 10
-	board.add_child(label)
-	label.position = position + Vector3.UP * 0.75
-	label.scale = Vector3.ONE * 0.4
-	# Bound to the label so it still finishes if this piece is freed (e.g. a dying enemy)
-	var tween := label.create_tween().set_parallel(true)
-	tween.tween_property(label, "scale", Vector3.ONE, Anim.t(0.25)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(label, "position:y", label.position.y + 0.6, Anim.t(0.9)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
-	tween.tween_property(label, "modulate:a", 0.0, Anim.t(0.3)).set_delay(Anim.t(0.7))
-	tween.chain().tween_callback(label.queue_free)
+	board.popup(self, text, color)
 
 
 ## Takes the piece off its tile and frees it.

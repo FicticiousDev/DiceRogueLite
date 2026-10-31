@@ -1,33 +1,45 @@
 class_name DefendAction
 extends PlannedAction
 
-## Assign one or more defence dice against a specific enemy. Blocks that enemy's next attack this turn: the
-## retaliation from an attack directly before it, a later retaliation, or (Phase 07) its enemy-turn attack.
+## Assign one or more defence dice against a specific enemy, or spend a block active ability ([ability], no
+## dice: blocks everything). Blocks that enemy's next attack this turn: the retaliation from an attack directly
+## before it, a later retaliation, or its enemy-turn attack.
 
 var enemy: Enemy
+var ability: Ability
 var _blocks_retaliation: bool = false
 
 
-func _init(defence_dice: Array[int], target: Enemy) -> void:
+func _init(defence_dice: Array[int], target: Enemy, block_ability: Ability = null) -> void:
 	dice = defence_dice.duplicate()
 	enemy = target
+	ability = block_ability
 
 
 func simulate(state: TurnState, turn: TurnController) -> bool:
 	if not is_instance_valid(enemy) or not state.is_alive(enemy):
 		return false
+	if ability and not TurnController.spend_use(ability, state.uses):
+		return false
 	_blocks_retaliation = state.retaliation != null and state.retaliation.enemy == enemy
-	state.defence[enemy] = state.defence.get(enemy, 0) + turn.dice_value(dice)
+	state.defence[enemy] = state.defence.get(enemy, 0) + _value(turn)
 	state.used_dice.append_array(dice)
 	return true
 
 
+func _value(turn: TurnController) -> int:
+	return AttackContext.BLOCK_ALL if ability else turn.dice_value(dice)
+
+
 func resolve(turn: TurnController) -> void:
-	await turn.resolve_defend(enemy, turn.dice_value(dice))
+	await turn.resolve_defend(enemy, _value(turn), ability)
 
 
 func describe(turn: TurnController) -> String:
-	return "Defend %d  →  %s" % [turn.dice_value(dice), enemy.data.display_name if is_instance_valid(enemy) else "?"]
+	var target := enemy.data.display_name if is_instance_valid(enemy) else "?"
+	if ability:
+		return "%s  →  %s" % [ability.display_name, target]
+	return "Defend %s  →  %s" % [AttackContext.value_text(turn.dice_value(dice)), target]
 
 
 func warning(_turn: TurnController) -> String:

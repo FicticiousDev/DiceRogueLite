@@ -6,20 +6,26 @@ extends CanvasLayer
 
 signal block_pressed
 signal take_pressed
+signal ability_pressed
 
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %Title
 @onready var damage_label: Label = %Damage
 @onready var block_button: Button = %BlockButton
 @onready var take_button: Button = %TakeButton
+@onready var ability_button: Button = %AbilityButton
 
 
 func _ready() -> void:
 	block_button.pressed.connect(block_pressed.emit)
 	take_button.pressed.connect(take_pressed.emit)
+	ability_button.pressed.connect(ability_pressed.emit)
 
 
-func show_prompt(attacker: String, damage: int) -> void:
+## [ability] names a block ability the player can use instead ("" for none).
+func show_prompt(attacker: String, damage: int, ability: String = "") -> void:
+	ability_button.visible = ability != ""
+	ability_button.text = ability.to_upper()
 	title_label.text = "%s ATTACKS!" % attacker.to_upper()
 	damage_label.text = "Hits you for %d damage.\nBlock or take it?" % damage
 	set_block_value(0)
@@ -35,7 +41,7 @@ func show_prompt(attacker: String, damage: int) -> void:
 ## Total defence of the selected dice; BLOCK is only available once some are selected.
 func set_block_value(value: int) -> void:
 	block_button.disabled = value <= 0
-	block_button.text = "BLOCK %d" % value if value > 0 else "BLOCK"
+	block_button.text = "BLOCK %s" % AttackContext.value_text(value) if value > 0 else "BLOCK"
 
 
 func hide_prompt() -> void:

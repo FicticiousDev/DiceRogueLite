@@ -7,6 +7,7 @@ signal rewind_requested(index: int)
 signal edit_requested(index: int)
 signal delete_requested(index: int)
 signal commit_pressed
+signal ability_pressed
 
 enum Option { REWIND, EDIT, DELETE }
 
@@ -14,6 +15,7 @@ enum Option { REWIND, EDIT, DELETE }
 @onready var hint: Label = %Hint
 @onready var entries: VBoxContainer = %Entries
 @onready var commit_button: Button = %CommitButton
+@onready var ability_button: Button = %AbilityButton
 @onready var menu: PopupMenu = %EntryMenu
 
 var _menu_index: int = -1
@@ -26,6 +28,7 @@ var _editing: int = -1
 
 func _ready() -> void:
 	commit_button.pressed.connect(commit_pressed.emit)
+	ability_button.pressed.connect(ability_pressed.emit)
 	menu.add_item("Rewind to here", Option.REWIND)
 	menu.add_item("Edit", Option.EDIT)
 	menu.add_item("Delete", Option.DELETE)
@@ -51,6 +54,9 @@ func show_actions(lines: Array[String], warnings: Array[String], editing: int = 
 		var button := Button.new()
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_font_size_override("font_size", 22)
+		# Wrap rather than widen the panel
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.custom_minimum_size.x = 1
 		button.text = "%d.  %s" % [i + 1, lines[i]]
 		if log_from != -1 and i >= log_from:
 			button.text = "»  " + lines[i]
@@ -85,6 +91,8 @@ func set_side(left: bool) -> void:
 	var width := offset_right - offset_left
 	anchor_left = 0.0 if left else 1.0
 	anchor_right = anchor_left
+	# Grow away from the screen edge if the content ever needs more room
+	grow_horizontal = Control.GROW_DIRECTION_END if left else Control.GROW_DIRECTION_BEGIN
 	offset_left = 20.0 if left else -20.0 - width
 	offset_right = offset_left + width
 
@@ -95,6 +103,15 @@ func set_header(text: String) -> void:
 
 func set_hint(text: String) -> void:
 	hint.text = text
+
+
+## The character's active ability: label, tooltip, whether it can be pressed, and whether it's armed.
+func set_ability(text: String, tooltip: String, enabled: bool, armed: bool) -> void:
+	ability_button.visible = true
+	ability_button.text = text
+	ability_button.tooltip_text = tooltip
+	ability_button.disabled = not enabled
+	ability_button.modulate = Color(1.0, 0.8, 0.35) if armed else Color.WHITE
 
 
 func set_commit_enabled(enabled: bool) -> void:

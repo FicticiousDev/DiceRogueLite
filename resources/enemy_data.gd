@@ -18,3 +18,6 @@ extends Resource
 ## Strikes before the player's attack when retaliating
 @export var attacks_first: bool = false
 @export var gold: int = 2
+## Status effects its damaging hits give the player
+@export var applies_stun: bool = false
+@export var applies_poison: bool = false

@@ -17,12 +17,21 @@ var attacked: Array[Enemy] = []
 var retaliation: AttackAction
 ## Enemies that strike back during the plan; they still move in the enemy turn but don't attack
 var retaliated: Array[Enemy] = []
+## Active ability uses left this level (ability id -> uses)
+var uses: Dictionary = {}
+## Enemies that will skip their next action / are poisoned
+var stunned: Array[Enemy] = []
+var poisoned: Array[Enemy] = []
 
 
 func _init(start_tile: int, enemies: Array[Enemy] = []) -> void:
 	player_tile = start_tile
 	for enemy in enemies:
 		enemy_hp[enemy] = enemy.hp
+		if enemy.stunned:
+			stunned.append(enemy)
+		if enemy.poisoned:
+			poisoned.append(enemy)
 
 
 func copy() -> TurnState:
@@ -33,6 +42,9 @@ func copy() -> TurnState:
 	state.attacked = attacked.duplicate()
 	state.retaliation = retaliation
 	state.retaliated = retaliated.duplicate()
+	state.uses = uses.duplicate()
+	state.stunned = stunned.duplicate()
+	state.poisoned = poisoned.duplicate()
 	return state
 
 

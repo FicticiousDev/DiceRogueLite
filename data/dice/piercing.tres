@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_23yjg"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_ulfqy"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_p8l1u"]
+
+[sub_resource type="Resource" id="Resource_arobq"]
+script = ExtResource("2_ulfqy")
+count = 2
+
+[sub_resource type="Resource" id="Resource_hmiff"]
+script = ExtResource("2_ulfqy")
+symbol = 10
+count = 2
+
+[sub_resource type="Resource" id="Resource_yqqea"]
+script = ExtResource("1_23yjg")
+symbols = Array[ExtResource("2_ulfqy")]([SubResource("Resource_arobq"), SubResource("Resource_hmiff")])
+
+[sub_resource type="Resource" id="Resource_g7mb4"]
+script = ExtResource("2_ulfqy")
+count = 3
+
+[sub_resource type="Resource" id="Resource_tmph6"]
+script = ExtResource("2_ulfqy")
+symbol = 10
+
+[sub_resource type="Resource" id="Resource_pb657"]
+script = ExtResource("1_23yjg")
+symbols = Array[ExtResource("2_ulfqy")]([SubResource("Resource_g7mb4"), SubResource("Resource_tmph6")])
+
+[sub_resource type="Resource" id="Resource_ty6fm"]
+script = ExtResource("2_ulfqy")
+
+[sub_resource type="Resource" id="Resource_181ii"]
+script = ExtResource("1_23yjg")
+symbols = Array[ExtResource("2_ulfqy")]([SubResource("Resource_ty6fm")])
+
+[sub_resource type="Resource" id="Resource_gbaop"]
+script = ExtResource("2_ulfqy")
+count = 2
+
+[sub_resource type="Resource" id="Resource_drnwu"]
+script = ExtResource("1_23yjg")
+symbols = Array[ExtResource("2_ulfqy")]([SubResource("Resource_gbaop")])
+
+[sub_resource type="Resource" id="Resource_18siu"]
+script = ExtResource("2_ulfqy")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_0vcel"]
+script = ExtResource("1_23yjg")
+symbols = Array[ExtResource("2_ulfqy")]([SubResource("Resource_18siu")])
+
+[sub_resource type="Resource" id="Resource_4kcmh"]
+script = ExtResource("2_ulfqy")
+symbol = 2
+count = 2
+
+[sub_resource type="Resource" id="Resource_u31ri"]
+script = ExtResource("1_23yjg")
+symbols = Array[ExtResource("2_ulfqy")]([SubResource("Resource_4kcmh")])
+
+[resource]
+script = ExtResource("3_p8l1u")
+id = &"piercing"
+display_name = "Piercing Die"
+rarity = 2
+faces = Array[ExtResource("1_23yjg")]([SubResource("Resource_yqqea"), SubResource("Resource_pb657"), SubResource("Resource_181ii"), SubResource("Resource_drnwu"), SubResource("Resource_0vcel"), SubResource("Resource_u31ri")])

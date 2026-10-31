@@ -1,7 +1,14 @@
 class_name Player
 extends BoardPiece
 
-## The player's piece. Persists across levels; the Run places it on each board's player start.
+## The player's piece, built from the run's [CharacterData]. The Run places it on each board's player start.
 
-## Until characters define it (Phase 08)
-@export var attack_range: int = 1
+var character: CharacterData
+var attack_range: int = 1
+
+
+func _ready() -> void:
+	if character:
+		cutout.texture = character.texture
+		cutout.tint = character.tint
+		attack_range = character.attack_range

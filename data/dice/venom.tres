@@ -1,0 +1,67 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_8vyw4"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_drov1"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_wqaln"]
+
+[sub_resource type="Resource" id="Resource_vxf0h"]
+script = ExtResource("2_drov1")
+
+[sub_resource type="Resource" id="Resource_e7h1r"]
+script = ExtResource("2_drov1")
+symbol = 9
+
+[sub_resource type="Resource" id="Resource_13cpf"]
+script = ExtResource("1_8vyw4")
+symbols = Array[ExtResource("2_drov1")]([SubResource("Resource_vxf0h"), SubResource("Resource_e7h1r")])
+
+[sub_resource type="Resource" id="Resource_wsn5c"]
+script = ExtResource("2_drov1")
+count = 2
+
+[sub_resource type="Resource" id="Resource_trxlb"]
+script = ExtResource("1_8vyw4")
+symbols = Array[ExtResource("2_drov1")]([SubResource("Resource_wsn5c")])
+
+[sub_resource type="Resource" id="Resource_020dm"]
+script = ExtResource("2_drov1")
+count = 2
+
+[sub_resource type="Resource" id="Resource_4cb75"]
+script = ExtResource("2_drov1")
+symbol = 9
+
+[sub_resource type="Resource" id="Resource_nuns8"]
+script = ExtResource("1_8vyw4")
+symbols = Array[ExtResource("2_drov1")]([SubResource("Resource_020dm"), SubResource("Resource_4cb75")])
+
+[sub_resource type="Resource" id="Resource_pnbpt"]
+script = ExtResource("2_drov1")
+
+[sub_resource type="Resource" id="Resource_t2jxy"]
+script = ExtResource("1_8vyw4")
+symbols = Array[ExtResource("2_drov1")]([SubResource("Resource_pnbpt")])
+
+[sub_resource type="Resource" id="Resource_jj2n3"]
+script = ExtResource("2_drov1")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_m2jcb"]
+script = ExtResource("1_8vyw4")
+symbols = Array[ExtResource("2_drov1")]([SubResource("Resource_jj2n3")])
+
+[sub_resource type="Resource" id="Resource_5mb5n"]
+script = ExtResource("2_drov1")
+symbol = 2
+
+[sub_resource type="Resource" id="Resource_oej58"]
+script = ExtResource("1_8vyw4")
+symbols = Array[ExtResource("2_drov1")]([SubResource("Resource_5mb5n")])
+
+[resource]
+script = ExtResource("3_wqaln")
+id = &"venom"
+display_name = "Venom Die"
+rarity = 2
+faces = Array[ExtResource("1_8vyw4")]([SubResource("Resource_13cpf"), SubResource("Resource_trxlb"), SubResource("Resource_nuns8"), SubResource("Resource_t2jxy"), SubResource("Resource_m2jcb"), SubResource("Resource_oej58")])

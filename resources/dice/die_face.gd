@@ -2,7 +2,7 @@ class_name DieFace
 extends Resource
 
 ## One face of a die. Every face holds a single action:
-## - attack: 1-5 ATTACK, optionally with a CRIT
+## - attack: 1-5 ATTACK, optionally with modifiers: CRIT, STUN, POISON, PENETRATE n, RANGE n (n shown as a number)
 ## - defence: 1-5 DEFENCE, or a BLOCK_ALL
 ## - move: 1-5 MOVE, optionally with a TELEPORT
 ## - insta-kill: a single INSTA_KILL

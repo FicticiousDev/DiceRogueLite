@@ -38,33 +38,42 @@ script = ExtResource("2_qp0ew")
 symbol = 3
 
 [sub_resource type="Resource" id="Resource_gu6gc"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_ad5x3"), SubResource("Resource_tcvvd")])
+script = ExtResource("2_qp0ew")
+symbol = 10
+count = 2
 
 [sub_resource type="Resource" id="Resource_jdsnk"]
-script = ExtResource("2_qp0ew")
-symbol = 2
-count = 4
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_ad5x3"), SubResource("Resource_tcvvd"), SubResource("Resource_gu6gc")])
 
 [sub_resource type="Resource" id="Resource_1le2b"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_jdsnk")])
+script = ExtResource("2_qp0ew")
+count = 2
 
 [sub_resource type="Resource" id="Resource_avvp7"]
 script = ExtResource("2_qp0ew")
-symbol = 2
+symbol = 11
+count = 3
 
 [sub_resource type="Resource" id="Resource_32jqx"]
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_1le2b"), SubResource("Resource_avvp7")])
+
+[sub_resource type="Resource" id="Resource_jt1gv"]
+script = ExtResource("2_qp0ew")
+symbol = 2
+
+[sub_resource type="Resource" id="Resource_my8qj"]
 script = ExtResource("2_qp0ew")
 symbol = 6
 
-[sub_resource type="Resource" id="Resource_jt1gv"]
+[sub_resource type="Resource" id="Resource_oc0uf"]
 script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_avvp7"), SubResource("Resource_32jqx")])
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_jt1gv"), SubResource("Resource_my8qj")])
 
 [resource]
 script = ExtResource("3_k1f08")
 id = &"debug_legendary"
 display_name = "Debug Legendary"
 rarity = 4
-faces = Array[ExtResource("1_ndgwx")]([SubResource("Resource_qp0ew"), SubResource("Resource_51bx0"), SubResource("Resource_scikt"), SubResource("Resource_gu6gc"), SubResource("Resource_1le2b"), SubResource("Resource_jt1gv")])
+faces = Array[ExtResource("1_ndgwx")]([SubResource("Resource_qp0ew"), SubResource("Resource_51bx0"), SubResource("Resource_scikt"), SubResource("Resource_jdsnk"), SubResource("Resource_32jqx"), SubResource("Resource_oc0uf")])

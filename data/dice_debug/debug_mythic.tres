@@ -43,29 +43,41 @@ script = ExtResource("2_2d58w")
 symbol = 3
 
 [sub_resource type="Resource" id="Resource_2qooo"]
-script = ExtResource("1_05gm3")
-symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_tipom"), SubResource("Resource_tauiv")])
+script = ExtResource("2_2d58w")
+symbol = 8
 
 [sub_resource type="Resource" id="Resource_81st1"]
+script = ExtResource("1_05gm3")
+symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_tipom"), SubResource("Resource_tauiv"), SubResource("Resource_2qooo")])
+
+[sub_resource type="Resource" id="Resource_ivqkv"]
 script = ExtResource("2_2d58w")
 symbol = 5
 
-[sub_resource type="Resource" id="Resource_ivqkv"]
-script = ExtResource("1_05gm3")
-symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_81st1")])
-
 [sub_resource type="Resource" id="Resource_ddclc"]
-script = ExtResource("2_2d58w")
-symbol = 2
-count = 5
+script = ExtResource("1_05gm3")
+symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_ivqkv")])
 
 [sub_resource type="Resource" id="Resource_qnhsn"]
+script = ExtResource("2_2d58w")
+count = 4
+
+[sub_resource type="Resource" id="Resource_qgs2k"]
+script = ExtResource("2_2d58w")
+symbol = 9
+
+[sub_resource type="Resource" id="Resource_okcpp"]
+script = ExtResource("2_2d58w")
+symbol = 11
+count = 2
+
+[sub_resource type="Resource" id="Resource_vkop2"]
 script = ExtResource("1_05gm3")
-symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_ddclc")])
+symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_qnhsn"), SubResource("Resource_qgs2k"), SubResource("Resource_okcpp")])
 
 [resource]
 script = ExtResource("3_xyh1h")
 id = &"debug_mythic"
 display_name = "Debug Mythic"
 rarity = 5
-faces = Array[ExtResource("1_05gm3")]([SubResource("Resource_2d58w"), SubResource("Resource_8ulyv"), SubResource("Resource_3c56n"), SubResource("Resource_2qooo"), SubResource("Resource_ivqkv"), SubResource("Resource_qnhsn")])
+faces = Array[ExtResource("1_05gm3")]([SubResource("Resource_2d58w"), SubResource("Resource_8ulyv"), SubResource("Resource_3c56n"), SubResource("Resource_81st1"), SubResource("Resource_ddclc"), SubResource("Resource_vkop2")])

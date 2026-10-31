@@ -12,6 +12,9 @@ var preview_hp: int
 var preview_defence: int = 0
 ## True if the plan has it strike back, so it won't attack in the enemy turn
 var preview_skips_attack: bool = false
+## Statuses the plan will give it (stunned / poisoned live on BoardPiece)
+var preview_stunned: bool = false
+var preview_poisoned: bool = false
 
 
 func setup(enemy_data: EnemyData) -> void:
@@ -21,9 +24,15 @@ func setup(enemy_data: EnemyData) -> void:
 	name = data.display_name
 
 
+var _stats_bar: EnemyStatsBar
+
+
 func _ready() -> void:
 	cutout.texture = data.texture
 	cutout.tint = data.tint
+	_stats_bar = EnemyStatsBar.new()
+	_stats_bar.setup(self)
+	cutout.add_child(_stats_bar)
 
 
 func is_dead() -> bool:
@@ -39,11 +48,13 @@ func take_damage(amount: int) -> void:
 	hp = maxi(hp - amount, 0)
 	preview_hp = hp
 	hurt()
-	popup("-%d" % amount if amount > 0 else "0", Color(1, 0.35, 0.25) if amount > 0 else Color(0.8, 0.8, 0.8))
+	var text := "KILL" if amount >= AttackContext.INSTA_KILL else ("-%d" % amount if amount > 0 else "0")
+	popup(text, Color(1, 0.35, 0.25) if amount > 0 else Color(0.8, 0.8, 0.8))
 
 
 ## Shakes, gets torn away and is removed from the board. Awaitable.
 func play_death() -> void:
+	_stats_bar.visible = false
 	var body := cutout.body
 	var tween := create_tween()
 	for i in 6:

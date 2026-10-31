@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/sacrifice_dialog/sacrifice_dialog.tscn" id="sacrifice"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over/game_over.tscn" id="game_over"]
 [ext_resource type="PackedScene" path="res://scenes/ui/block_prompt/block_prompt.tscn" id="block_prompt"]
+[ext_resource type="PackedScene" path="res://scenes/ui/character_picker/character_picker.tscn" id="character_picker"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButton.png" id="quit_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonActive.png" id="settings_tex"]
@@ -35,13 +36,8 @@ frame_margins = Vector4(0.04, 0.1, 0.04, 0.2)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="EnemyInfos" type="Control" parent="HUD"]
-unique_name_in_owner = true
-layout_mode = 3
-anchors_preset = 0
-mouse_filter = 2
-
 [node name="TopBar" parent="HUD" instance=ExtResource("top_bar")]
+unique_name_in_owner = true
 
 [node name="ExitButton" type="TextureButton" parent="HUD"]
 unique_name_in_owner = true
@@ -86,6 +82,8 @@ unique_name_in_owner = true
 [node name="SacrificeDialog" parent="." instance=ExtResource("sacrifice")]
 
 [node name="GameOver" parent="." instance=ExtResource("game_over")]
+
+[node name="CharacterPicker" parent="." instance=ExtResource("character_picker")]
 
 [node name="TurnController" type="Node" parent="."]
 script = ExtResource("turn")

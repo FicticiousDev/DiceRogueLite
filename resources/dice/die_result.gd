@@ -27,6 +27,8 @@ func display_face() -> DieFace:
 
 
 func value() -> int:
+	if face().has(Symbol.Type.BLOCK_ALL):
+		return AttackContext.BLOCK_ALL
 	return face().value() + (bonus if face().is_numeric() else 0)
 
 

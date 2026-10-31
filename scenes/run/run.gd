@@ -5,13 +5,10 @@ extends Node3D
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
-const ENEMY_INFO_SCENE: PackedScene = preload("res://scenes/ui/enemy_info/enemy_info.tscn")
 ## Screen fraction kept clear for the turn plan panel
 const PANEL_MARGIN: float = 0.22
 const EDGE_MARGIN: float = 0.04
 
-## Pool for a new run until characters define starting dice (Phase 08)
-const STARTING_DICE: Array[String] = ["normal", "normal", "normal", "normal", "normal", "normal"]
 
 @export var level_scene: PackedScene = preload("res://scenes/levels/test_01.tscn")
 
@@ -21,11 +18,12 @@ const STARTING_DICE: Array[String] = ["normal", "normal", "normal", "normal", "n
 @onready var settings_button: TextureButton = %SettingsButton
 @onready var debug_label: Label = %DebugLabel
 @onready var action_list: ActionList = %ActionList
-@onready var enemy_infos: Control = %EnemyInfos
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
 @onready var sacrifice_dialog: SacrificeDialog = $SacrificeDialog
 @onready var game_over: GameOverScreen = $GameOver
 @onready var block_prompt: BlockPrompt = %BlockPrompt
+@onready var character_picker: CharacterPicker = $CharacterPicker
+@onready var top_bar: TopBar = %TopBar
 @onready var dice_tray: DiceTray = $DiceTray
 @onready var turn: TurnController = $TurnController
 
@@ -40,16 +38,24 @@ func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_pressed)
 	settings_button.pressed.connect(Settings.show_settings)
 	dice_tray.camera = camera_rig.camera
-	# Enemy stats are 2D overlays, so hide them while the tray is up rather than draw over it
-	dice_tray.roll_started.connect(_fade_enemy_infos.bind(0.0))
-	dice_tray.roll_finished.connect(_fade_enemy_infos.bind(1.0).unbind(1))
 	turn.state_changed.connect(_on_turn_state_changed)
-	if SaveManager.run_data.dice.is_empty():
-		SaveManager.run_data.dice.assign(STARTING_DICE)
-		SaveManager.run_data.health = SaveManager.run_data.max_health
+	top_bar.turn = turn
 	SaveManager.settings_data.changed.connect(_apply_layout)
 	_apply_layout()
+	var run := SaveManager.run_data
+	if run.character_id == "" or run.dice.is_empty():
+		_start_run(await character_picker.pick())
 	load_level(level_scene)
+
+
+## Sets up a new run for [character_id]: its starting dice and full health.
+func _start_run(character_id: StringName) -> void:
+	var character: CharacterData = Database.get_content("characters", character_id)
+	var run := SaveManager.run_data
+	run.character_id = character_id
+	run.dice.assign(character.starting_dice)
+	run.max_health = character.max_hp
+	run.health = character.max_hp
 
 
 func _exit_tree() -> void:
@@ -81,12 +87,9 @@ func load_level(scene: PackedScene) -> void:
 	board = scene.instantiate()
 	level_root.add_child(board)
 	player = PLAYER_SCENE.instantiate()
+	player.character = Database.get_content("characters", SaveManager.run_data.character_id)
 	board.add_piece(player, board.player_start)
 	turn.setup(board, player, dice_tray, action_list, confirm_dialog, sacrifice_dialog, block_prompt)
-	for enemy in board.get_enemies():
-		var info: EnemyInfo = ENEMY_INFO_SCENE.instantiate()
-		info.setup(enemy, camera_rig.camera)
-		enemy_infos.add_child(info)
 	camera_rig.frame(board.get_bounds())
 	await board.play_intro()
 	_loading = false
@@ -120,10 +123,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_turn_state_changed(state: TurnController.State) -> void:
 	if state == TurnController.State.GAME_OVER:
 		game_over.show_screen(turn.turn_number)
-
-
-func _fade_enemy_infos(alpha: float) -> void:
-	create_tween().tween_property(enemy_infos, "modulate:a", alpha, Anim.t(0.2))
 
 
 func _on_exit_pressed() -> void:
