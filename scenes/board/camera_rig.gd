@@ -4,7 +4,7 @@ extends Node3D
 
 ## Fixed-angle camera looking down at the rig's position. Pitch is tweakable in the inspector.
 
-@export_range(10.0, 89.0) var pitch_degrees: float = 50.0:
+@export_range(10.0, 89.0) var pitch_degrees: float = 55.0:
 	set(value):
 		pitch_degrees = value
 		_update_camera()

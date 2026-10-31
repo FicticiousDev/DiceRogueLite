@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/board/effects/terrain_effect.gd" id="1_6bibb"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_srucx"]
+transparency = 1
+cull_mode = 2
+vertex_color_use_as_albedo = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_k7jrw"]
+material = SubResource("StandardMaterial3D_srucx")
+radius = 0.055
+height = 0.11
+radial_segments = 6
+rings = 3
+
+[sub_resource type="Gradient" id="Gradient_21ll8"]
+colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k0l51"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="TorusMesh" id="TorusMesh_6p6od"]
+material = SubResource("StandardMaterial3D_k0l51")
+inner_radius = 0.42
+outer_radius = 0.5
+rings = 24
+ring_segments = 4
+
+[sub_resource type="Curve" id="Curve_s17wc"]
+_data = [Vector2(0, 0.2), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_1jsd5"]
+colors = PackedColorArray(1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[node name="WaterSplash" type="Node3D" unique_id=1170998618]
+script = ExtResource("1_6bibb")
+
+[node name="Droplets" type="CPUParticles3D" parent="." unique_id=312547342]
+emitting = false
+amount = 24
+lifetime = 0.65
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("SphereMesh_k7jrw")
+emission_shape = 6
+emission_ring_axis = Vector3(0, 1, 0)
+emission_ring_height = 0.0
+emission_ring_radius = 0.2
+emission_ring_inner_radius = 0.05
+emission_ring_cone_angle = 90.0
+direction = Vector3(0, 1, 0)
+spread = 25.0
+gravity = Vector3(0, -11, 0)
+initial_velocity_min = 2.0
+initial_velocity_max = 3.2
+scale_amount_min = 0.6
+scale_amount_max = 1.3
+color = Color(0.75, 0.9, 1, 1)
+color_ramp = SubResource("Gradient_21ll8")
+
+[node name="Ripple" type="CPUParticles3D" parent="." unique_id=311400418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+emitting = false
+amount = 2
+lifetime = 0.7
+one_shot = true
+explosiveness = 0.6
+mesh = SubResource("TorusMesh_6p6od")
+gravity = Vector3(0, 0, 0)
+scale_amount_curve = SubResource("Curve_s17wc")
+color = Color(0.85, 0.95, 1, 1)
+color_ramp = SubResource("Gradient_1jsd5")

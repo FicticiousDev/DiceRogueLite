@@ -26,6 +26,8 @@ var coords: Vector2i
 var terrain: Terrain.Type
 var radius: float
 var highlight: Highlight = Highlight.NONE
+## Piece standing on this tile, if any. Set by BoardPiece.
+var piece: BoardPiece
 var played: bool = false
 
 # Shared between all tiles, keyed by terrain/highlight

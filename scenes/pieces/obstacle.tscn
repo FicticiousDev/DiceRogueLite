@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/pieces/obstacle.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/pieces/cutout.gd" id="2"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3"]
+
+[node name="Obstacle" type="Node3D"]
+script = ExtResource("1")
+blocks_line_of_sight = true
+
+[node name="Cutout" type="Node3D" parent="."]
+script = ExtResource("2")
+texture = ExtResource("3")
+tint = Color(0.35, 0.35, 0.38, 1)
+height = 0.9
+thickness = 0.12

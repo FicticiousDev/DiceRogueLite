@@ -14,3 +14,5 @@ tile_set = ExtResource("2")
 tile_set = ExtResource("3")
 
 [node name="Tiles" type="Node3D" parent="."]
+
+[node name="Pieces" type="Node3D" parent="."]

@@ -31,6 +31,14 @@ const HEIGHTS: Dictionary[Type, float] = {
 	Type.WALL: 0.9,
 }
 
+## Effect played when a piece lands on the terrain
+const EFFECTS: Dictionary[Type, PackedScene] = {
+	Type.NORMAL: preload("res://scenes/board/effects/grass_blades.tscn"),
+	Type.DIFFICULT: preload("res://scenes/board/effects/dust_puff.tscn"),
+	Type.EXTREME: preload("res://scenes/board/effects/stone_chips.tscn"),
+	Type.WATER: preload("res://scenes/board/effects/water_splash.tscn"),
+}
+
 
 static func cost(type: Type) -> int:
 	return COSTS[type]

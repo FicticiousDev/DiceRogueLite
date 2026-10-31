@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/board/effects/terrain_effect.gd" id="1_4utfs"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2v8oh"]
+transparency = 1
+cull_mode = 2
+vertex_color_use_as_albedo = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_anwxl"]
+material = SubResource("StandardMaterial3D_2v8oh")
+size = Vector3(0.09, 0.075, 0.1)
+
+[sub_resource type="Curve" id="Curve_4nw8b"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[node name="StoneChips" type="Node3D" unique_id=677002800]
+script = ExtResource("1_4utfs")
+
+[node name="Chips" type="CPUParticles3D" parent="." unique_id=304854336]
+emitting = false
+amount = 12
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("BoxMesh_anwxl")
+emission_shape = 1
+emission_sphere_radius = 0.15
+direction = Vector3(0, 1, 0)
+spread = 50.0
+gravity = Vector3(0, -12, 0)
+initial_velocity_min = 1.8
+initial_velocity_max = 2.8
+angular_velocity_min = -720.0
+angular_velocity_max = 720.0
+scale_amount_min = 0.6
+scale_amount_max = 1.4
+scale_amount_curve = SubResource("Curve_4nw8b")
+color = Color(0.5, 0.4, 0.48, 1)
