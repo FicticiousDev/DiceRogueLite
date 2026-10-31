@@ -8,6 +8,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/action_list/action_list.tscn" id="action_list"]
 [ext_resource type="Script" path="res://scenes/turn/turn_controller.gd" id="turn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/top_bar/top_bar.tscn" id="top_bar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/sacrifice_dialog/sacrifice_dialog.tscn" id="sacrifice"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over/game_over.tscn" id="game_over"]
+[ext_resource type="PackedScene" path="res://scenes/ui/block_prompt/block_prompt.tscn" id="block_prompt"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButton.png" id="quit_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonActive.png" id="settings_tex"]
@@ -73,9 +76,16 @@ theme_override_font_sizes/font_size = 20
 [node name="ActionList" parent="HUD" instance=ExtResource("action_list")]
 unique_name_in_owner = true
 
+[node name="BlockPrompt" parent="HUD" instance=ExtResource("block_prompt")]
+unique_name_in_owner = true
+
 [node name="DiceTray" parent="." instance=ExtResource("dice_tray")]
 
 [node name="ConfirmDialog" parent="." instance=ExtResource("dialog")]
+
+[node name="SacrificeDialog" parent="." instance=ExtResource("sacrifice")]
+
+[node name="GameOver" parent="." instance=ExtResource("game_over")]
 
 [node name="TurnController" type="Node" parent="."]
 script = ExtResource("turn")

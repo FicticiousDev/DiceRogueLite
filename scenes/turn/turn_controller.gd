@@ -1,11 +1,12 @@
 class_name TurnController
 extends Node
 
-## Runs the player's turn: roll the pool, apply buffs, plan a sequence of actions (move, attack, defend), commit,
-## resolve, then the enemy turn. Planning works on a TurnState simulated from the start of the turn through the planned actions,
+## Runs the turn: roll the pool, apply buffs, plan a sequence of actions (move, attack, defend), commit,
+## resolve, then the enemy turn (enemies move and attack; held defence dice block). Planning works on a TurnState simulated from the start of the turn through the planned actions,
 ## rebuilt whenever the plan changes; actions that become invalid are dropped.
 
 signal state_changed(state: State)
+signal _block_confirmed
 
 enum State { IDLE, ROLL, PLAN, RESOLVE, ENEMY_TURN, LEVEL_CLEAR, GAME_OVER }
 
@@ -22,6 +23,8 @@ var player: Player
 var dice_tray: DiceTray
 var action_list: ActionList
 var confirm_dialog: ConfirmDialog
+var sacrifice_dialog: SacrificeDialog
+var block_prompt: BlockPrompt
 
 var results: Array[DieResult] = []
 var actions: Array[PlannedAction] = []
@@ -49,18 +52,33 @@ var _defence: Dictionary[Enemy, int] = {}
 var _damage_taken: int = 0
 ## Resolution: enemy whose retaliation lands once the defend actions following its attack are done
 var _retaliating: Enemy
+## Resolution: enemies that struck back this turn - they move in the enemy turn but don't attack
+var _retaliated: Array[Enemy] = []
+## Held defence dice spent blocking enemy-turn attacks
+var _spent: Array[int] = []
+## Enemy turn: the enemy whose attack the player is choosing held defence dice for, and the dice chosen
+var _blocking: Enemy
+var _blocking_damage: int = 0
+var _block_selected: Array[int] = []
+## Enemy turn: one turn plan entry per enemy attack, as [line, note]
+var _enemy_log: Array[Array] = []
 var _editing: PlannedAction
 var _edit_index: int = -1
 var _ghost: Cutout
 var _path_dots: Node3D
 
 
-func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionList, dialog: ConfirmDialog) -> void:
+func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionList, dialog: ConfirmDialog, last_stand: SacrificeDialog, prompt: BlockPrompt) -> void:
 	board = run_board
 	player = run_player
 	dice_tray = tray
 	action_list = list
 	confirm_dialog = dialog
+	sacrifice_dialog = last_stand
+	block_prompt = prompt
+	if not block_prompt.block_pressed.is_connected(_block_confirmed.emit):
+		block_prompt.block_pressed.connect(_block_confirmed.emit)
+		block_prompt.take_pressed.connect(_take_hit)
 	if not action_list.commit_pressed.is_connected(commit):
 		action_list.commit_pressed.connect(commit)
 		action_list.rewind_requested.connect(rewind_to)
@@ -78,6 +96,8 @@ func start_turn(new_turn: bool = true) -> void:
 	actions.clear()
 	selected.clear()
 	_auto_used.clear()
+	_spent.clear()
+	_enemy_log.clear()
 	_editing = null
 	_set_state(State.ROLL)
 	_refresh()
@@ -118,7 +138,7 @@ func _has_teleport(index: int) -> bool:
 
 
 func is_die_available(index: int) -> bool:
-	return not _end_state.used_dice.has(index) and not _auto_used.has(index)
+	return not _end_state.used_dice.has(index) and not _auto_used.has(index) and not _spent.has(index)
 
 
 # ===========================================================================================================================================
@@ -127,11 +147,11 @@ func is_die_available(index: int) -> bool:
 
 
 func _process(_delta: float) -> void:
-	if not board or state != State.PLAN:
+	if not board or not (state == State.PLAN or _blocking):
 		return
 	var mouse := board.get_viewport().get_mouse_position()
 	var die := dice_tray.get_die_at(mouse)
-	var tile := -1 if die != -1 else board.tile_at_screen(dice_tray.camera, mouse)
+	var tile := -1 if die != -1 or _blocking else board.tile_at_screen(dice_tray.camera, mouse)
 	if die != hovered_die or tile != hovered_tile:
 		hovered_die = die
 		hovered_tile = tile
@@ -139,6 +159,10 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _blocking:
+		if event.is_action_pressed("select") and hovered_die != -1:
+			_click_block_die(hovered_die)
+		return
 	if state != State.PLAN:
 		return
 	if event.is_action_pressed("select"):
@@ -279,6 +303,7 @@ func _resolve() -> void:
 	_defence.clear()
 	_damage_taken = 0
 	_retaliating = null
+	_retaliated.clear()
 	for action in actions:
 		if not _is_defending_retaliation(action, _retaliating):
 			await _settle_retaliation()
@@ -293,16 +318,24 @@ func _resolve() -> void:
 	if _player_dead():
 		await _game_over()
 		return
-	# Unused results are discarded (held defence arrives in Phase 07)
-	await dice_tray.clear()
 	if board.get_enemies().is_empty():
+		await dice_tray.clear()
 		_set_state(State.LEVEL_CLEAR)
 		_refresh()
 		return
+	# Unused defence dice are held for the enemy turn; everything else is discarded
+	var discarded: Array[int] = []
+	for result in results:
+		if not _held_dice().has(result.index):
+			discarded.append(result.index)
+	await dice_tray.discard(discarded)
 	_set_state(State.ENEMY_TURN)
 	_refresh()
-	# Enemy turn stub until Phase 07
-	await get_tree().create_timer(Anim.t(0.4)).timeout
+	await _enemy_turn()
+	if _player_dead():
+		await _game_over()
+		return
+	await dice_tray.clear()
 	var run := SaveManager.run_data
 	if _damage_taken == 0 and run.health < run.max_health:
 		run.health += 1
@@ -315,7 +348,6 @@ func _player_dead() -> bool:
 	return SaveManager.run_data.health <= 0
 
 
-## Sacrifice / game over screen arrive in Phase 07.
 func _game_over() -> void:
 	await dice_tray.clear()
 	_set_state(State.GAME_OVER)
@@ -333,7 +365,8 @@ func _settle_retaliation() -> void:
 	var enemy := _retaliating
 	_retaliating = null
 	if is_instance_valid(enemy) and not enemy.is_dead():
-		await enemy_attack(enemy)
+		if await enemy_attack(enemy):
+			_retaliated.append(enemy)
 
 
 ## Player attacks [enemy]; it strikes first if it always attacks first, otherwise retaliates if it survives
@@ -342,8 +375,9 @@ func resolve_attack(enemy: Enemy, dice: Array[int]) -> void:
 	if not is_instance_valid(enemy) or enemy.is_dead():
 		return
 	if enemy.data.attacks_first:
-		await enemy_attack(enemy)
-		if SaveManager.run_data.health <= 0:
+		if await enemy_attack(enemy):
+			_retaliated.append(enemy)
+		if _player_dead():
 			return
 	await player.lunge(enemy.position)
 	enemy.take_damage(player_attack_context(enemy, dice).damage())
@@ -366,27 +400,174 @@ func resolve_defend(enemy: Enemy, amount: int) -> void:
 	await get_tree().create_timer(Anim.t(0.3)).timeout
 
 
-## [enemy] attacks the player if it can hit them, using up any defence assigned against it.
-func enemy_attack(enemy: Enemy) -> void:
+## [enemy] attacks the player if it can hit them, using up any defence assigned against it. With [can_block]
+## (enemy turn) the roll is shown in the turn plan first and the player may add held defence dice.
+## Returns true if it attacked.
+func enemy_attack(enemy: Enemy, can_block: bool = false) -> bool:
 	if not enemy.can_hit(player.tile_id):
-		return
-	var blocked: int = _defence.get(enemy, 0)
+		return false
+	var assigned: int = _defence.get(enemy, 0)
 	_defence.erase(enemy)
-	var ctx := AttackContext.roll_enemy(enemy, player, blocked)
+	var ctx := AttackContext.roll_enemy(enemy, player, assigned)
+	var log_index := -1
+	if can_block:
+		log_index = _enemy_log.size()
+		_enemy_log.append(["", ""])
+		if not ctx.miss and ctx.damage() > 0:
+			ctx.defence += await _choose_block(enemy, ctx.damage(), log_index)
 	var damage := ctx.damage()
+	if log_index != -1:
+		_enemy_log[log_index] = _attack_log(enemy, ctx)
+		_refresh()
 	await enemy.lunge(player.position)
 	if ctx.miss:
 		player.popup("MISS", Color(0.8, 0.8, 0.8))
 	elif damage == 0:
 		player.popup("BLOCKED", Color(0.45, 0.7, 1.0))
+	elif damage >= SaveManager.run_data.health and await _last_stand():
+		player.popup("SACRIFICED", Color(1.0, 0.6, 0.3))
+		# Still counts as a hit for the end-of-turn heal
+		_damage_taken += damage
 	else:
 		player.hurt()
 		player.popup(("CRIT -%d" if ctx.crit else "-%d") % damage, Color(1, 0.3, 0.25))
-	var run := SaveManager.run_data
-	run.health = maxi(run.health - damage, 0)
-	_damage_taken += damage
-	SaveManager.progression_data.damage_received += damage
+		var run := SaveManager.run_data
+		run.health = maxi(run.health - damage, 0)
+		_damage_taken += damage
+		SaveManager.progression_data.damage_received += damage
 	await get_tree().create_timer(Anim.t(0.35)).timeout
+	return true
+
+
+## Turn plan entry for a resolved enemy attack.
+func _attack_log(enemy: Enemy, ctx: AttackContext) -> Array:
+	var name := enemy.data.display_name
+	if ctx.miss:
+		return ["%s missed you" % name, ""]
+	var rolled := ctx.base_damage * (2 if ctx.crit else 1)
+	var line := "%s %shit you for %d" % [name, "critically " if ctx.crit else "", rolled]
+	if ctx.defence <= 0:
+		return [line, ""]
+	return [line, "%d blocked, %d damage taken" % [mini(ctx.defence, rolled), ctx.damage()]]
+
+
+## Lethal hit: offer to sacrifice a die from the pool instead. Returns true if one was sacrificed. A die
+## sacrificed from this turn's roll also leaves the row.
+func _last_stand() -> bool:
+	var pool := SaveManager.run_data.dice
+	# The pool can't be emptied
+	if pool.size() <= 1:
+		return false
+	var index := await sacrifice_dialog.ask(pool)
+	if index < 0:
+		return false
+	pool.remove_at(index)
+	if debug_pool.is_empty() and dice_tray.get_die(index):
+		_spent.append(index)
+		await dice_tray.discard([index])
+	return true
+
+
+# ===========================================================================================================================================
+# Enemy turn
+# ===========================================================================================================================================
+
+
+## Each living enemy, nearest first: move (Gloomhaven rules), then attack unless it struck back this turn.
+func _enemy_turn() -> void:
+	for enemy in _enemy_order():
+		if not is_instance_valid(enemy) or enemy.is_dead():
+			continue
+		var path := EnemyAI.find_path(enemy, board, player.tile_id)
+		if path.size() > 0:
+			await enemy.move_along(path)
+		if not _retaliated.has(enemy) and enemy.can_hit(player.tile_id):
+			await enemy_attack(enemy, true)
+			if _player_dead():
+				return
+		await get_tree().create_timer(Anim.t(0.15)).timeout
+
+
+## Turn order: nearest to the player first (sortable, so initiative can be added later).
+func _enemy_order() -> Array[Enemy]:
+	var order := board.get_enemies()
+	var from := Hex.coords(player.tile_id)
+	order.sort_custom(func(a: Enemy, b: Enemy): return Hex.distance(Hex.coords(a.tile_id), from) < Hex.distance(Hex.coords(b.tile_id), from))
+	return order
+
+
+## Unused defence dice still in the row.
+func _held_dice() -> Array[int]:
+	var held: Array[int] = []
+	for result in results:
+		if is_die_available(result.index) and result.category() == DieFace.Category.DEFENCE and result.face().is_numeric():
+			held.append(result.index)
+	return held
+
+
+## Lets the player pick held defence dice against [enemy]'s rolled [damage] (or spends them automatically, if
+## set), shown as entry [log_index] in the turn plan. Returns the total defence chosen.
+func _choose_block(enemy: Enemy, damage: int, log_index: int) -> int:
+	var held := _held_dice()
+	if held.is_empty():
+		return 0
+	var chosen: Array[int] = []
+	if SaveManager.settings_data.auto_spend_defence:
+		chosen = _auto_block(held, damage)
+	else:
+		_blocking = enemy
+		_blocking_damage = damage
+		_block_selected.clear()
+		_enemy_log[log_index] = ["%s hits you for %d" % [enemy.data.display_name, damage], "Block or take it?"]
+		_refresh()
+		enemy.popup("!", Color(1.0, 0.6, 0.2))
+		block_prompt.show_prompt(enemy.data.display_name, damage)
+		await _block_confirmed
+		chosen = _block_selected.duplicate()
+		_blocking = null
+		_block_selected.clear()
+		await block_prompt.hide_prompt()
+	_spent.append_array(chosen)
+	_refresh()
+	return dice_value(chosen)
+
+
+## Fewest dice that cover [needed]: all of them if they can't, else the smallest single die that does,
+## else the largest first.
+func _auto_block(held: Array[int], needed: int) -> Array[int]:
+	if needed <= 0:
+		return []
+	var by_value := held.duplicate()
+	by_value.sort_custom(func(a: int, b: int): return results[a].value() < results[b].value())
+	if dice_value(by_value) <= needed:
+		return by_value
+	for index in by_value:
+		if results[index].value() >= needed:
+			var single: Array[int] = [index]
+			return single
+	var chosen: Array[int] = []
+	for i in range(by_value.size() - 1, -1, -1):
+		chosen.append(by_value[i])
+		if dice_value(chosen) >= needed:
+			break
+	return chosen
+
+
+func _take_hit() -> void:
+	_block_selected.clear()
+	_block_confirmed.emit()
+
+
+func _click_block_die(index: int) -> void:
+	if not _held_dice().has(index):
+		dice_tray.get_die(index).shake(dice_tray.camera.global_basis.x * 0.1 * dice_tray._scale)
+		return
+	if _block_selected.has(index):
+		_block_selected.erase(index)
+	else:
+		_block_selected.append(index)
+	block_prompt.set_block_value(dice_value(_block_selected))
+	_refresh()
 
 
 # ===========================================================================================================================================
@@ -487,14 +668,14 @@ func _refresh_dice() -> void:
 		var die_state := Die3D.State.IDLE
 		if _end_state and not is_die_available(result.index):
 			die_state = Die3D.State.USED
-		elif selected.has(result.index):
+		elif selected.has(result.index) or _block_selected.has(result.index):
 			die_state = Die3D.State.SELECTED
 		if die.state != die_state:
 			die.set_state(die_state)
 		var lift := 0.0
 		if die_state == Die3D.State.SELECTED:
 			lift = SELECTED_LIFT
-		elif result.index == hovered_die and die_state == Die3D.State.IDLE and state == State.PLAN:
+		elif result.index == hovered_die and die_state == Die3D.State.IDLE and (state == State.PLAN or _blocking):
 			lift = HOVER_LIFT
 		die.lift(dice_tray.camera.global_basis.y * lift * dice_tray._scale)
 
@@ -542,10 +723,12 @@ func _refresh_enemies(planning: bool) -> void:
 		if not planning or _end_state == null:
 			enemy.preview_hp = enemy.hp
 			enemy.preview_defence = 0
+			enemy.preview_skips_attack = state == State.ENEMY_TURN and _retaliated.has(enemy)
 			enemy.cutout.flash = Color(0, 0, 0, 0)
 			continue
 		enemy.preview_hp = _end_state.enemy_hp.get(enemy, enemy.hp)
 		enemy.preview_defence = _end_state.defence.get(enemy, 0)
+		enemy.preview_skips_attack = _end_state.retaliated.has(enemy)
 		# Hovering a target previews the selected attack on top of the plan
 		if _selected_category() == DieFace.Category.ATTACK and enemy.tile_id == hovered_tile and _targets.has(hovered_tile):
 			enemy.preview_hp -= player_attack_context(enemy, selected).damage()
@@ -612,7 +795,12 @@ func _refresh_list() -> void:
 	for action in listed:
 		lines.append(action.describe(self))
 		warnings.append(action.warning(self))
-	action_list.show_actions(lines, warnings, _edit_index if _editing else -1)
+	# Enemy attacks follow the plan as read-only entries
+	for entry in _enemy_log:
+		if entry[0] != "":
+			lines.append(entry[0])
+			warnings.append(entry[1])
+	action_list.show_actions(lines, warnings, _edit_index if _editing else -1, listed.size(), state == State.PLAN)
 	action_list.set_header("TURN %d  ·  %s" % [turn_number, State.keys()[state].replace("_", " ")])
 	action_list.set_commit_enabled(state == State.PLAN)
 	action_list.set_hint(_hint())
@@ -625,11 +813,14 @@ func _hint() -> String:
 		State.RESOLVE:
 			return "Resolving your actions..."
 		State.ENEMY_TURN:
+			if _blocking:
+				return "%s hits you for %d.  Block with held defence dice or TAKE HIT." % [
+					_blocking.data.display_name, _blocking_damage]
 			return "Enemy turn..."
 		State.LEVEL_CLEAR:
 			return "Level clear!  [R] to rebuild (exits arrive in Phase 09)."
 		State.GAME_OVER:
-			return "Defeated.  [R] to rebuild (sacrifice and game over arrive in Phase 07)."
+			return "Defeated."
 	match _selected_category():
 		DieFace.Category.ATTACK:
 			return "Attack %d: click a highlighted enemy in range.  Click more attack dice to combine them.  Right-click to cancel." % dice_value(selected)

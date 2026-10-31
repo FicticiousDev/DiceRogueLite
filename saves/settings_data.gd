@@ -1,6 +1,9 @@
 extends Resource
 class_name SettingsData
 
+const SIDE_LEFT: int = 0
+const SIDE_RIGHT: int = 1
+
 ## Gameplay
 @export var show_fps: bool = true
 @export var skip_splash: bool = false
@@ -9,8 +12,8 @@ class_name SettingsData
 @export var screen_shake: bool = true
 @export var confirm_unused_dice: bool = true
 @export var auto_spend_defence: bool = false
-## Turn plan panel on the left of the board instead of the right
-@export var turn_plan_left: bool = false
+## Side of the board the turn plan panel sits on (SIDE_LEFT / SIDE_RIGHT, the option button order)
+@export_enum("Left", "Right") var turn_plan_side: int = SIDE_RIGHT
 
 ## Graphics
 @export var resolution: Vector2 = Vector2i(1920, 1080)

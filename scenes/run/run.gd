@@ -23,6 +23,9 @@ const STARTING_DICE: Array[String] = ["normal", "normal", "normal", "normal", "n
 @onready var action_list: ActionList = %ActionList
 @onready var enemy_infos: Control = %EnemyInfos
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
+@onready var sacrifice_dialog: SacrificeDialog = $SacrificeDialog
+@onready var game_over: GameOverScreen = $GameOver
+@onready var block_prompt: BlockPrompt = %BlockPrompt
 @onready var dice_tray: DiceTray = $DiceTray
 @onready var turn: TurnController = $TurnController
 
@@ -37,6 +40,10 @@ func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_pressed)
 	settings_button.pressed.connect(Settings.show_settings)
 	dice_tray.camera = camera_rig.camera
+	# Enemy stats are 2D overlays, so hide them while the tray is up rather than draw over it
+	dice_tray.roll_started.connect(_fade_enemy_infos.bind(0.0))
+	dice_tray.roll_finished.connect(_fade_enemy_infos.bind(1.0).unbind(1))
+	turn.state_changed.connect(_on_turn_state_changed)
 	if SaveManager.run_data.dice.is_empty():
 		SaveManager.run_data.dice.assign(STARTING_DICE)
 		SaveManager.run_data.health = SaveManager.run_data.max_health
@@ -51,7 +58,7 @@ func _exit_tree() -> void:
 
 ## Puts the turn plan on the chosen side and centres the board, tray and dice row in the rest of the screen.
 func _apply_layout() -> void:
-	var left := SaveManager.settings_data.turn_plan_left
+	var left := SaveManager.settings_data.turn_plan_side == SettingsData.SIDE_LEFT
 	action_list.set_side(left)
 	var margin_left := PANEL_MARGIN if left else EDGE_MARGIN
 	var margin_right := EDGE_MARGIN if left else PANEL_MARGIN
@@ -62,6 +69,7 @@ func _apply_layout() -> void:
 	dice_tray.row_screen_x = centre
 	if board:
 		camera_rig.frame(board.get_bounds(), false)
+	dice_tray.refresh_row()
 
 
 func load_level(scene: PackedScene) -> void:
@@ -74,7 +82,7 @@ func load_level(scene: PackedScene) -> void:
 	level_root.add_child(board)
 	player = PLAYER_SCENE.instantiate()
 	board.add_piece(player, board.player_start)
-	turn.setup(board, player, dice_tray, action_list, confirm_dialog)
+	turn.setup(board, player, dice_tray, action_list, confirm_dialog, sacrifice_dialog, block_prompt)
 	for enemy in board.get_enemies():
 		var info: EnemyInfo = ENEMY_INFO_SCENE.instantiate()
 		info.setup(enemy, camera_rig.camera)
@@ -109,6 +117,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		turn._refresh()
 
 
+func _on_turn_state_changed(state: TurnController.State) -> void:
+	if state == TurnController.State.GAME_OVER:
+		game_over.show_screen(turn.turn_number)
+
+
+func _fade_enemy_infos(alpha: float) -> void:
+	create_tween().tween_property(enemy_infos, "modulate:a", alpha, Anim.t(0.2))
+
+
 func _on_exit_pressed() -> void:
 	if await confirm_dialog.ask("ABANDON RUN", "Return to the main menu?\nThe current run will be lost."):
 		SaveManager.save_data()
@@ -120,9 +137,9 @@ func _on_exit_pressed() -> void:
 # ===========================================================================================================================================
 
 
-func _can_debug(allow_finished: bool = false) -> bool:
-	var finished := turn.state in [TurnController.State.LEVEL_CLEAR, TurnController.State.GAME_OVER]
-	return not _loading and (turn.state == TurnController.State.PLAN or (allow_finished and finished))
+func _can_debug(allow_cleared: bool = false) -> bool:
+	var cleared := turn.state == TurnController.State.LEVEL_CLEAR
+	return not _loading and (turn.state == TurnController.State.PLAN or (allow_cleared and cleared))
 
 
 ## Re-rolls this turn with one showcase die per rarity, alternating designs.

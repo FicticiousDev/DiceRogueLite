@@ -19,6 +19,8 @@ enum Option { REWIND, EDIT, DELETE }
 var _menu_index: int = -1
 var _lines: Array[String] = []
 var _warnings: Array[String] = []
+var _log_from: int = -1
+var _interactive: bool = true
 var _editing: int = -1
 
 
@@ -31,14 +33,17 @@ func _ready() -> void:
 
 
 ## Rebuilds the entries. [warnings] (one per line, "" for none) show under their entry; [editing] marks the
-## slot being edited (-1 for none).
-func show_actions(lines: Array[String], warnings: Array[String], editing: int = -1) -> void:
-	if lines == _lines and warnings == _warnings and editing == _editing:
+## slot being edited (-1 for none). Lines from [log_from] on are read-only log entries (enemy attacks);
+## planned actions can only be clicked while [interactive].
+func show_actions(lines: Array[String], warnings: Array[String], editing: int = -1, log_from: int = -1, interactive: bool = true) -> void:
+	if lines == _lines and warnings == _warnings and editing == _editing and log_from == _log_from and interactive == _interactive:
 		return
 	var previous := _lines.size()
 	_lines = lines.duplicate()
 	_warnings = warnings.duplicate()
 	_editing = editing
+	_log_from = log_from
+	_interactive = interactive
 	for child in entries.get_children():
 		child.queue_free()
 	for i in lines.size():
@@ -47,9 +52,16 @@ func show_actions(lines: Array[String], warnings: Array[String], editing: int = 
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_font_size_override("font_size", 22)
 		button.text = "%d.  %s" % [i + 1, lines[i]]
-		if i == editing:
+		if log_from != -1 and i >= log_from:
+			button.text = "»  " + lines[i]
+			button.flat = true
+			button.disabled = true
+			button.add_theme_color_override("font_disabled_color", Color(1.0, 0.55, 0.45))
+		elif i == editing:
 			button.text += "   (editing)"
 			button.modulate = Color(1.0, 0.85, 0.4)
+			button.disabled = true
+		elif not interactive:
 			button.disabled = true
 		button.pressed.connect(_open_menu.bind(i, button))
 		entry.add_child(button)

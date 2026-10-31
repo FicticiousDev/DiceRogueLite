@@ -17,6 +17,7 @@ var camera: Camera3D
 var _hp: StatIcon
 var _defence: StatIcon
 var _assigned: StatIcon
+var _attack: StatIcon
 
 
 func setup(target: Enemy, view_camera: Camera3D) -> void:
@@ -27,7 +28,8 @@ func setup(target: Enemy, view_camera: Camera3D) -> void:
 func _ready() -> void:
 	var data := enemy.data
 	_hp = _add(HEART, Color(1, 0.35, 0.35))
-	_add(Symbol.ICONS[Symbol.Type.ATTACK], Symbol.INK[Symbol.Type.ATTACK].lightened(0.3)).set_value("%d–%d" % [data.attack_min, data.attack_max])
+	_attack = _add(Symbol.ICONS[Symbol.Type.ATTACK], Symbol.INK[Symbol.Type.ATTACK].lightened(0.3))
+	_attack.set_value("%d–%d" % [data.attack_min, data.attack_max])
 	_defence = _add(Symbol.ICONS[Symbol.Type.DEFENCE], DEFENCE_COLOR)
 	_defence.set_value(str(data.defence))
 	_assigned = _add(Symbol.ICONS[Symbol.Type.DEFENCE], Color.WHITE)
@@ -55,6 +57,8 @@ func _process(_delta: float) -> void:
 		_hp.set_value("%d → %d" % [enemy.hp, maxi(enemy.preview_hp, 0)], PLANNED_COLOR)
 	else:
 		_hp.set_value(str(enemy.hp))
+	# Dimmed when the plan has it retaliate, as it then won't attack in the enemy turn
+	_attack.modulate.a = 0.35 if enemy.preview_skips_attack else 1.0
 	_assigned.visible = enemy.preview_defence > 0
 	_assigned.set_value("+%d" % enemy.preview_defence, DEFENCE_COLOR)
 

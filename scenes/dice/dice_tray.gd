@@ -8,6 +8,7 @@ extends Node3D
 ## The tray is authored in "tray units" (10 x 7 felt) and scaled so it always fills the same part of the screen.
 ## Dice and tray are on render layer 2 with their own light.
 
+signal roll_started
 signal roll_finished(results: Array[DieResult])
 
 const DIE_SCENE: PackedScene = preload("res://scenes/dice/die_3d.tscn")
@@ -42,6 +43,8 @@ const DESIGN_VIEW_DISTANCE: float = 16.7
 var camera: Camera3D
 var dice: Array[Die3D] = []
 var rolling: bool = false
+## Row order from the last roll, kept so the row can be re-laid out in place
+var _row_order: Array[DieResult] = []
 ## World units per tray unit for the current roll
 var _scale: float = 1.0
 var _tray_home: Transform3D
@@ -59,6 +62,7 @@ func _ready() -> void:
 ## Rolls [types] using [design] and returns one result per die, in pool order. Awaitable.
 func roll(types: Array[DieType], design: DieDesign) -> Array[DieResult]:
 	rolling = true
+	roll_started.emit()
 	await clear()
 	_place()
 	_fade_dim(dim_alpha)
@@ -107,12 +111,36 @@ func clear() -> void:
 	dice.clear()
 
 
+## Removes the given dice (pool indices) from the row and closes up the gaps. Awaitable.
+func discard(indices: Array[int]) -> void:
+	var removed: Array[Die3D] = []
+	for die in dice:
+		if indices.has(die.index):
+			removed.append(die)
+	if removed.is_empty():
+		return
+	var tween := create_tween().set_parallel(true)
+	for die in removed:
+		dice.erase(die)
+		tween.tween_property(die.visual, "scale", Vector3.ONE * 0.01, Anim.t(0.2)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await tween.finished
+	for die in removed:
+		die.queue_free()
+	_row_order = _row_order.filter(func(r: DieResult): return not indices.has(r.index))
+	refresh_row()
+
+
 ## Pool index of the die under a screen position, or -1.
 func get_die_at(screen_position: Vector2) -> int:
+	var best := -1
+	var best_distance := row_spacing_px * 0.45
 	for die in dice:
-		if camera.unproject_position(die.global_position).distance_to(screen_position) < row_spacing_px * 0.45:
-			return die.index
-	return -1
+		# The visual, not the body, so lifted (selected/hovered) dice are picked where they're drawn
+		var distance := camera.unproject_position(die.visual.global_position).distance_to(screen_position)
+		if distance < best_distance:
+			best = die.index
+			best_distance = distance
+	return best
 
 
 func get_die(pool_index: int) -> Die3D:
@@ -218,33 +246,53 @@ func _place_fast() -> void:
 ## Flies each die to its slot in the row, turning its result face to the camera. Grouped attack, defence,
 ## move, other; within a group, higher totals first.
 func _arrange_row(results: Array[DieResult]) -> void:
-	var ordered := results.duplicate()
-	ordered.sort_custom(func(a: DieResult, b: DieResult):
+	_row_order = results.duplicate()
+	_row_order.sort_custom(func(a: DieResult, b: DieResult):
 		if a.category() != b.category():
 			return a.category() < b.category()
 		if a.value() != b.value():
 			return a.value() > b.value()
 		return a.index < b.index)
+	var targets := _row_targets()
+	var last: Tween
+	for i in _row_order.size():
+		var die := get_die(_row_order[i].index)
+		last = _fly_to(die, targets[i].origin, targets[i].basis, i * 0.05)
+	if last:
+		await last.finished
 
-	# Screen x for each slot, with a gap between groups
+
+## Slides the row dice to their slots again, e.g. after the layout or camera changed.
+func refresh_row() -> void:
+	if rolling or dice.is_empty():
+		return
+	var targets := _row_targets()
+	for i in _row_order.size():
+		var die := get_die(_row_order[i].index)
+		if die == null:
+			continue
+		var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+		tween.tween_property(die, "position", targets[i].origin, Anim.t(0.35))
+		tween.tween_property(die, "quaternion", targets[i].basis.get_rotation_quaternion(), Anim.t(0.35))
+
+
+## World transform of each row slot, in [_row_order], with a gap between groups.
+func _row_targets() -> Array[Transform3D]:
 	var xs: Array[float] = []
 	var x := 0.0
-	for i in ordered.size():
+	for i in _row_order.size():
 		if i > 0:
 			x += row_spacing_px
-			if ordered[i].category() != ordered[i - 1].category():
+			if _row_order[i].category() != _row_order[i - 1].category():
 				x += group_gap_px
 		xs.append(x)
 	var screen := get_viewport().get_visible_rect().size
 	var offset: float = screen.x * row_screen_x - xs.back() / 2.0
-
-	var last: Tween
-	for i in ordered.size():
-		var die := get_die(ordered[i].index)
+	var targets: Array[Transform3D] = []
+	for i in _row_order.size():
 		var target := camera.project_position(Vector2(offset + xs[i], screen.y * row_screen_y), row_depth * _scale)
-		last = _fly_to(die, target, Die3D.basis_facing(ordered[i].face_index, _facing_camera(target)), i * 0.05)
-	if last:
-		await last.finished
+		targets.append(Transform3D(Die3D.basis_facing(_row_order[i].face_index, _facing_camera(target)), target))
+	return targets
 
 
 ## Basis whose +Z points from [point] at the camera, upright relative to the screen. Perspective would show

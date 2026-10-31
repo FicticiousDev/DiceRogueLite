@@ -11,7 +11,7 @@ extends VBoxContainer
 @onready var screen_shake_checkbutton = $ScreenShake/CheckButton
 @onready var confirm_unused_dice_checkbutton = $ConfirmUnusedDice/CheckButton
 @onready var auto_spend_defence_checkbutton = $AutoSpendDefence/CheckButton
-@onready var turn_plan_left_checkbutton = $TurnPlanLeft/CheckButton
+@onready var turn_plan_side_options = $TurnPlanSide/OptionButton
 
 # Graphics settings
 @onready var resolution_options = $Resolution/OptionButton
@@ -139,7 +139,7 @@ func _ready() -> void:
 	screen_shake_checkbutton.set_pressed(SaveManager.settings_data.screen_shake)
 	confirm_unused_dice_checkbutton.set_pressed(SaveManager.settings_data.confirm_unused_dice)
 	auto_spend_defence_checkbutton.set_pressed(SaveManager.settings_data.auto_spend_defence)
-	turn_plan_left_checkbutton.set_pressed(SaveManager.settings_data.turn_plan_left)
+	turn_plan_side_options.select(SaveManager.settings_data.turn_plan_side)
 
 	centre_window()
 
@@ -193,10 +193,10 @@ func _on_auto_spend_defence_toggled(toggled_on: bool) -> void:
 	SaveManager.settings_data.auto_spend_defence = toggled_on
 
 
-## Reacting to turn plan side button press - the run re-lays itself out on [signal Resource.changed]
-func _on_turn_plan_left_toggled(toggled_on: bool) -> void:
-	if SaveManager.settings_data.turn_plan_left != toggled_on:
-		SaveManager.settings_data.turn_plan_left = toggled_on
+## Reacting to turn plan side options button press - the run re-lays itself out on [signal Resource.changed]
+func _on_turn_plan_side_selected(index: int) -> void:
+	if SaveManager.settings_data.turn_plan_side != index:
+		SaveManager.settings_data.turn_plan_side = index
 		SaveManager.settings_data.emit_changed()
 
 

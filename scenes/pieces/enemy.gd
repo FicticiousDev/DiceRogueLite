@@ -10,6 +10,8 @@ var hp: int
 ## Planning previews, read by the overhead info
 var preview_hp: int
 var preview_defence: int = 0
+## True if the plan has it strike back, so it won't attack in the enemy turn
+var preview_skips_attack: bool = false
 
 
 func setup(enemy_data: EnemyData) -> void:

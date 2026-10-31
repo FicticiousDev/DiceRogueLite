@@ -15,6 +15,8 @@ var attacked: Array[Enemy] = []
 ## Attack whose retaliation is still to come: it lands once the plan moves on from defend actions
 ## against the same enemy, so defence assigned right after an attack blocks it
 var retaliation: AttackAction
+## Enemies that strike back during the plan; they still move in the enemy turn but don't attack
+var retaliated: Array[Enemy] = []
 
 
 func _init(start_tile: int, enemies: Array[Enemy] = []) -> void:
@@ -30,6 +32,7 @@ func copy() -> TurnState:
 	state.defence = defence.duplicate()
 	state.attacked = attacked.duplicate()
 	state.retaliation = retaliation
+	state.retaliated = retaliated.duplicate()
 	return state
 
 

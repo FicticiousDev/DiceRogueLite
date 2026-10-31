@@ -47,6 +47,8 @@ func _add_strike_note(state: TurnState, verb: String) -> void:
 		return
 	var blocked: int = state.defence.get(enemy, 0)
 	state.defence.erase(enemy)
+	if not state.retaliated.has(enemy):
+		state.retaliated.append(enemy)
 	_notes.append("%s %d–%d" % [verb, enemy.data.attack_min, enemy.data.attack_max] + (", %d blocked" % blocked if blocked > 0 else ""))
 
 

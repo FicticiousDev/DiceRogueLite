@@ -189,21 +189,28 @@ layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="TurnPlanLeft" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="TurnPlanSide" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanLeft"]
+[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanSide"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Turn Plan On Left"
+text = "Turn Plan Side"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanLeft"]
+[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanSide"]
 layout_mode = 2
-size_flags_horizontal = 2
+size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
+alignment = 1
+selected = 1
+item_count = 2
+popup/item_0/text = "Left"
+popup/item_0/id = 0
+popup/item_1/text = "Right"
+popup/item_1/id = 1
 
 [node name="Graphics" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=927966214]
 layout_mode = 2
@@ -725,7 +732,7 @@ text = "DONE"
 [connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/ScreenShake/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_screen_shake_toggled"]
 [connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/ConfirmUnusedDice/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_confirm_unused_dice_toggled"]
 [connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/AutoSpendDefence/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_auto_spend_defence_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanLeft/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_turn_plan_left_toggled"]
+[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanSide/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_turn_plan_side_selected"]
 [connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/AnimationSpeed/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_animation_speed_value_changed"]
 [connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/MaxFPS/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_max_fps_selected"]
 [connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/ShadowQuality/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_shadow_quality_selected"]
