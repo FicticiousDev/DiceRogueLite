@@ -252,6 +252,8 @@ func find_path(from_id: int, to_id: int) -> Array[int]:
 func find_reachable(ctx: MoveContext) -> Array[int]:
 	ctx.costs = {ctx.start: 0}
 	ctx.came_from = {}
+	if ctx.teleport:
+		return _find_teleport_targets(ctx)
 	var frontier: Array[int] = [ctx.start]
 	while frontier.size() > 0:
 		# Small boards: a linear scan for the cheapest frontier tile is fine
@@ -262,7 +264,7 @@ func find_reachable(ctx: MoveContext) -> Array[int]:
 		var current: int = frontier.pop_at(best)
 		for next in get_neighbours(current):
 			var step: int = ctx.cost_func.call(next)
-			if step < 0 or not is_passable(next):
+			if step < 0 or not (is_passable(next) or get_piece(next) == ctx.mover):
 				continue
 			var total: int = ctx.costs[current] + step
 			if total <= ctx.budget and (not ctx.costs.has(next) or total < ctx.costs[next]):
@@ -274,7 +276,26 @@ func find_reachable(ctx: MoveContext) -> Array[int]:
 	var result: Array[int] = []
 	for tile_id in ctx.costs:
 		var piece := get_piece(tile_id)
-		if piece == null or not piece.occupies_tile:
+		if piece == null or piece == ctx.mover or not piece.occupies_tile:
+			result.append(tile_id)
+	return result
+
+
+## Teleport range: walkable, unoccupied tiles within ctx.budget hexes and in line of sight. Paths are the target only.
+func _find_teleport_targets(ctx: MoveContext) -> Array[int]:
+	ctx.costs.clear()
+	var from := Hex.coords(ctx.start)
+	var result: Array[int] = []
+	for tile_id in tiles:
+		var distance := Hex.distance(from, Hex.coords(tile_id))
+		var piece := get_piece(tile_id)
+		if distance < 1 or distance > ctx.budget or not is_walkable(tile_id):
+			continue
+		if piece and piece != ctx.mover and piece.occupies_tile:
+			continue
+		if has_line_of_sight(ctx.start, tile_id):
+			ctx.costs[tile_id] = distance
+			ctx.came_from[tile_id] = ctx.start
 			result.append(tile_id)
 	return result
 

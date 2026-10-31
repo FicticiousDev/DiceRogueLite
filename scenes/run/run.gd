@@ -1,36 +1,34 @@
 extends Node3D
 
-## Root of a run. Loads a level, places the player and frames the camera. Debug movement/LOS until the
-## turn controller arrives in Phase 05.
+## Root of a run. Loads a level, places the player, frames the camera and hands over to the turn controller.
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
+## Screen fraction kept clear for the turn plan panel
+const PANEL_MARGIN: float = 0.22
+const EDGE_MARGIN: float = 0.04
+
 ## Pool for a new run until characters define starting dice (Phase 08)
 const STARTING_DICE: Array[String] = ["normal", "normal", "normal", "normal", "normal", "normal"]
 
 @export var level_scene: PackedScene = preload("res://scenes/levels/test_01.tscn")
-## Movement points for debug moves
-@export var debug_move_budget: int = 4
 
 @onready var camera_rig: CameraRig = $CameraRig
 @onready var level_root: Node3D = $Level
 @onready var exit_button: TextureButton = %ExitButton
 @onready var settings_button: TextureButton = %SettingsButton
 @onready var debug_label: Label = %DebugLabel
+@onready var action_list: ActionList = %ActionList
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
 @onready var dice_tray: DiceTray = $DiceTray
+@onready var turn: TurnController = $TurnController
 
 var board: Board
 var player: Player
-var _hovered: int = -1
-var _busy: bool = false
-var _move_ctx: MoveContext
-var _reachable: Array[int] = []
-var _show_los: bool = false
 var _grid_overlay: GridOverlay
 var _showcase_design: int = 0
-var _last_roll: Array[DieResult] = []
+var _loading: bool = false
 
 
 func _ready() -> void:
@@ -39,10 +37,33 @@ func _ready() -> void:
 	dice_tray.camera = camera_rig.camera
 	if SaveManager.run_data.dice.is_empty():
 		SaveManager.run_data.dice.assign(STARTING_DICE)
+	SaveManager.settings_data.changed.connect(_apply_layout)
+	_apply_layout()
 	load_level(level_scene)
 
 
+func _exit_tree() -> void:
+	SaveManager.settings_data.changed.disconnect(_apply_layout)
+
+
+## Puts the turn plan on the chosen side and centres the board, tray and dice row in the rest of the screen.
+func _apply_layout() -> void:
+	var left := SaveManager.settings_data.turn_plan_left
+	action_list.set_side(left)
+	var margin_left := PANEL_MARGIN if left else EDGE_MARGIN
+	var margin_right := EDGE_MARGIN if left else PANEL_MARGIN
+	camera_rig.frame_margins.x = margin_left
+	camera_rig.frame_margins.z = margin_right
+	var centre := (margin_left + 1.0 - margin_right) / 2.0
+	dice_tray.tray_screen_point.x = centre
+	dice_tray.row_screen_x = centre
+	if board:
+		camera_rig.frame(board.get_bounds(), false)
+
+
 func load_level(scene: PackedScene) -> void:
+	_loading = true
+	await turn.reset()
 	if board:
 		board.queue_free()
 	_grid_overlay = null
@@ -50,35 +71,34 @@ func load_level(scene: PackedScene) -> void:
 	level_root.add_child(board)
 	player = PLAYER_SCENE.instantiate()
 	board.add_piece(player, board.player_start)
-	_cancel_move()
+	turn.setup(board, player, dice_tray, action_list, confirm_dialog)
 	camera_rig.frame(board.get_bounds())
-	_busy = true
 	await board.play_intro()
-	_busy = false
+	_loading = false
+	turn.start_turn()
 
 
 func _process(_delta: float) -> void:
-	if board:
-		_update_hover()
+	if not board:
+		return
+	if _grid_overlay:
+		_grid_overlay.show_pick(turn.hovered_tile, board.last_pick_point)
+	_update_debug_label()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("debug_rebuild"):
+	if event.is_action_pressed("debug_rebuild") and _can_debug():
 		load_level(level_scene)
-	elif event.is_action_pressed("debug_roll"):
-		_debug_roll(false)
-	elif event.is_action_pressed("debug_roll_showcase"):
-		_debug_roll(true)
+	elif event.is_action_pressed("debug_roll") and _can_debug():
+		turn.debug_pool.clear()
+		turn.start_turn(false)
+	elif event.is_action_pressed("debug_roll_showcase") and _can_debug():
+		_debug_showcase()
 	elif event.is_action_pressed("debug_grid"):
 		_toggle_grid_overlay()
 	elif event.is_action_pressed("debug_los"):
-		_show_los = not _show_los
-		_refresh_highlights()
-	elif event.is_action_pressed("select"):
-		_on_select()
-	elif event.is_action_pressed("cancel") and _move_ctx:
-		get_viewport().set_input_as_handled()
-		_cancel_move()
+		turn.show_los = not turn.show_los
+		turn._refresh()
 
 
 func _on_exit_pressed() -> void:
@@ -88,57 +108,23 @@ func _on_exit_pressed() -> void:
 
 
 # ===========================================================================================================================================
-# Debug movement & line of sight - replaced by the turn controller in Phase 05
+# Debug
 # ===========================================================================================================================================
 
 
-## Click the player to show its move range; click a highlighted tile to move there.
-func _on_select() -> void:
-	if _busy or _hovered == -1:
-		return
-	if _hovered == player.tile_id:
-		_cancel_move() if _move_ctx else _start_move()
-	elif _move_ctx and _reachable.has(_hovered):
-		var path := _move_ctx.path_to(_hovered)
-		_cancel_move()
-		_busy = true
-		await player.move_along(path)
-		_busy = false
-		_refresh_highlights()
+func _can_debug() -> bool:
+	return not _loading and turn.state == TurnController.State.PLAN
 
 
-func _start_move() -> void:
-	_move_ctx = MoveContext.new(player.tile_id, debug_move_budget, board.move_cost)
-	_reachable = board.find_reachable(_move_ctx)
-	_refresh_highlights()
-
-
-func _cancel_move() -> void:
-	_move_ctx = null
-	_reachable.clear()
-	if board:
-		_refresh_highlights()
-
-
-## D rolls the run's pool with the selected design; F rolls one showcase die per rarity, alternating designs.
-func _debug_roll(showcase: bool) -> void:
-	if dice_tray.rolling:
-		return
-	var types: Array[DieType] = []
-	var design: DieDesign
-	if showcase:
-		var all := Database.get_all("dice_debug")
-		all.sort_custom(func(a: DieType, b: DieType): return a.rarity < b.rarity)
-		types.assign(all)
-		var designs := Database.get_all("die_designs")
-		design = designs[_showcase_design % designs.size()]
-		_showcase_design += 1
-	else:
-		for id in SaveManager.run_data.dice:
-			types.append(Database.get_content("dice", id))
-		design = Database.get_content("die_designs", SaveManager.progression_data.die_design)
-	_last_roll = await dice_tray.roll(types, design)
-	_update_debug_label()
+## Re-rolls this turn with one showcase die per rarity, alternating designs.
+func _debug_showcase() -> void:
+	var all := Database.get_all("dice_debug")
+	all.sort_custom(func(a: DieType, b: DieType): return a.rarity < b.rarity)
+	turn.debug_pool.assign(all)
+	var designs := Database.get_all("die_designs")
+	turn.debug_design = designs[_showcase_design % designs.size()]
+	_showcase_design += 1
+	turn.start_turn(false)
 
 
 func _toggle_grid_overlay() -> void:
@@ -149,46 +135,18 @@ func _toggle_grid_overlay() -> void:
 		_grid_overlay = GridOverlay.new()
 		board.add_child(_grid_overlay)
 		_grid_overlay.setup(board)
-	_update_debug_label()
-
-
-func _update_hover() -> void:
-	var tile_id := board.tile_at_screen(camera_rig.camera, get_viewport().get_mouse_position())
-	if _grid_overlay:
-		_grid_overlay.show_pick(tile_id, board.last_pick_point)
-	if tile_id != _hovered:
-		_hovered = tile_id
-		_refresh_highlights()
-
-
-func _refresh_highlights() -> void:
-	board.clear_highlights()
-	if _show_los and not _busy:
-		var visible_ids: Array[int] = []
-		var hidden_ids: Array[int] = []
-		for tile_id in board.tiles:
-			if tile_id != player.tile_id:
-				(visible_ids if board.has_line_of_sight(player.tile_id, tile_id) else hidden_ids).append(tile_id)
-		board.highlight(visible_ids, HexTile.Highlight.VALID)
-		board.highlight(hidden_ids, HexTile.Highlight.INVALID)
-	if _move_ctx:
-		board.highlight(_reachable, HexTile.Highlight.MOVABLE)
-		if _reachable.has(_hovered):
-			board.highlight(_move_ctx.path_to(_hovered), HexTile.Highlight.VALID)
-	board.select(_hovered)
-	_update_debug_label()
 
 
 func _update_debug_label() -> void:
-	var text := "[Click player] move (%d)   [D] roll dice   [F] showcase dice   [L] line of sight %s   [G] grid %s   [R] rebuild" % [
-		debug_move_budget, "ON" if _show_los else "off", "ON" if _grid_overlay else "off"]
-	if _last_roll.size() > 0:
-		text += "\nRolled: " + ", ".join(_last_roll.map(func(r: DieResult): return r.face().describe()))
-	if _hovered != -1:
-		var tile := board.get_tile(_hovered)
-		text += "\nCell %s  |  %s  |  cost %d" % [tile.coords, Terrain.Type.keys()[tile.terrain], board.move_cost(_hovered)]
-		if _move_ctx and _move_ctx.costs.has(_hovered):
-			text += "  |  path cost %d" % _move_ctx.costs[_hovered]
+	var text := "[D] re-roll   [F] showcase dice   [L] line of sight %s   [G] grid %s   [R] rebuild" % [
+		"ON" if turn.show_los else "off", "ON" if _grid_overlay else "off"]
+	if turn.results.size() > 0:
+		text += "\nRolled: " + ", ".join(turn.results.map(func(r: DieResult): return r.describe()))
+	if turn.hovered_tile != -1:
+		var tile := board.get_tile(turn.hovered_tile)
+		text += "\nCell %s  |  %s  |  cost %d" % [tile.coords, Terrain.Type.keys()[tile.terrain], board.move_cost(turn.hovered_tile)]
+		if turn._move_ctx and turn._move_ctx.costs.has(turn.hovered_tile):
+			text += "  |  path cost %d" % turn._move_ctx.costs[turn.hovered_tile]
 		if tile.piece:
 			text += "  |  " + tile.piece.name
 	debug_label.text = text

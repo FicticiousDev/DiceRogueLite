@@ -30,6 +30,8 @@ var design: DieDesign
 var size: float = 1.0
 var state: State = State.IDLE
 var _materials: Array[ShaderMaterial] = []
+var _face_materials: Array[ShaderMaterial] = []
+var _lift_tween: Tween
 
 
 ## Call before adding to the tree.
@@ -58,6 +60,7 @@ func _ready() -> void:
 		var material := _material(FACE_SHADER, color)
 		material.set_shader_parameter("ink_texture", textures[0])
 		material.set_shader_parameter("normal_texture", textures[1])
+		_face_materials.append(material)
 		var face := MeshInstance3D.new()
 		face.mesh = quad
 		face.material_override = material
@@ -94,6 +97,38 @@ func snap_flat() -> void:
 	global_basis = Basis(Quaternion(current.normalized(), Vector3.UP)) * global_basis
 
 
+## Redraws one face, e.g. with buff bonuses added, with a pop.
+func set_face_display(face_index: int, face: DieFace) -> void:
+	var textures := DieFaceTextures.get_textures(face)
+	_face_materials[face_index].set_shader_parameter("ink_texture", textures[0])
+	_face_materials[face_index].set_shader_parameter("normal_texture", textures[1])
+	pop()
+
+
+## Raises the visual by [offset] (world space) relative to the body, e.g. towards the top of the screen.
+func lift(offset: Vector3) -> void:
+	if _lift_tween:
+		_lift_tween.kill()
+	_lift_tween = create_tween()
+	_lift_tween.tween_property(visual, "position", global_basis.inverse() * offset, Anim.t(0.15)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func pop() -> void:
+	var tween := create_tween()
+	tween.tween_property(visual, "scale", Vector3.ONE * size * 1.25, Anim.t(0.08))
+	tween.tween_property(visual, "scale", _rest_scale(), Anim.t(0.35)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
+## Quick side-to-side shake to refuse a click.
+func shake(direction: Vector3) -> void:
+	var local := global_basis.inverse() * direction
+	var base := visual.position
+	var tween := create_tween()
+	for i in 4:
+		tween.tween_property(visual, "position", base + local * (1.0 if i % 2 == 0 else -1.0), Anim.t(0.04))
+	tween.tween_property(visual, "position", base, Anim.t(0.04))
+
+
 func set_state(new_state: State) -> void:
 	state = new_state
 	var dim := 0.0
@@ -104,6 +139,11 @@ func set_state(new_state: State) -> void:
 			dim = 0.5
 	for material in _materials:
 		material.set_shader_parameter("dim", dim)
+	create_tween().tween_property(visual, "scale", _rest_scale(), Anim.t(0.15)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _rest_scale() -> Vector3:
+	return Vector3.ONE * size * (0.85 if state == State.USED else 1.0)
 
 
 func _face_towards(direction: Vector3) -> int:

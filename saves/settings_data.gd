@@ -9,6 +9,8 @@ class_name SettingsData
 @export var screen_shake: bool = true
 @export var confirm_unused_dice: bool = true
 @export var auto_spend_defence: bool = false
+## Turn plan panel on the left of the board instead of the right
+@export var turn_plan_left: bool = false
 
 ## Graphics
 @export var resolution: Vector2 = Vector2i(1920, 1080)

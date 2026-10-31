@@ -34,6 +34,10 @@ const PADDING: float = 0.08
 		outline_width = value
 		_rebuild()
 @export var face_camera: bool = true
+@export var casts_shadow: bool = true:
+	set(value):
+		casts_shadow = value
+		_rebuild()
 
 var body: Node3D
 
@@ -77,6 +81,7 @@ func _rebuild() -> void:
 		material.set_shader_parameter("padding", PADDING)
 		material.set_shader_parameter("is_edge", i > 0)
 		var layer := MeshInstance3D.new()
+		layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts_shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		layer.mesh = quad
 		layer.material_override = material
 		layer.position.z = thickness / 2.0 - thickness * i / (layers - 1)

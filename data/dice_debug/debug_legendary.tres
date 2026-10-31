@@ -4,65 +4,67 @@
 [ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_qp0ew"]
 [ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_k1f08"]
 
-[sub_resource type="Resource" id="Resource_51bx0"]
+[sub_resource type="Resource" id="Resource_ndgwx"]
 script = ExtResource("2_qp0ew")
-count = 4
+symbol = 7
+
+[sub_resource type="Resource" id="Resource_qp0ew"]
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_ndgwx")])
+buff_target = 2
+
+[sub_resource type="Resource" id="Resource_k1f08"]
+script = ExtResource("2_qp0ew")
+symbol = 4
+
+[sub_resource type="Resource" id="Resource_51bx0"]
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_k1f08")])
 
 [sub_resource type="Resource" id="Resource_gwxht"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_51bx0")])
+script = ExtResource("2_qp0ew")
+symbol = 5
 
 [sub_resource type="Resource" id="Resource_scikt"]
-script = ExtResource("2_qp0ew")
-symbol = 1
-count = 4
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_gwxht")])
 
 [sub_resource type="Resource" id="Resource_ad5x3"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_scikt")])
+script = ExtResource("2_qp0ew")
+count = 5
 
 [sub_resource type="Resource" id="Resource_tcvvd"]
+script = ExtResource("2_qp0ew")
+symbol = 3
+
+[sub_resource type="Resource" id="Resource_gu6gc"]
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_ad5x3"), SubResource("Resource_tcvvd")])
+
+[sub_resource type="Resource" id="Resource_jdsnk"]
 script = ExtResource("2_qp0ew")
 symbol = 2
 count = 4
 
-[sub_resource type="Resource" id="Resource_gu6gc"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_tcvvd")])
-
-[sub_resource type="Resource" id="Resource_jdsnk"]
-script = ExtResource("2_qp0ew")
-symbol = 4
-
 [sub_resource type="Resource" id="Resource_1le2b"]
-script = ExtResource("2_qp0ew")
-symbol = 3
+script = ExtResource("1_ndgwx")
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_jdsnk")])
 
 [sub_resource type="Resource" id="Resource_avvp7"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_jdsnk"), SubResource("Resource_1le2b")])
+script = ExtResource("2_qp0ew")
+symbol = 2
 
 [sub_resource type="Resource" id="Resource_32jqx"]
 script = ExtResource("2_qp0ew")
-symbol = 7
-count = 3
+symbol = 6
 
 [sub_resource type="Resource" id="Resource_jt1gv"]
 script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_32jqx")])
-
-[sub_resource type="Resource" id="Resource_my8qj"]
-script = ExtResource("2_qp0ew")
-symbol = 6
-count = 2
-
-[sub_resource type="Resource" id="Resource_oc0uf"]
-script = ExtResource("1_ndgwx")
-symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_my8qj")])
+symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_avvp7"), SubResource("Resource_32jqx")])
 
 [resource]
 script = ExtResource("3_k1f08")
 id = &"debug_legendary"
 display_name = "Debug Legendary"
 rarity = 4
-faces = Array[ExtResource("1_ndgwx")]([SubResource("Resource_gwxht"), SubResource("Resource_ad5x3"), SubResource("Resource_gu6gc"), SubResource("Resource_avvp7"), SubResource("Resource_jt1gv"), SubResource("Resource_oc0uf")])
+faces = Array[ExtResource("1_ndgwx")]([SubResource("Resource_qp0ew"), SubResource("Resource_51bx0"), SubResource("Resource_scikt"), SubResource("Resource_gu6gc"), SubResource("Resource_1le2b"), SubResource("Resource_jt1gv")])

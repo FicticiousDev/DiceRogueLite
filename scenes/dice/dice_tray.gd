@@ -21,6 +21,8 @@ const DESIGN_VIEW_DISTANCE: float = 16.7
 @export var settle_timeout: float = 4.0
 ## Row position as a fraction of screen height
 @export var row_screen_y: float = 0.91
+## Screen x (0-1) of the row centre
+@export var row_screen_x: float = 0.5
 @export var row_spacing_px: float = 112.0
 @export var group_gap_px: float = 56.0
 ## Distance from the camera to the row (tray units); sets how big row dice look
@@ -218,12 +220,10 @@ func _place_fast() -> void:
 func _arrange_row(results: Array[DieResult]) -> void:
 	var ordered := results.duplicate()
 	ordered.sort_custom(func(a: DieResult, b: DieResult):
-		var ca := a.face().category()
-		var cb := b.face().category()
-		if ca != cb:
-			return ca < cb
-		if a.face().total() != b.face().total():
-			return a.face().total() > b.face().total()
+		if a.category() != b.category():
+			return a.category() < b.category()
+		if a.value() != b.value():
+			return a.value() > b.value()
 		return a.index < b.index)
 
 	# Screen x for each slot, with a gap between groups
@@ -232,11 +232,11 @@ func _arrange_row(results: Array[DieResult]) -> void:
 	for i in ordered.size():
 		if i > 0:
 			x += row_spacing_px
-			if ordered[i].face().category() != ordered[i - 1].face().category():
+			if ordered[i].category() != ordered[i - 1].category():
 				x += group_gap_px
 		xs.append(x)
 	var screen := get_viewport().get_visible_rect().size
-	var offset: float = (screen.x - xs.back()) / 2.0
+	var offset: float = screen.x * row_screen_x - xs.back() / 2.0
 
 	var last: Tween
 	for i in ordered.size():

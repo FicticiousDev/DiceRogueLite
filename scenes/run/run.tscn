@@ -5,6 +5,8 @@
 [ext_resource type="PackedScene" path="res://scenes/board/camera_rig.tscn" id="camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog/confirm_dialog.tscn" id="dialog"]
 [ext_resource type="PackedScene" path="res://scenes/dice/dice_tray.tscn" id="dice_tray"]
+[ext_resource type="PackedScene" path="res://scenes/ui/action_list/action_list.tscn" id="action_list"]
+[ext_resource type="Script" path="res://scenes/turn/turn_controller.gd" id="turn"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButton.png" id="quit_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonActive.png" id="settings_tex"]
@@ -23,6 +25,7 @@ shadow_enabled = true
 shadow_caster_mask = 1048573
 
 [node name="CameraRig" parent="." instance=ExtResource("camera_rig")]
+frame_margins = Vector4(0.04, 0.1, 0.04, 0.2)
 
 [node name="Level" type="Node3D" parent="."]
 
@@ -58,6 +61,12 @@ offset_right = 1800.0
 offset_bottom = 100.0
 theme_override_font_sizes/font_size = 20
 
+[node name="ActionList" parent="HUD" instance=ExtResource("action_list")]
+unique_name_in_owner = true
+
 [node name="DiceTray" parent="." instance=ExtResource("dice_tray")]
 
 [node name="ConfirmDialog" parent="." instance=ExtResource("dialog")]
+
+[node name="TurnController" type="Node" parent="."]
+script = ExtResource("turn")

@@ -38,7 +38,7 @@ static func _build(face: DieFace) -> Array[Texture2D]:
 	height.fill(Color.WHITE)
 
 	var symbols: Array[Symbol.Type] = []
-	for face_symbol in face.symbols:
+	for face_symbol in face.display_symbols():
 		for i in face_symbol.count:
 			symbols.append(face_symbol.symbol)
 	var layout: Array = _layout(symbols.size())

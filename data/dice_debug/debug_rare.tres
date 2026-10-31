@@ -4,57 +4,69 @@
 [ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_eqtuc"]
 [ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_1q4je"]
 
-[sub_resource type="Resource" id="Resource_0iim1"]
-script = ExtResource("2_eqtuc")
-symbol = 3
-
-[sub_resource type="Resource" id="Resource_0gr02"]
-script = ExtResource("1_ajadf")
-symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_0iim1")])
-
-[sub_resource type="Resource" id="Resource_ewldp"]
-script = ExtResource("2_eqtuc")
-symbol = 6
-
-[sub_resource type="Resource" id="Resource_p2ec3"]
-script = ExtResource("1_ajadf")
-symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_ewldp")])
-
-[sub_resource type="Resource" id="Resource_2cjh8"]
+[sub_resource type="Resource" id="Resource_ajadf"]
 script = ExtResource("2_eqtuc")
 symbol = 7
 
-[sub_resource type="Resource" id="Resource_0f7c5"]
+[sub_resource type="Resource" id="Resource_eqtuc"]
 script = ExtResource("1_ajadf")
-symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_2cjh8")])
+symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_ajadf")])
+buff_target = 2
+
+[sub_resource type="Resource" id="Resource_1q4je"]
+script = ExtResource("2_eqtuc")
+symbol = 2
+count = 5
+
+[sub_resource type="Resource" id="Resource_0iim1"]
+script = ExtResource("2_eqtuc")
+symbol = 6
+
+[sub_resource type="Resource" id="Resource_0gr02"]
+script = ExtResource("1_ajadf")
+symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_1q4je"), SubResource("Resource_0iim1")])
+
+[sub_resource type="Resource" id="Resource_ewldp"]
+script = ExtResource("2_eqtuc")
+count = 3
+
+[sub_resource type="Resource" id="Resource_p2ec3"]
+script = ExtResource("2_eqtuc")
+symbol = 3
+
+[sub_resource type="Resource" id="Resource_2cjh8"]
+script = ExtResource("1_ajadf")
+symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_ewldp"), SubResource("Resource_p2ec3")])
+
+[sub_resource type="Resource" id="Resource_0f7c5"]
+script = ExtResource("2_eqtuc")
+symbol = 1
+count = 5
 
 [sub_resource type="Resource" id="Resource_8s1ft"]
-script = ExtResource("2_eqtuc")
-count = 6
+script = ExtResource("1_ajadf")
+symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_0f7c5")])
 
 [sub_resource type="Resource" id="Resource_sr3lt"]
-script = ExtResource("1_ajadf")
-symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_8s1ft")])
-
-[sub_resource type="Resource" id="Resource_ep8dm"]
-script = ExtResource("2_eqtuc")
-symbol = 5
-
-[sub_resource type="Resource" id="Resource_x5kwo"]
-script = ExtResource("1_ajadf")
-symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_ep8dm")])
-
-[sub_resource type="Resource" id="Resource_fj8ik"]
 script = ExtResource("2_eqtuc")
 symbol = 4
 
-[sub_resource type="Resource" id="Resource_feh2n"]
+[sub_resource type="Resource" id="Resource_ep8dm"]
 script = ExtResource("1_ajadf")
-symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_fj8ik")])
+symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_sr3lt")])
+
+[sub_resource type="Resource" id="Resource_x5kwo"]
+script = ExtResource("2_eqtuc")
+symbol = 2
+count = 2
+
+[sub_resource type="Resource" id="Resource_fj8ik"]
+script = ExtResource("1_ajadf")
+symbols = Array[ExtResource("2_eqtuc")]([SubResource("Resource_x5kwo")])
 
 [resource]
 script = ExtResource("3_1q4je")
 id = &"debug_rare"
 display_name = "Debug Rare"
 rarity = 2
-faces = Array[ExtResource("1_ajadf")]([SubResource("Resource_0gr02"), SubResource("Resource_p2ec3"), SubResource("Resource_0f7c5"), SubResource("Resource_sr3lt"), SubResource("Resource_x5kwo"), SubResource("Resource_feh2n")])
+faces = Array[ExtResource("1_ajadf")]([SubResource("Resource_eqtuc"), SubResource("Resource_0gr02"), SubResource("Resource_2cjh8"), SubResource("Resource_8s1ft"), SubResource("Resource_ep8dm"), SubResource("Resource_fj8ik")])

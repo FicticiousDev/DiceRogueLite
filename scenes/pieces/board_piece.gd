@@ -34,6 +34,27 @@ func move_along(path: Array[int]) -> void:
 		moved.emit(from_id, next_id)
 
 
+## Blinks out of the current tile and back in on [target_id]. Awaitable.
+func teleport_to(target_id: int) -> void:
+	var from_id := tile_id
+	var body: Node3D = cutout.body if cutout else self
+	var x := signf(body.scale.x) if cutout else 1.0
+	var tween := create_tween()
+	tween.tween_property(body, "scale", Vector3(0.0, 1.6, 1.0), Anim.t(0.12)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await tween.finished
+	visible = false
+	_face(board.cell_top_local(Hex.coords(target_id)) - position)
+	_set_tile(target_id)
+	position = board.cell_top_local(Hex.coords(target_id))
+	await get_tree().create_timer(Anim.t(0.15)).timeout
+	visible = true
+	tween = create_tween()
+	tween.tween_property(body, "scale", Vector3(x, 1.0, 1.0), Anim.t(0.3)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	await tween.finished
+	_land()
+	moved.emit(from_id, target_id)
+
+
 func play_intro(delay: float = 0.0) -> void:
 	visible = false
 	await get_tree().create_timer(Anim.t(delay)).timeout
