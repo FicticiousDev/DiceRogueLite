@@ -26,6 +26,7 @@ func _process(delta: float) -> void:
 
 
 func _on_new_run_pressed() -> void:
+	SaveManager.run_data = RunData.new()
 	SceneManager.change_scene(RUN_SCENE)
 
 

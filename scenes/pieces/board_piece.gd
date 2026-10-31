@@ -13,6 +13,8 @@ signal moved(from_id: int, to_id: int)
 @export var intro_duration: float = 0.5
 @export var intro_drop: float = 2.0
 
+const POPUP_FONT_SIZE: int = 72
+
 @onready var cutout: Cutout = get_node_or_null("Cutout")
 
 var board: Board
@@ -91,6 +93,65 @@ func _face(direction: Vector3) -> void:
 	var facing := signf(direction.x)
 	if signf(cutout.body.scale.x) != facing:
 		create_tween().tween_property(cutout.body, "scale:x", facing, Anim.t(0.12)).set_trans(Tween.TRANS_BACK)
+
+
+# ===========================================================================================================================================
+# Combat feedback
+# ===========================================================================================================================================
+
+
+## Quick jab towards [target_position] and back. Awaits the moment of impact.
+func lunge(target_position: Vector3) -> void:
+	var start := position
+	var offset := (target_position - position) * Vector3(1, 0, 1)
+	_face(offset)
+	var tween := create_tween()
+	tween.tween_property(self, "position", start + offset.limit_length(0.45), Anim.t(0.1)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "position", start, Anim.t(0.25)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	await get_tree().create_timer(Anim.t(0.1)).timeout
+
+
+## Shake and flash red.
+func hurt() -> void:
+	if not cutout:
+		return
+	var body := cutout.body
+	var tween := create_tween()
+	for i in 4:
+		tween.tween_property(body, "position:x", 0.06 * (1 if i % 2 == 0 else -1), Anim.t(0.035))
+	tween.tween_property(body, "position:x", 0.0, Anim.t(0.035))
+	cutout.flash = Color(1, 0.15, 0.1, 0.8)
+	create_tween().tween_property(cutout, "flash", Color(1, 0.15, 0.1, 0.0), Anim.t(0.35))
+
+
+## Floating text above the piece, e.g. damage numbers.
+func popup(text: String, color: Color) -> void:
+	var label := Label3D.new()
+	label.text = text
+	label.modulate = color
+	label.font_size = POPUP_FONT_SIZE
+	label.outline_size = 18
+	label.pixel_size = 0.006
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.render_priority = 10
+	board.add_child(label)
+	label.position = position + Vector3.UP * 0.75
+	label.scale = Vector3.ONE * 0.4
+	# Bound to the label so it still finishes if this piece is freed (e.g. a dying enemy)
+	var tween := label.create_tween().set_parallel(true)
+	tween.tween_property(label, "scale", Vector3.ONE, Anim.t(0.25)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "position:y", label.position.y + 0.6, Anim.t(0.9)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, Anim.t(0.3)).set_delay(Anim.t(0.7))
+	tween.chain().tween_callback(label.queue_free)
+
+
+## Takes the piece off its tile and frees it.
+func remove_from_board() -> void:
+	if board.has_tile(tile_id) and board.get_tile(tile_id).piece == self:
+		board.get_tile(tile_id).piece = null
+		board.refresh_tile(tile_id)
+	queue_free()
 
 
 ## Squash on landing and kick up the tile's terrain effect.

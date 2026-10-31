@@ -3,12 +3,13 @@ extends Node3D
 
 ## A 3D tile placed from a cell of the board's 2D Layout layer, linked to it by [id] and [coords].
 
-enum Highlight { NONE, VALID, INVALID, MOVABLE }
+enum Highlight { NONE, VALID, INVALID, MOVABLE, TARGET }
 
 const HIGHLIGHT_COLORS: Dictionary[Highlight, Color] = {
 	Highlight.VALID: Color(0.35, 1.0, 0.45, 0.5),
 	Highlight.INVALID: Color(1.0, 0.3, 0.3, 0.5),
 	Highlight.MOVABLE: Color(0.35, 0.65, 1.0, 0.5),
+	Highlight.TARGET: Color(1.0, 0.55, 0.1, 0.6),
 }
 const SELECTED_COLOR: Color = Color(1.0, 1.0, 1.0, 0.45)
 ## Body radius as a fraction of the cell radius, leaving a small gap between tiles

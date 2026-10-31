@@ -1,8 +1,8 @@
 class_name TurnController
 extends Node
 
-## Runs the player's turn: roll the pool, apply buffs, plan a sequence of actions, commit, resolve, then the
-## enemy turn. Planning works on a TurnState simulated from the start of the turn through the planned actions,
+## Runs the player's turn: roll the pool, apply buffs, plan a sequence of actions (move, attack, defend), commit,
+## resolve, then the enemy turn. Planning works on a TurnState simulated from the start of the turn through the planned actions,
 ## rebuilt whenever the plan changes; actions that become invalid are dropped.
 
 signal state_changed(state: State)
@@ -42,6 +42,13 @@ var _insert_state: TurnState
 var _end_state: TurnState
 var _move_ctx: MoveContext
 var _reachable: Array[int] = []
+## Enemy tiles the selected attack/defence dice can target
+var _targets: Array[int] = []
+## Resolution: defence assigned against each enemy, damage taken this turn
+var _defence: Dictionary[Enemy, int] = {}
+var _damage_taken: int = 0
+## Resolution: enemy whose retaliation lands once the defend actions following its attack are done
+var _retaliating: Enemy
 var _editing: PlannedAction
 var _edit_index: int = -1
 var _ghost: Cutout
@@ -88,11 +95,17 @@ func dice_value(dice: Array[int]) -> int:
 	return total
 
 
-## Movement search for [dice] from [start]; a teleport only if every die has the teleport symbol.
-func move_context(start: int, dice: Array[int]) -> MoveContext:
-	var ctx := MoveContext.new(start, dice_value(dice), board.move_cost, player)
+## Movement search for [dice] from the simulated [sim] state; a teleport only if every die has the teleport symbol.
+func move_context(sim: TurnState, dice: Array[int]) -> MoveContext:
+	var ctx := MoveContext.new(sim.player_tile, dice_value(dice), board.move_cost, player)
 	ctx.teleport = dice.size() > 0 and dice.all(_has_teleport)
+	ctx.ignored = sim.dead_enemies()
 	return ctx
+
+
+## The player's attack on [enemy] with [dice]. Crit/insta-kill symbols are applied in Phase 08.
+func player_attack_context(enemy: Enemy, dice: Array[int]) -> AttackContext:
+	return AttackContext.new(player, enemy, dice_value(dice), enemy.data.defence)
 
 
 ## True if teleport dice are combined with normal movement dice, losing the teleport.
@@ -148,8 +161,8 @@ func _click_die(index: int) -> void:
 		selected.erase(index)
 	else:
 		# Only dice of one kind combine into an action; picking another kind starts a new selection.
-		# Movement is the only plannable kind until Phase 06.
-		if result.category() != DieFace.Category.MOVE:
+		# Special faces (insta-kill, block all) become usable in Phase 08.
+		if not result.face().is_numeric():
 			die.shake(dice_tray.camera.global_basis.x * 0.1 * dice_tray._scale)
 			return
 		if selected.size() > 0 and results[selected[0]].category() != result.category():
@@ -159,9 +172,21 @@ func _click_die(index: int) -> void:
 
 
 func _click_tile(tile_id: int) -> void:
-	if selected.is_empty() or not _reachable.has(tile_id):
+	if selected.is_empty():
 		return
-	var action := MoveAction.new(selected, tile_id)
+	var action: PlannedAction
+	match _selected_category():
+		DieFace.Category.MOVE:
+			if _reachable.has(tile_id):
+				action = MoveAction.new(selected, tile_id)
+		DieFace.Category.ATTACK:
+			if _targets.has(tile_id):
+				action = AttackAction.new(selected, board.get_piece(tile_id))
+		DieFace.Category.DEFENCE:
+			if _targets.has(tile_id):
+				action = DefendAction.new(selected, board.get_piece(tile_id))
+	if action == null:
+		return
 	selected.clear()
 	if _editing:
 		actions.insert(_edit_index, action)
@@ -251,15 +276,117 @@ func _unused_non_defence() -> int:
 func _resolve() -> void:
 	_set_state(State.RESOLVE)
 	_refresh()
+	_defence.clear()
+	_damage_taken = 0
+	_retaliating = null
 	for action in actions:
+		if not _is_defending_retaliation(action, _retaliating):
+			await _settle_retaliation()
+			if _player_dead():
+				await _game_over()
+				return
 		await action.resolve(self)
+		if _player_dead():
+			await _game_over()
+			return
+	await _settle_retaliation()
+	if _player_dead():
+		await _game_over()
+		return
 	# Unused results are discarded (held defence arrives in Phase 07)
 	await dice_tray.clear()
+	if board.get_enemies().is_empty():
+		_set_state(State.LEVEL_CLEAR)
+		_refresh()
+		return
 	_set_state(State.ENEMY_TURN)
 	_refresh()
 	# Enemy turn stub until Phase 07
 	await get_tree().create_timer(Anim.t(0.4)).timeout
+	var run := SaveManager.run_data
+	if _damage_taken == 0 and run.health < run.max_health:
+		run.health += 1
+		player.popup("+1", Color(0.4, 1.0, 0.45))
+		await get_tree().create_timer(Anim.t(0.4)).timeout
 	start_turn()
+
+
+func _player_dead() -> bool:
+	return SaveManager.run_data.health <= 0
+
+
+## Sacrifice / game over screen arrive in Phase 07.
+func _game_over() -> void:
+	await dice_tray.clear()
+	_set_state(State.GAME_OVER)
+	_refresh()
+
+
+## True if [action] defends against [enemy]'s pending retaliation, so it lands after the action.
+func _is_defending_retaliation(action: PlannedAction, enemy: Enemy) -> bool:
+	return enemy != null and action is DefendAction and action.defends_against(enemy)
+
+
+func _settle_retaliation() -> void:
+	if _retaliating == null:
+		return
+	var enemy := _retaliating
+	_retaliating = null
+	if is_instance_valid(enemy) and not enemy.is_dead():
+		await enemy_attack(enemy)
+
+
+## Player attacks [enemy]; it strikes first if it always attacks first, otherwise retaliates if it survives
+## (after any defend actions against it that directly follow).
+func resolve_attack(enemy: Enemy, dice: Array[int]) -> void:
+	if not is_instance_valid(enemy) or enemy.is_dead():
+		return
+	if enemy.data.attacks_first:
+		await enemy_attack(enemy)
+		if SaveManager.run_data.health <= 0:
+			return
+	await player.lunge(enemy.position)
+	enemy.take_damage(player_attack_context(enemy, dice).damage())
+	if enemy.is_dead():
+		SaveManager.run_data.gold += enemy.data.gold
+		SaveManager.progression_data.enemies_defeated += 1
+		player.popup("+%d gold" % enemy.data.gold, Color(1.0, 0.85, 0.3))
+		await enemy.play_death()
+	elif not enemy.data.attacks_first:
+		_retaliating = enemy
+	await get_tree().create_timer(Anim.t(0.25)).timeout
+
+
+## Adds defence against [enemy]'s next attack.
+func resolve_defend(enemy: Enemy, amount: int) -> void:
+	if not is_instance_valid(enemy) or enemy.is_dead():
+		return
+	_defence[enemy] = _defence.get(enemy, 0) + amount
+	enemy.popup("+%d defence" % amount, Color(0.45, 0.7, 1.0))
+	await get_tree().create_timer(Anim.t(0.3)).timeout
+
+
+## [enemy] attacks the player if it can hit them, using up any defence assigned against it.
+func enemy_attack(enemy: Enemy) -> void:
+	if not enemy.can_hit(player.tile_id):
+		return
+	var blocked: int = _defence.get(enemy, 0)
+	_defence.erase(enemy)
+	var ctx := AttackContext.roll_enemy(enemy, player, blocked)
+	var damage := ctx.damage()
+	await enemy.lunge(player.position)
+	if ctx.miss:
+		player.popup("MISS", Color(0.8, 0.8, 0.8))
+	elif damage == 0:
+		player.popup("BLOCKED", Color(0.45, 0.7, 1.0))
+	else:
+		player.hurt()
+		player.popup(("CRIT -%d" if ctx.crit else "-%d") % damage, Color(1, 0.3, 0.25))
+	var run := SaveManager.run_data
+	run.health = maxi(run.health - damage, 0)
+	_damage_taken += damage
+	SaveManager.progression_data.damage_received += damage
+	await get_tree().create_timer(Anim.t(0.35)).timeout
 
 
 # ===========================================================================================================================================
@@ -270,18 +397,22 @@ func _resolve() -> void:
 ## Re-simulates the plan from the start of the turn, dropping invalid actions, and updates all previews.
 func _replan() -> void:
 	var insert_at := _edit_index if _editing else actions.size()
-	var sim := TurnState.new(player.tile_id)
+	var sim := TurnState.new(player.tile_id, board.get_enemies())
 	var valid: Array[PlannedAction] = []
 	_insert_state = null
 	for i in actions.size():
 		if i == insert_at:
-			_insert_state = _copy_state(sim)
+			_insert_state = sim.copy()
+		if sim.retaliation and not _is_defending_retaliation(actions[i], sim.retaliation.enemy):
+			sim.retaliation.settle_retaliation(sim)
 		if actions[i].simulate(sim, self):
 			valid.append(actions[i])
 	actions = valid
+	if sim.retaliation:
+		sim.retaliation.settle_retaliation(sim)
 	_end_state = sim
 	if _insert_state == null:
-		_insert_state = _copy_state(sim)
+		_insert_state = sim.copy()
 	if _editing:
 		# The edited action's dice are free to re-use while it's out of the list
 		_edit_index = mini(_edit_index, actions.size())
@@ -290,16 +421,32 @@ func _replan() -> void:
 	selected = selected.filter(func(i: int): return is_die_available(i))
 	_move_ctx = null
 	_reachable.clear()
-	if selected.size() > 0:
-		_move_ctx = move_context(_insert_state.player_tile, selected)
-		_reachable = board.find_reachable(_move_ctx)
+	_targets.clear()
+	match _selected_category():
+		DieFace.Category.MOVE:
+			_move_ctx = move_context(_insert_state, selected)
+			_reachable = board.find_reachable(_move_ctx)
+		DieFace.Category.ATTACK:
+			for enemy in _living_enemies(_insert_state):
+				if board.in_attack_range(_insert_state.player_tile, enemy.tile_id, player.attack_range):
+					_targets.append(enemy.tile_id)
+		DieFace.Category.DEFENCE:
+			for enemy in _living_enemies(_insert_state):
+				_targets.append(enemy.tile_id)
 	_refresh()
 
 
-func _copy_state(source: TurnState) -> TurnState:
-	var copy := TurnState.new(source.player_tile)
-	copy.used_dice = source.used_dice.duplicate()
-	return copy
+## Category of the selected dice, or OTHER if none are selected.
+func _selected_category() -> DieFace.Category:
+	return results[selected[0]].category() if selected.size() > 0 else DieFace.Category.OTHER
+
+
+func _living_enemies(sim: TurnState) -> Array[Enemy]:
+	var living: Array[Enemy] = []
+	for enemy in board.get_enemies():
+		if sim.is_alive(enemy):
+			living.append(enemy)
+	return living
 
 
 ## Each buff die adds 1 to every numeric face of its target category, then is spent.
@@ -359,6 +506,7 @@ func _refresh_board() -> void:
 	if _ghost.visible:
 		_ghost.position = board.cell_top_local(Hex.coords(_end_state.player_tile))
 	_draw_planned_paths(planning)
+	_refresh_enemies(planning)
 	if not planning:
 		return
 
@@ -375,7 +523,33 @@ func _refresh_board() -> void:
 		board.highlight(_reachable, HexTile.Highlight.MOVABLE)
 		if _reachable.has(hovered_tile):
 			board.highlight(_move_ctx.path_to(hovered_tile), HexTile.Highlight.VALID)
+	match _selected_category():
+		DieFace.Category.ATTACK:
+			var out_of_range: Array[int] = []
+			for enemy in _living_enemies(_insert_state):
+				if not _targets.has(enemy.tile_id):
+					out_of_range.append(enemy.tile_id)
+			board.highlight(out_of_range, HexTile.Highlight.INVALID)
+			board.highlight(_targets, HexTile.Highlight.TARGET)
+		DieFace.Category.DEFENCE:
+			board.highlight(_targets, HexTile.Highlight.VALID)
 	board.select(hovered_tile)
+
+
+## Planned HP / defence for the overhead info; enemies killed by the plan are darkened.
+func _refresh_enemies(planning: bool) -> void:
+	for enemy in board.get_enemies():
+		if not planning or _end_state == null:
+			enemy.preview_hp = enemy.hp
+			enemy.preview_defence = 0
+			enemy.cutout.flash = Color(0, 0, 0, 0)
+			continue
+		enemy.preview_hp = _end_state.enemy_hp.get(enemy, enemy.hp)
+		enemy.preview_defence = _end_state.defence.get(enemy, 0)
+		# Hovering a target previews the selected attack on top of the plan
+		if _selected_category() == DieFace.Category.ATTACK and enemy.tile_id == hovered_tile and _targets.has(hovered_tile):
+			enemy.preview_hp -= player_attack_context(enemy, selected).damage()
+		enemy.cutout.flash = Color(0.1, 0.08, 0.1, 0.6 if enemy.preview_hp <= 0 else 0.0)
 
 
 ## Dotted line along every planned move; teleports get an arrow out of the start and one into the target.
@@ -452,6 +626,15 @@ func _hint() -> String:
 			return "Resolving your actions..."
 		State.ENEMY_TURN:
 			return "Enemy turn..."
+		State.LEVEL_CLEAR:
+			return "Level clear!  [R] to rebuild (exits arrive in Phase 09)."
+		State.GAME_OVER:
+			return "Defeated.  [R] to rebuild (sacrifice and game over arrive in Phase 07)."
+	match _selected_category():
+		DieFace.Category.ATTACK:
+			return "Attack %d: click a highlighted enemy in range.  Click more attack dice to combine them.  Right-click to cancel." % dice_value(selected)
+		DieFace.Category.DEFENCE:
+			return "Defend %d: click an enemy to block its next attack.  Click more defence dice to combine them.  Right-click to cancel." % dice_value(selected)
 	if selected.size() > 0:
 		if is_teleport_lost(selected):
 			return "Move %d: teleport lost by combining with normal movement.  Click a highlighted tile.  Right-click to cancel." % dice_value(selected)
@@ -460,7 +643,7 @@ func _hint() -> String:
 		return "Move %d: click a highlighted tile.  Click more movement dice to combine them.  Right-click to cancel." % dice_value(selected)
 	if _editing:
 		return "Editing: choose dice, then a target.  Right-click to cancel."
-	return "Click movement dice to plan a move, then COMMIT."
+	return "Click dice to plan moves, attacks and defence, then COMMIT."
 
 
 var _dot_mesh: SphereMesh

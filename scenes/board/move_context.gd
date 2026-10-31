@@ -12,6 +12,8 @@ var mover: BoardPiece
 var cost_func: Callable
 ## Blink instead of walk: range is hex distance with line of sight, terrain costs ignored
 var teleport: bool = false
+## Pieces treated as absent, e.g. enemies killed earlier in the plan
+var ignored: Array[BoardPiece] = []
 
 ## Filled by Board.find_reachable: tile id -> total cost, and the previous tile on the cheapest path
 var costs: Dictionary[int, int] = {}
@@ -23,6 +25,11 @@ func _init(start_id: int, move_budget: int, cost: Callable, moving_piece: BoardP
 	budget = move_budget
 	cost_func = cost
 	mover = moving_piece
+
+
+## True if [piece] doesn't block this move (the mover itself, or ignored).
+func ignores(piece: BoardPiece) -> bool:
+	return piece != null and (piece == mover or ignored.has(piece))
 
 
 ## Tiles from (excluding) the start to [tile_id], or empty if unreachable.

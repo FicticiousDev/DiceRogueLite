@@ -4,7 +4,8 @@ class_name RunData
 ## Data relevant to the current run
 @export var character_id: String
 @export var gold: int = 0
-@export var health: int = 1
+@export var health: int = 10
+@export var max_health: int = 10
 @export var items: Array[String] = []
 @export var dice: Array[String] = []
 

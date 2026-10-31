@@ -13,6 +13,8 @@ uniform float outline_width = 0.04;
 // Fraction of the quad on each side reserved for the outline
 uniform float padding = 0.08;
 uniform bool is_edge = false;
+// Overlay colour, alpha = strength (hit flashes, planned-death preview)
+uniform vec4 flash : source_color = vec4(1.0, 1.0, 1.0, 0.0);
 
 float alpha_at(vec2 uv) {
 	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
@@ -38,6 +40,7 @@ void fragment() {
 	} else {
 		ALBEDO = mix(outline_color.rgb, color.rgb * tint.rgb, step(0.5, inside));
 	}
+	ALBEDO = mix(ALBEDO, flash.rgb, flash.a);
 	ROUGHNESS = 1.0;
 	ALPHA = outline;
 	ALPHA_SCISSOR_THRESHOLD = 0.5;

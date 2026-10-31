@@ -5,6 +5,7 @@ extends Node3D
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
+const ENEMY_INFO_SCENE: PackedScene = preload("res://scenes/ui/enemy_info/enemy_info.tscn")
 ## Screen fraction kept clear for the turn plan panel
 const PANEL_MARGIN: float = 0.22
 const EDGE_MARGIN: float = 0.04
@@ -20,6 +21,7 @@ const STARTING_DICE: Array[String] = ["normal", "normal", "normal", "normal", "n
 @onready var settings_button: TextureButton = %SettingsButton
 @onready var debug_label: Label = %DebugLabel
 @onready var action_list: ActionList = %ActionList
+@onready var enemy_infos: Control = %EnemyInfos
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
 @onready var dice_tray: DiceTray = $DiceTray
 @onready var turn: TurnController = $TurnController
@@ -37,6 +39,7 @@ func _ready() -> void:
 	dice_tray.camera = camera_rig.camera
 	if SaveManager.run_data.dice.is_empty():
 		SaveManager.run_data.dice.assign(STARTING_DICE)
+		SaveManager.run_data.health = SaveManager.run_data.max_health
 	SaveManager.settings_data.changed.connect(_apply_layout)
 	_apply_layout()
 	load_level(level_scene)
@@ -72,6 +75,10 @@ func load_level(scene: PackedScene) -> void:
 	player = PLAYER_SCENE.instantiate()
 	board.add_piece(player, board.player_start)
 	turn.setup(board, player, dice_tray, action_list, confirm_dialog)
+	for enemy in board.get_enemies():
+		var info: EnemyInfo = ENEMY_INFO_SCENE.instantiate()
+		info.setup(enemy, camera_rig.camera)
+		enemy_infos.add_child(info)
 	camera_rig.frame(board.get_bounds())
 	await board.play_intro()
 	_loading = false
@@ -87,7 +94,8 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("debug_rebuild") and _can_debug():
+	if event.is_action_pressed("debug_rebuild") and _can_debug(true):
+		SaveManager.run_data.health = SaveManager.run_data.max_health
 		load_level(level_scene)
 	elif event.is_action_pressed("debug_roll") and _can_debug():
 		turn.debug_pool.clear()
@@ -112,8 +120,9 @@ func _on_exit_pressed() -> void:
 # ===========================================================================================================================================
 
 
-func _can_debug() -> bool:
-	return not _loading and turn.state == TurnController.State.PLAN
+func _can_debug(allow_finished: bool = false) -> bool:
+	var finished := turn.state in [TurnController.State.LEVEL_CLEAR, TurnController.State.GAME_OVER]
+	return not _loading and (turn.state == TurnController.State.PLAN or (allow_finished and finished))
 
 
 ## Re-rolls this turn with one showcase die per rarity, alternating designs.

@@ -39,6 +39,13 @@ const PADDING: float = 0.08
 		casts_shadow = value
 		_rebuild()
 
+## Overlay colour, alpha = strength. Set without rebuilding so it can be tweened.
+var flash: Color = Color(1, 1, 1, 0):
+	set(value):
+		flash = value
+		if body:
+			for layer: MeshInstance3D in body.get_children():
+				layer.material_override.set_shader_parameter("flash", flash)
 var body: Node3D
 
 
@@ -80,6 +87,7 @@ func _rebuild() -> void:
 		material.set_shader_parameter("outline_width", outline_width)
 		material.set_shader_parameter("padding", PADDING)
 		material.set_shader_parameter("is_edge", i > 0)
+		material.set_shader_parameter("flash", flash)
 		var layer := MeshInstance3D.new()
 		layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts_shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		layer.mesh = quad

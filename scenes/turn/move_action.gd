@@ -17,7 +17,7 @@ func _init(move_dice: Array[int], target_id: int) -> void:
 
 
 func simulate(state: TurnState, turn: TurnController) -> bool:
-	var ctx := turn.move_context(state.player_tile, dice)
+	var ctx := turn.move_context(state, dice)
 	teleport = ctx.teleport
 	if not turn.board.find_reachable(ctx).has(target):
 		return false

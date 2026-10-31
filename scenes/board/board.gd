@@ -10,12 +10,15 @@ enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT }
 
 const HEX_TILE_SCENE: PackedScene = preload("res://scenes/board/hex_tile.tscn")
 const OBSTACLE_SCENE: PackedScene = preload("res://scenes/pieces/obstacle.tscn")
+const ENEMY_SCENE: PackedScene = preload("res://scenes/pieces/enemy.tscn")
 ## Distance along the camera ray between picking samples, in world units
 const PICK_STEP: float = 0.005
 
 ## World units per layout pixel. 128 px wide cells -> tiles 1 unit wide.
 @export var world_scale: float = 1.0 / 128.0
 @export var intro_delay_per_ring: float = 0.06
+## Enemy types for the ENEMY markers, in marker order (sorted by cell), repeating if there are more markers
+@export var enemy_ids: Array[StringName] = [&"grunt"]
 
 @onready var layout: TileMapLayer = $Layout
 @onready var markers: TileMapLayer = $Markers
@@ -61,6 +64,12 @@ func _build() -> void:
 	_build_astar()
 	for cell in get_marker_cells(Marker.OBSTACLE):
 		add_piece(OBSTACLE_SCENE.instantiate(), cell)
+	var enemy_cells := get_marker_cells(Marker.ENEMY)
+	enemy_cells.sort()
+	for i in enemy_cells.size():
+		var enemy: Enemy = ENEMY_SCENE.instantiate()
+		enemy.setup(Database.get_content("enemies", enemy_ids[i % enemy_ids.size()]))
+		add_piece(enemy, enemy_cells[i])
 
 
 ## Pops tiles in, rippling out from the player start, then drops the pieces in. Awaitable.
@@ -86,6 +95,15 @@ func play_intro() -> void:
 func add_piece(piece: BoardPiece, cell: Vector2i) -> void:
 	pieces_root.add_child(piece)
 	piece.place(self, Hex.id(cell))
+
+
+## Living enemies on the board.
+func get_enemies() -> Array[Enemy]:
+	var enemies: Array[Enemy] = []
+	for piece in pieces_root.get_children():
+		if piece is Enemy and not piece.is_dead() and not piece.is_queued_for_deletion():
+			enemies.append(piece)
+	return enemies
 
 
 func get_piece(tile_id: int) -> BoardPiece:
@@ -264,7 +282,7 @@ func find_reachable(ctx: MoveContext) -> Array[int]:
 		var current: int = frontier.pop_at(best)
 		for next in get_neighbours(current):
 			var step: int = ctx.cost_func.call(next)
-			if step < 0 or not (is_passable(next) or get_piece(next) == ctx.mover):
+			if step < 0 or not (is_passable(next) or ctx.ignores(get_piece(next))):
 				continue
 			var total: int = ctx.costs[current] + step
 			if total <= ctx.budget and (not ctx.costs.has(next) or total < ctx.costs[next]):
@@ -276,7 +294,7 @@ func find_reachable(ctx: MoveContext) -> Array[int]:
 	var result: Array[int] = []
 	for tile_id in ctx.costs:
 		var piece := get_piece(tile_id)
-		if piece == null or piece == ctx.mover or not piece.occupies_tile:
+		if piece == null or ctx.ignores(piece) or not piece.occupies_tile:
 			result.append(tile_id)
 	return result
 
@@ -291,13 +309,18 @@ func _find_teleport_targets(ctx: MoveContext) -> Array[int]:
 		var piece := get_piece(tile_id)
 		if distance < 1 or distance > ctx.budget or not is_walkable(tile_id):
 			continue
-		if piece and piece != ctx.mover and piece.occupies_tile:
+		if piece and not ctx.ignores(piece) and piece.occupies_tile:
 			continue
 		if has_line_of_sight(ctx.start, tile_id):
 			ctx.costs[tile_id] = distance
 			ctx.came_from[tile_id] = ctx.start
 			result.append(tile_id)
 	return result
+
+
+## True if [to_id] is within [attack_range] hexes of [from_id] with line of sight.
+func in_attack_range(from_id: int, to_id: int, attack_range: int) -> bool:
+	return Hex.distance(Hex.coords(from_id), Hex.coords(to_id)) <= attack_range and has_line_of_sight(from_id, to_id)
 
 
 ## True if a line between the two tile centres isn't blocked by a wall or a piece that blocks line of sight.
