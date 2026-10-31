@@ -25,6 +25,7 @@ var _busy: bool = false
 var _move_ctx: MoveContext
 var _reachable: Array[int] = []
 var _show_los: bool = false
+var _grid_overlay: GridOverlay
 
 
 func _ready() -> void:
@@ -36,6 +37,7 @@ func _ready() -> void:
 func load_level(scene: PackedScene) -> void:
 	if board:
 		board.queue_free()
+	_grid_overlay = null
 	board = scene.instantiate()
 	level_root.add_child(board)
 	player = PLAYER_SCENE.instantiate()
@@ -55,6 +57,8 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_rebuild"):
 		load_level(level_scene)
+	elif event.is_action_pressed("debug_grid"):
+		_toggle_grid_overlay()
 	elif event.is_action_pressed("debug_los"):
 		_show_los = not _show_los
 		_refresh_highlights()
@@ -104,8 +108,21 @@ func _cancel_move() -> void:
 		_refresh_highlights()
 
 
+func _toggle_grid_overlay() -> void:
+	if _grid_overlay:
+		_grid_overlay.queue_free()
+		_grid_overlay = null
+	else:
+		_grid_overlay = GridOverlay.new()
+		board.add_child(_grid_overlay)
+		_grid_overlay.setup(board)
+	_update_debug_label()
+
+
 func _update_hover() -> void:
 	var tile_id := board.tile_at_screen(camera_rig.camera, get_viewport().get_mouse_position())
+	if _grid_overlay:
+		_grid_overlay.show_pick(tile_id, board.last_pick_point)
 	if tile_id != _hovered:
 		_hovered = tile_id
 		_refresh_highlights()
@@ -130,7 +147,8 @@ func _refresh_highlights() -> void:
 
 
 func _update_debug_label() -> void:
-	var text := "[Click player] move (%d)   [L] line of sight %s   [R] rebuild" % [debug_move_budget, "ON" if _show_los else "off"]
+	var text := "[Click player] move (%d)   [L] line of sight %s   [G] grid %s   [R] rebuild" % [
+		debug_move_budget, "ON" if _show_los else "off", "ON" if _grid_overlay else "off"]
 	if _hovered != -1:
 		var tile := board.get_tile(_hovered)
 		text += "\nCell %s  |  %s  |  cost %d" % [tile.coords, Terrain.Type.keys()[tile.terrain], board.move_cost(_hovered)]

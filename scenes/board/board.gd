@@ -27,6 +27,8 @@ var player_start: Vector2i
 ## Distinct tile-top heights, tallest first. Picking starts at the tallest.
 var _top_heights: Array[float] = []
 var _highlighted: Array[int] = []
+## Board-local point where the last successful tile_at_screen ray entered the tile (debug overlay)
+var last_pick_point: Vector3
 ## Walkable tiles weighted by terrain cost; tiles with movement-blocking pieces are disabled
 var _astar: AStar2D = AStar2D.new()
 var _selected: int = -1
@@ -208,9 +210,11 @@ func tile_at_screen(camera: Camera3D, screen_position: Vector2) -> int:
 		if tiles.has(tile_id) and p.y <= tiles[tile_id].top_height():
 			var tile := tiles[tile_id]
 			if _in_hex(Vector2(p.x - tile.position.x, p.z - tile.position.z), tile.radius * HexTile.BODY_SCALE):
+				last_pick_point = p
 				return tile_id
 			if fallback == -1:
 				fallback = tile_id
+				last_pick_point = p
 		t += PICK_STEP
 	return fallback
 
