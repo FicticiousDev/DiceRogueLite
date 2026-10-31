@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DieDesign" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_design.gd" id="1_8tttu"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nqw0x"]
+
+[resource]
+script = ExtResource("1_8tttu")
+id = &"sharp"
+display_name = "Sharp"
+mesh = SubResource("BoxMesh_nqw0x")
+face_size = 0.86
+roughness = 0.25
+metallic = 0.3

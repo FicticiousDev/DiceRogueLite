@@ -22,5 +22,9 @@ class_name ProgressionData
 @export var unlocked_items: Array[String] = []
 @export var unlocked_dice: Array[String] = []
 
+## Cosmetics. Designs become unlockable collectables in a later phase
+@export var die_design: String = "classic"
+@export var unlocked_die_designs: Array[String] = ["classic", "sharp"]
+
 ## Bank
 @export var gold_in_bank: int = 0

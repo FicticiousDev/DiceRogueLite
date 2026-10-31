@@ -6,6 +6,8 @@ extends Node3D
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
+## Pool for a new run until characters define starting dice (Phase 08)
+const STARTING_DICE: Array[String] = ["normal", "normal", "normal", "normal", "normal", "normal"]
 
 @export var level_scene: PackedScene = preload("res://scenes/levels/test_01.tscn")
 ## Movement points for debug moves
@@ -17,6 +19,7 @@ const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
 @onready var settings_button: TextureButton = %SettingsButton
 @onready var debug_label: Label = %DebugLabel
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
+@onready var dice_tray: DiceTray = $DiceTray
 
 var board: Board
 var player: Player
@@ -26,11 +29,16 @@ var _move_ctx: MoveContext
 var _reachable: Array[int] = []
 var _show_los: bool = false
 var _grid_overlay: GridOverlay
+var _showcase_design: int = 0
+var _last_roll: Array[DieResult] = []
 
 
 func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_pressed)
 	settings_button.pressed.connect(Settings.show_settings)
+	dice_tray.camera = camera_rig.camera
+	if SaveManager.run_data.dice.is_empty():
+		SaveManager.run_data.dice.assign(STARTING_DICE)
 	load_level(level_scene)
 
 
@@ -57,6 +65,10 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_rebuild"):
 		load_level(level_scene)
+	elif event.is_action_pressed("debug_roll"):
+		_debug_roll(false)
+	elif event.is_action_pressed("debug_roll_showcase"):
+		_debug_roll(true)
 	elif event.is_action_pressed("debug_grid"):
 		_toggle_grid_overlay()
 	elif event.is_action_pressed("debug_los"):
@@ -108,6 +120,27 @@ func _cancel_move() -> void:
 		_refresh_highlights()
 
 
+## D rolls the run's pool with the selected design; F rolls one showcase die per rarity, alternating designs.
+func _debug_roll(showcase: bool) -> void:
+	if dice_tray.rolling:
+		return
+	var types: Array[DieType] = []
+	var design: DieDesign
+	if showcase:
+		var all := Database.get_all("dice_debug")
+		all.sort_custom(func(a: DieType, b: DieType): return a.rarity < b.rarity)
+		types.assign(all)
+		var designs := Database.get_all("die_designs")
+		design = designs[_showcase_design % designs.size()]
+		_showcase_design += 1
+	else:
+		for id in SaveManager.run_data.dice:
+			types.append(Database.get_content("dice", id))
+		design = Database.get_content("die_designs", SaveManager.progression_data.die_design)
+	_last_roll = await dice_tray.roll(types, design)
+	_update_debug_label()
+
+
 func _toggle_grid_overlay() -> void:
 	if _grid_overlay:
 		_grid_overlay.queue_free()
@@ -147,8 +180,10 @@ func _refresh_highlights() -> void:
 
 
 func _update_debug_label() -> void:
-	var text := "[Click player] move (%d)   [L] line of sight %s   [G] grid %s   [R] rebuild" % [
+	var text := "[Click player] move (%d)   [D] roll dice   [F] showcase dice   [L] line of sight %s   [G] grid %s   [R] rebuild" % [
 		debug_move_budget, "ON" if _show_los else "off", "ON" if _grid_overlay else "off"]
+	if _last_roll.size() > 0:
+		text += "\nRolled: " + ", ".join(_last_roll.map(func(r: DieResult): return r.face().describe()))
 	if _hovered != -1:
 		var tile := board.get_tile(_hovered)
 		text += "\nCell %s  |  %s  |  cost %d" % [tile.coords, Terrain.Type.keys()[tile.terrain], board.move_cost(_hovered)]

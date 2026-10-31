@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_wyc0a"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_lfpqg"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_qjnxp"]
+
+[sub_resource type="Resource" id="Resource_kmy4n"]
+script = ExtResource("2_lfpqg")
+count = 2
+
+[sub_resource type="Resource" id="Resource_ak4xl"]
+script = ExtResource("2_lfpqg")
+symbol = 3
+
+[sub_resource type="Resource" id="Resource_2d0cb"]
+script = ExtResource("1_wyc0a")
+symbols = Array[ExtResource("2_lfpqg")]([SubResource("Resource_kmy4n"), SubResource("Resource_ak4xl")])
+
+[sub_resource type="Resource" id="Resource_c4ls3"]
+script = ExtResource("2_lfpqg")
+symbol = 1
+count = 5
+
+[sub_resource type="Resource" id="Resource_u1can"]
+script = ExtResource("1_wyc0a")
+symbols = Array[ExtResource("2_lfpqg")]([SubResource("Resource_c4ls3")])
+
+[sub_resource type="Resource" id="Resource_t7gjx"]
+script = ExtResource("2_lfpqg")
+symbol = 2
+count = 5
+
+[sub_resource type="Resource" id="Resource_16dfa"]
+script = ExtResource("1_wyc0a")
+symbols = Array[ExtResource("2_lfpqg")]([SubResource("Resource_t7gjx")])
+
+[sub_resource type="Resource" id="Resource_pk2q3"]
+script = ExtResource("2_lfpqg")
+symbol = 2
+count = 6
+
+[sub_resource type="Resource" id="Resource_2qm3q"]
+script = ExtResource("1_wyc0a")
+symbols = Array[ExtResource("2_lfpqg")]([SubResource("Resource_pk2q3")])
+
+[sub_resource type="Resource" id="Resource_jgosp"]
+script = ExtResource("2_lfpqg")
+symbol = 1
+count = 6
+
+[sub_resource type="Resource" id="Resource_t02ac"]
+script = ExtResource("1_wyc0a")
+symbols = Array[ExtResource("2_lfpqg")]([SubResource("Resource_jgosp")])
+
+[sub_resource type="Resource" id="Resource_8ngpc"]
+script = ExtResource("2_lfpqg")
+count = 5
+
+[sub_resource type="Resource" id="Resource_rhayn"]
+script = ExtResource("1_wyc0a")
+symbols = Array[ExtResource("2_lfpqg")]([SubResource("Resource_8ngpc")])
+
+[resource]
+script = ExtResource("3_qjnxp")
+id = &"debug_uncommon"
+display_name = "Debug Uncommon"
+rarity = 1
+faces = Array[ExtResource("1_wyc0a")]([SubResource("Resource_2d0cb"), SubResource("Resource_u1can"), SubResource("Resource_16dfa"), SubResource("Resource_2qm3q"), SubResource("Resource_t02ac"), SubResource("Resource_rhayn")])

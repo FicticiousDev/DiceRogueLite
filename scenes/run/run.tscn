@@ -4,6 +4,7 @@
 [ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
 [ext_resource type="PackedScene" path="res://scenes/board/camera_rig.tscn" id="camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog/confirm_dialog.tscn" id="dialog"]
+[ext_resource type="PackedScene" path="res://scenes/dice/dice_tray.tscn" id="dice_tray"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButton.png" id="quit_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonActive.png" id="settings_tex"]
@@ -17,7 +18,9 @@ environment = ExtResource("env")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.383022, 0.321394, 0, 0.642788, 0.766044, -0.5, -0.663414, 0.556670, 0, 6, 0)
+light_cull_mask = 1048573
 shadow_enabled = true
+shadow_caster_mask = 1048573
 
 [node name="CameraRig" parent="." instance=ExtResource("camera_rig")]
 
@@ -49,14 +52,12 @@ stretch_mode = 4
 
 [node name="DebugLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -90.0
-offset_right = 1100.0
-offset_bottom = -20.0
-grow_vertical = 0
-theme_override_font_sizes/font_size = 22
+offset_left = 120.0
+offset_top = 10.0
+offset_right = 1800.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 20
+
+[node name="DiceTray" parent="." instance=ExtResource("dice_tray")]
 
 [node name="ConfirmDialog" parent="." instance=ExtResource("dialog")]

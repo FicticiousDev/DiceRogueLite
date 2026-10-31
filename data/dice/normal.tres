@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_wridj"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_ffryv"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_dsu0q"]
+
+[sub_resource type="Resource" id="Resource_8is5c"]
+script = ExtResource("2_ffryv")
+
+[sub_resource type="Resource" id="Resource_n13f3"]
+script = ExtResource("1_wridj")
+symbols = Array[ExtResource("2_ffryv")]([SubResource("Resource_8is5c")])
+
+[sub_resource type="Resource" id="Resource_f0ce1"]
+script = ExtResource("2_ffryv")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_xus66"]
+script = ExtResource("1_wridj")
+symbols = Array[ExtResource("2_ffryv")]([SubResource("Resource_f0ce1")])
+
+[sub_resource type="Resource" id="Resource_8fwp4"]
+script = ExtResource("2_ffryv")
+symbol = 2
+
+[sub_resource type="Resource" id="Resource_gyqqv"]
+script = ExtResource("1_wridj")
+symbols = Array[ExtResource("2_ffryv")]([SubResource("Resource_8fwp4")])
+
+[sub_resource type="Resource" id="Resource_ctqo4"]
+script = ExtResource("2_ffryv")
+symbol = 2
+count = 2
+
+[sub_resource type="Resource" id="Resource_v1p1m"]
+script = ExtResource("1_wridj")
+symbols = Array[ExtResource("2_ffryv")]([SubResource("Resource_ctqo4")])
+
+[sub_resource type="Resource" id="Resource_7s08m"]
+script = ExtResource("2_ffryv")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_640y0"]
+script = ExtResource("1_wridj")
+symbols = Array[ExtResource("2_ffryv")]([SubResource("Resource_7s08m")])
+
+[sub_resource type="Resource" id="Resource_b15j7"]
+script = ExtResource("2_ffryv")
+count = 2
+
+[sub_resource type="Resource" id="Resource_2klt6"]
+script = ExtResource("1_wridj")
+symbols = Array[ExtResource("2_ffryv")]([SubResource("Resource_b15j7")])
+
+[resource]
+script = ExtResource("3_dsu0q")
+id = &"normal"
+display_name = "Normal Die"
+faces = Array[ExtResource("1_wridj")]([SubResource("Resource_n13f3"), SubResource("Resource_xus66"), SubResource("Resource_gyqqv"), SubResource("Resource_v1p1m"), SubResource("Resource_640y0"), SubResource("Resource_2klt6")])

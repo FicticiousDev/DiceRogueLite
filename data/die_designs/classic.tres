@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DieDesign" format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/dice/designs/classic_mesh.res" id="1_5w6s1"]
+[ext_resource type="Script" path="res://resources/dice/die_design.gd" id="2_6rbyj"]
+
+[resource]
+script = ExtResource("2_6rbyj")
+id = &"classic"
+display_name = "Classic"
+mesh = ExtResource("1_5w6s1")
+face_size = 0.74
+roughness = 0.4
