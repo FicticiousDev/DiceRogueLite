@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lurker"
+display_name = "Lurker"
+tint = Color(0.35, 0.6, 0.45, 1)
+hp = 8
+move = 2
+attack_min = 2
+attack_max = 3
+defence = 1
+gold = 6
+applies_poison = true

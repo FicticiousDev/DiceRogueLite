@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_bi3er"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_mu4hy"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_tx03l"]
+
+[sub_resource type="Resource" id="Resource_qavl3"]
+script = ExtResource("2_mu4hy")
+
+[sub_resource type="Resource" id="Resource_3qryi"]
+script = ExtResource("1_bi3er")
+symbols = Array[ExtResource("2_mu4hy")]([SubResource("Resource_qavl3")])
+
+[sub_resource type="Resource" id="Resource_vfmv6"]
+script = ExtResource("2_mu4hy")
+count = 2
+
+[sub_resource type="Resource" id="Resource_q16ct"]
+script = ExtResource("1_bi3er")
+symbols = Array[ExtResource("2_mu4hy")]([SubResource("Resource_vfmv6")])
+
+[sub_resource type="Resource" id="Resource_nsj0s"]
+script = ExtResource("2_mu4hy")
+
+[sub_resource type="Resource" id="Resource_emjpy"]
+script = ExtResource("1_bi3er")
+symbols = Array[ExtResource("2_mu4hy")]([SubResource("Resource_nsj0s")])
+
+[sub_resource type="Resource" id="Resource_8sj8g"]
+script = ExtResource("2_mu4hy")
+count = 2
+
+[sub_resource type="Resource" id="Resource_qguk4"]
+script = ExtResource("1_bi3er")
+symbols = Array[ExtResource("2_mu4hy")]([SubResource("Resource_8sj8g")])
+
+[sub_resource type="Resource" id="Resource_ow3x2"]
+script = ExtResource("2_mu4hy")
+symbol = 5
+
+[sub_resource type="Resource" id="Resource_my8tc"]
+script = ExtResource("1_bi3er")
+symbols = Array[ExtResource("2_mu4hy")]([SubResource("Resource_ow3x2")])
+
+[sub_resource type="Resource" id="Resource_whjlc"]
+script = ExtResource("2_mu4hy")
+count = 3
+
+[sub_resource type="Resource" id="Resource_5jlco"]
+script = ExtResource("1_bi3er")
+symbols = Array[ExtResource("2_mu4hy")]([SubResource("Resource_whjlc")])
+
+[resource]
+script = ExtResource("3_tx03l")
+id = &"guardian"
+display_name = "Guardian Die"
+rarity = 1
+faces = Array[ExtResource("1_bi3er")]([SubResource("Resource_3qryi"), SubResource("Resource_q16ct"), SubResource("Resource_emjpy"), SubResource("Resource_qguk4"), SubResource("Resource_my8tc"), SubResource("Resource_5jlco")])

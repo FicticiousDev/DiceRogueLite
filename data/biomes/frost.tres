@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BiomeData" format=3]
+
+[ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"frost"
+display_name = "Frost"
+order = 4
+difficulty = 4
+color = Color(0.55, 0.82, 1, 1)
+terrain_colors = Array[Color]([Color(0.6, 0.68, 0.76, 1), Color(0.5, 0.57, 0.67, 1), Color(0.42, 0.47, 0.6, 1), Color(0.3, 0.52, 0.72, 1), Color(0.44, 0.48, 0.56, 1)])
+enemy_ids = Array[StringName]([&"sentinel", &"caster", &"howler"])
+boss_id = &"colossus"

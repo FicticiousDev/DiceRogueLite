@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"horror"
+display_name = "Horror"
+tint = Color(0.4, 0.25, 0.5, 1)
+hp = 16
+move = 2
+attack_min = 3
+attack_max = 6
+defence = 3
+gold = 12

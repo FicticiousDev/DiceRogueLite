@@ -2,19 +2,14 @@ class_name TurnState
 extends RefCounted
 
 ## Simulated state while planning. Rebuilt from the start of the turn and run through the planned actions
-## in order whenever the plan changes. Later phases add fields (held defence, ability charges).
+## in order whenever the plan changes.
 
 var player_tile: int
 ## Pool indices spent by planned actions
 var used_dice: Array[int] = []
 var enemy_hp: Dictionary[Enemy, int] = {}
-## Defence dice assigned against each enemy and not yet used up by its attack
-var defence: Dictionary[Enemy, int] = {}
 ## Enemies attacked this turn (they don't act in the enemy turn)
 var attacked: Array[Enemy] = []
-## Attack whose retaliation is still to come: it lands once the plan moves on from defend actions
-## against the same enemy, so defence assigned right after an attack blocks it
-var retaliation: AttackAction
 ## Enemies that strike back during the plan; they still move in the enemy turn but don't attack
 var retaliated: Array[Enemy] = []
 ## Active ability uses left this level (ability id -> uses)
@@ -38,9 +33,7 @@ func copy() -> TurnState:
 	var state := TurnState.new(player_tile)
 	state.used_dice = used_dice.duplicate()
 	state.enemy_hp = enemy_hp.duplicate()
-	state.defence = defence.duplicate()
 	state.attacked = attacked.duplicate()
-	state.retaliation = retaliation
 	state.retaliated = retaliated.duplicate()
 	state.uses = uses.duplicate()
 	state.stunned = stunned.duplicate()

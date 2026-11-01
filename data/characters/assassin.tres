@@ -26,4 +26,4 @@ id = &"assassin"
 display_name = "Assassin"
 tint = Color(0.6, 1, 0.6, 1)
 abilities = Array[ExtResource("1_d3m2m")]([SubResource("Resource_d3m2m"), SubResource("Resource_gvekq")])
-starting_dice = Array[StringName]([&"normal", &"normal", &"normal", &"normal", &"normal", &"swift"])
+starting_dice = Array[StringName]([&"normal", &"normal", &"normal", &"normal", &"normal", &"viper"])

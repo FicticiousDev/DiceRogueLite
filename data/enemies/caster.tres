@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"caster"
+display_name = "Caster"
+tint = Color(0.55, 0.75, 1, 1)
+hp = 6
+move = 2
+attack_min = 2
+attack_max = 3
+attack_range = 3
+gold = 7
+applies_stun = true

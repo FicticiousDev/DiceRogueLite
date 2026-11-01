@@ -64,9 +64,9 @@ stretch_mode = 4
 [node name="DebugLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true
 offset_left = 120.0
-offset_top = 56.0
+offset_top = 116.0
 offset_right = 1800.0
-offset_bottom = 146.0
+offset_bottom = 206.0
 theme_override_font_sizes/font_size = 20
 
 [node name="ActionList" parent="HUD" instance=ExtResource("action_list")]

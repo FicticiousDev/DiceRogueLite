@@ -11,13 +11,15 @@ extends Resource
 @export var move: int = 2
 @export var attack_min: int = 1
 @export var attack_max: int = 2
-@export_range(0.0, 1.0) var crit_chance: float = 0.1
-@export_range(0.0, 1.0) var miss_chance: float = 0.1
+@export_range(0.0, 1.0) var crit_chance: float = 0.05
+@export_range(0.0, 1.0) var miss_chance: float = 0.05
 @export var attack_range: int = 1
 @export var defence: int = 0
 ## Strikes before the player's attack when retaliating
 @export var attacks_first: bool = false
 @export var gold: int = 2
+## Bosses can't be insta-killed: an insta-kill face hits them for [AttackContext.BOSS_INSTA_KILL_DAMAGE] with a crit instead
+@export var is_boss: bool = false
 ## Status effects its damaging hits give the player
 @export var applies_stun: bool = false
 @export var applies_poison: bool = false

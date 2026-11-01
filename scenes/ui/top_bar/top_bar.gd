@@ -18,8 +18,8 @@ var _character: Label
 var _abilities: Dictionary[StringName, Label] = {}
 var _hp: StatIcon
 var _range: StatIcon
-var _stun: TextureRect
-var _poison: TextureRect
+var _stun: InfoIcon
+var _poison: InfoIcon
 var _gold: StatIcon
 var _bank: StatIcon
 
@@ -31,8 +31,8 @@ func _ready() -> void:
 	_hp = _add(HEART, Color(1, 0.35, 0.35))
 	_range = _add(BOW, Color(0.95, 0.85, 0.6))
 	_range.tooltip_text = "Attack range"
-	_stun = _status(STUN, Color(1.0, 0.75, 0.3), "Stunned: you lose your next turn.")
-	_poison = _status(POISON, Color(0.55, 1.0, 0.45), "Poisoned: 1 damage at the start of each turn until healed.")
+	_stun = _status(STUN, Color(1.0, 0.75, 0.3), "Stunned", HelpText.PLAYER_STUNNED)
+	_poison = _status(POISON, Color(0.55, 1.0, 0.45), "Poisoned", HelpText.PLAYER_POISONED)
 	_gold = _add(COIN, Color(1, 0.82, 0.3))
 	_bank = _add(BANK, Color(0.75, 0.8, 0.9))
 
@@ -83,12 +83,13 @@ func _update_abilities() -> void:
 			label.text = ability.display_name
 
 
-## Status icon shown next to HP while the player has that status.
-func _status(texture: Texture2D, color: Color, tooltip: String) -> TextureRect:
-	var icon := TextureRect.new()
+## Status icon shown next to HP while the player has that status; hovering explains it.
+func _status(texture: Texture2D, color: Color, title: String, explanation: String) -> InfoIcon:
+	var icon := InfoIcon.new()
 	icon.texture = texture
 	icon.modulate = color
-	icon.tooltip_text = tooltip
+	var rows: Array[Dictionary] = [InfoPanel.row(texture, color, explanation)]
+	icon.set_info(title, rows)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2(32, 32)

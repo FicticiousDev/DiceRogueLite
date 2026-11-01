@@ -17,6 +17,7 @@ const BODY_SCALE: float = 0.95
 
 @export var intro_duration: float = 0.6
 @export var intro_drop: float = 1.5
+@export var outro_duration: float = 0.35
 
 @onready var body: MeshInstance3D = $Body
 @onready var highlight_mesh: MeshInstance3D = $Highlight
@@ -26,6 +27,7 @@ var id: int
 var coords: Vector2i
 var terrain: Terrain.Type
 var radius: float
+var color: Color
 var highlight: Highlight = Highlight.NONE
 ## Piece standing on this tile, if any. Set by BoardPiece.
 var piece: BoardPiece
@@ -38,11 +40,12 @@ static var _materials: Dictionary = {}
 
 
 ## Call before adding to the tree.
-func setup(cell: Vector2i, type: Terrain.Type, cell_radius: float) -> void:
+func setup(cell: Vector2i, type: Terrain.Type, cell_radius: float, tile_color: Color) -> void:
 	coords = cell
 	id = Hex.id(cell)
 	terrain = type
 	radius = cell_radius
+	color = tile_color
 
 
 func _ready() -> void:
@@ -105,13 +108,29 @@ func play_intro(delay: float = 0.0) -> void:
 	tween.tween_property(self, "position", end_pos, Anim.t(intro_duration * 0.6)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## Appears in place with no animation.
+func show_now() -> void:
+	played = true
+	visible = true
+
+
+## Shrinks away, rising. The reverse of the intro.
+func play_outro(delay: float = 0.0) -> void:
+	await get_tree().create_timer(Anim.t(delay)).timeout
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(self, "scale", Vector3.ONE * 0.01, Anim.t(outro_duration)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "position:y", position.y + intro_drop, Anim.t(outro_duration)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tween.finished
+	visible = false
+
+
 # ===========================================================================================================================================
 # Meshes
 # ===========================================================================================================================================
 
 
 func _get_body_mesh() -> Mesh:
-	var key := "%d:%f" % [terrain, radius]
+	var key := "%d:%f:%s" % [terrain, radius, color]
 	if not _body_meshes.has(key):
 		# CylinderMesh with 6 segments has a corner on +Z, matching the pointy-top 2D layout (2D y -> 3D z)
 		var mesh := CylinderMesh.new()
@@ -121,7 +140,7 @@ func _get_body_mesh() -> Mesh:
 		mesh.bottom_radius = radius * BODY_SCALE
 		mesh.height = top_height()
 		var material := StandardMaterial3D.new()
-		material.albedo_color = Terrain.COLORS[terrain]
+		material.albedo_color = color
 		material.roughness = 0.9
 		mesh.material = material
 		_body_meshes[key] = mesh

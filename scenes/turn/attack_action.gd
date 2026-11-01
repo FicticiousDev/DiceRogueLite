@@ -3,9 +3,8 @@ extends PlannedAction
 
 ## Attack an enemy in range and line of sight with the combined value of one or more attack dice. Modifiers
 ## (crit, insta-kill, stun, poison, penetrate, range) and abilities change it; [use_active] spends the
-## character's active ability on it. A surviving enemy retaliates once the plan
-## moves on from any defend actions against it that directly follow the attack; enemies that attack first
-## strike before the player (unless the player always strikes first), using defence assigned before the attack.
+## character's active ability on it. A surviving enemy retaliates straight after; enemies that attack first strike
+## before the player (unless the player always strikes first). The player blocks either with held defence dice.
 
 var enemy: Enemy
 var use_active: bool = false
@@ -52,18 +51,12 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 		if _ctx.poison and not state.poisoned.has(enemy):
 			state.poisoned.append(enemy)
 			_notes.append("Poisons it")
-		if not enemy_first and enemy.can_hit(state.player_tile):
-			state.retaliation = self
+		if not enemy_first:
+			_add_strike_note(state, turn, "Retaliates")
 	if not state.attacked.has(enemy):
 		state.attacked.append(enemy)
 	state.used_dice.append_array(dice)
 	return true
-
-
-## The pending retaliation lands: notes it and uses up the defence assigned against the enemy.
-func settle_retaliation(state: TurnState, turn: TurnController) -> void:
-	_add_strike_note(state, turn, "Retaliates")
-	state.retaliation = null
 
 
 ## Notes the enemy's attack back. Its strongest hit runs through the player's abilities, so a once-per-turn
@@ -75,17 +68,13 @@ func _add_strike_note(state: TurnState, turn: TurnController, verb: String) -> v
 		state.stunned.erase(enemy)
 		_notes.append("Stunned: no %s" % ("first strike" if verb == "Strikes first" else "retaliation"))
 		return
-	var blocked: int = state.defence.get(enemy, 0)
-	state.defence.erase(enemy)
 	if not state.retaliated.has(enemy):
 		state.retaliated.append(enemy)
-	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack_max, blocked)
+	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack_max, 0)
 	turn.apply_incoming(strike)
 	var note := "%s %d–%d" % [verb, enemy.data.attack_min, enemy.data.attack_max]
 	if strike.negated:
 		note += ", blocked by " + " + ".join(strike.notes)
-	elif blocked > 0:
-		note += ", %s blocked" % AttackContext.value_text(blocked)
 	_notes.append(note)
 
 
@@ -104,7 +93,7 @@ func describe(turn: TurnController) -> String:
 		extras += ", pierce %d" % _ctx.penetrate
 	if _ctx and _ctx.multiplier > 1:
 		extras += ", ×%d" % _ctx.multiplier
-	return "Attack %d  →  %s  (%d dmg%s)" % [turn.dice_value(dice), target, damage, extras]
+	return "Attack %d  →  %s  (%d dmg%s)" % [_ctx.base_damage if _ctx else turn.dice_value(dice), target, damage, extras]
 
 
 func warning(_turn: TurnController) -> String:

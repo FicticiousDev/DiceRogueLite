@@ -8,7 +8,6 @@ extends Node3D
 ## The tray is authored in "tray units" (10 x 7 felt) and scaled so it always fills the same part of the screen.
 ## Dice and tray are on render layer 2 with their own light.
 
-signal roll_started
 signal roll_finished(results: Array[DieResult])
 
 const DIE_SCENE: PackedScene = preload("res://scenes/dice/die_3d.tscn")
@@ -62,7 +61,6 @@ func _ready() -> void:
 ## Rolls [types] using [design] and returns one result per die, in pool order. Awaitable.
 func roll(types: Array[DieType], design: DieDesign) -> Array[DieResult]:
 	rolling = true
-	roll_started.emit()
 	await clear()
 	_place()
 	_fade_dim(dim_alpha)

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"colossus"
+display_name = "Colossus"
+tint = Color(0.6, 0.75, 0.95, 1)
+hp = 32
+move = 2
+attack_min = 3
+attack_max = 5
+defence = 3
+gold = 28
+applies_stun = true
+is_boss = true

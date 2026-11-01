@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"voidcaller"
+display_name = "Voidcaller"
+tint = Color(0.7, 0.4, 0.95, 1)
+hp = 9
+move = 2
+attack_min = 3
+attack_max = 5
+attack_range = 4
+gold = 10
+applies_stun = true

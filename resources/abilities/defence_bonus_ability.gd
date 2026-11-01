@@ -7,7 +7,7 @@ extends Ability
 
 
 func modify_result(result: DieResult) -> bool:
-	if result.category() != DieFace.Category.DEFENCE or not result.face().is_numeric():
+	if result.category() != DieFace.Category.DEFENCE or not result.can_buff():
 		return false
 	result.bonus += amount
 	return true

@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_li0q1"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_4yvbe"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_rxpk5"]
+
+[sub_resource type="Resource" id="Resource_hls73"]
+script = ExtResource("2_4yvbe")
+
+[sub_resource type="Resource" id="Resource_a0w8a"]
+script = ExtResource("1_li0q1")
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_hls73")])
+
+[sub_resource type="Resource" id="Resource_i7f3h"]
+script = ExtResource("2_4yvbe")
+count = 2
+
+[sub_resource type="Resource" id="Resource_7w0ov"]
+script = ExtResource("1_li0q1")
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_i7f3h")])
+
+[sub_resource type="Resource" id="Resource_vokyl"]
+script = ExtResource("2_4yvbe")
+
+[sub_resource type="Resource" id="Resource_y4uru"]
+script = ExtResource("1_li0q1")
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_vokyl")])
+
+[sub_resource type="Resource" id="Resource_ele6s"]
+script = ExtResource("2_4yvbe")
+count = 2
+
+[sub_resource type="Resource" id="Resource_atfmo"]
+script = ExtResource("1_li0q1")
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_ele6s")])
+
+[sub_resource type="Resource" id="Resource_x6uoq"]
+script = ExtResource("2_4yvbe")
+
+[sub_resource type="Resource" id="Resource_8pcdt"]
+script = ExtResource("2_4yvbe")
+symbol = 9
+
+[sub_resource type="Resource" id="Resource_ohmeu"]
+script = ExtResource("1_li0q1")
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_x6uoq"), SubResource("Resource_8pcdt")])
+
+[sub_resource type="Resource" id="Resource_2f840"]
+script = ExtResource("2_4yvbe")
+count = 3
+
+[sub_resource type="Resource" id="Resource_tkipg"]
+script = ExtResource("1_li0q1")
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_2f840")])
+
+[resource]
+script = ExtResource("3_rxpk5")
+id = &"viper"
+display_name = "Viper Die"
+rarity = 1
+faces = Array[ExtResource("1_li0q1")]([SubResource("Resource_a0w8a"), SubResource("Resource_7w0ov"), SubResource("Resource_y4uru"), SubResource("Resource_atfmo"), SubResource("Resource_ohmeu"), SubResource("Resource_tkipg")])

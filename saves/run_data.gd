@@ -9,9 +9,9 @@ class_name RunData
 @export var items: Array[String] = []
 @export var dice: Array[String] = []
 
-@export var area: int = 0
-@export var area_stage: int = 0
-@export var shop_visited: bool = false
-@export var levels_completed: int = 0
+## The run's level graph, generated up front (see RunMap)
+@export var map: Array[Dictionary] = []
+## Map indices of the levels entered, in order; the last is the current level
+@export var path: Array = []
 
 ## TODO - track effects and upgraded dice

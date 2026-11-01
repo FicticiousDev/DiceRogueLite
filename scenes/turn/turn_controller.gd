@@ -1,11 +1,15 @@
 class_name TurnController
 extends Node
 
-## Runs the turn: roll the pool, apply buffs, plan a sequence of actions (move, attack, defend), commit,
-## resolve, then the enemy turn (enemies move and attack; held defence dice block). Planning works on a TurnState simulated from the start of the turn through the planned actions,
-## rebuilt whenever the plan changes; actions that become invalid are dropped.
+## Runs the turn: roll the pool, apply buffs, plan a sequence of actions (move, attack), commit, resolve, then
+## the enemy turn (enemies move and attack). Defence dice aren't planned: they're held for the whole turn and the
+## player spends them whenever they're hit (retaliation, first strikes, enemy attacks). Planning works on a
+## TurnState simulated from the start of the turn through the planned actions, rebuilt whenever the plan
+## changes; actions that become invalid are dropped.
 
 signal state_changed(state: State)
+## The player clicked an enemy while no dice were selected
+signal enemy_inspected(enemy: Enemy)
 signal _block_confirmed
 
 enum State { IDLE, ROLL, PLAN, RESOLVE, ENEMY_TURN, LEVEL_CLEAR, GAME_OVER }
@@ -37,6 +41,8 @@ var show_los: bool = false
 ## Debug: if set, the next roll uses these dice instead of the run's pool
 var debug_pool: Array[DieType] = []
 var debug_design: DieDesign
+## Shown once the level is clear; set by the run
+var clear_hint: String = "Level clear!"
 
 ## Buff dice spent automatically when the row formed
 var _auto_used: Array[int] = []
@@ -45,29 +51,30 @@ var _insert_state: TurnState
 var _end_state: TurnState
 var _move_ctx: MoveContext
 var _reachable: Array[int] = []
-## Enemy tiles the selected attack/defence dice can target
+## Enemy tiles the selected attack dice can target
 var _targets: Array[int] = []
-## Resolution: defence assigned against each enemy, damage taken this turn
-var _defence: Dictionary[Enemy, int] = {}
+## Damage taken this turn
 var _damage_taken: int = 0
-## Resolution: enemy whose retaliation lands once the defend actions following its attack are done
-var _retaliating: Enemy
 ## Resolution: enemies that struck back this turn - they move in the enemy turn but don't attack
 var _retaliated: Array[Enemy] = []
-## Held defence dice spent blocking enemy-turn attacks
+## Held defence dice spent blocking hits
 var _spent: Array[int] = []
 ## Active ability uses left this level (ability id -> uses); planning simulates its own copy in TurnState.uses
 var _uses: Dictionary = {}
-## Planning: the active ability is armed for the next attack (or, for a block, the next enemy clicked)
+## Planning: an attack active is armed for the next attack
 var _armed: bool = false
-## Enemy turn: the player chose the block active from the block prompt
+## Block prompt: the player chose the block active
 var _block_with_active: bool = false
-## Enemy turn: the enemy whose attack the player is choosing held defence dice for, and the dice chosen
+## Block prompt: the enemy whose hit the player is choosing held defence dice for, and the dice chosen
 var _blocking: Enemy
 var _blocking_damage: int = 0
 var _block_selected: Array[int] = []
-## Enemy turn: one turn plan entry per enemy attack, as [line, note]
+## One turn plan entry per enemy attack on the player, as [line, note]
 var _enemy_log: Array[Array] = []
+## Shown in place of the usual hint until the plan next changes
+var _hint_note: String = ""
+## The last block used a dodge face
+var _dodged: bool = false
 var _editing: PlannedAction
 var _edit_index: int = -1
 var _ghost: Cutout
@@ -110,6 +117,11 @@ func start_turn(new_turn: bool = true) -> void:
 	_enemy_log.clear()
 	_armed = false
 	_editing = null
+	# Levels without enemies are clear from the start
+	if board.get_enemies().is_empty():
+		_set_state(State.LEVEL_CLEAR)
+		_refresh()
+		return
 	# Player status effects come first: poison bites, a stun costs the whole turn
 	if player.poisoned:
 		player.popup("POISON", Color(0.5, 1.0, 0.4))
@@ -214,6 +226,8 @@ func player_attack_context(enemy: Enemy, dice: Array[int], use_active: bool = fa
 		ctx.stun = ctx.stun or face.has(Symbol.Type.STUN)
 		ctx.poison = ctx.poison or face.has(Symbol.Type.POISON)
 		ctx.penetrate += face.count(Symbol.Type.PENETRATE)
+	if ctx.insta_kill and enemy.data.is_boss:
+		ctx.resist_insta_kill(dice.filter(func(i: int): return results[i].face().has(Symbol.Type.INSTA_KILL)).size())
 	for ability in abilities():
 		ability.modify_attack(ctx, use_active)
 	return ctx
@@ -225,20 +239,18 @@ func apply_incoming(ctx: AttackContext) -> void:
 		ability.modify_incoming_attack(ctx)
 
 
-## True while the active ability is a block and armed: clicking an enemy plans it.
-func _armed_block() -> bool:
-	return _armed and active_ability() != null and active_ability().use == Ability.Use.BLOCK
+## True if the active is used on an attack (armed while planning); block actives are used from the block prompt.
+func _active_is_planned() -> bool:
+	return active_ability() != null and active_ability().use == Ability.Use.ATTACK
 
 
-## Toggles the active ability for the next attack / block (planning).
+## Toggles an attack active for the next attack (planning).
 func toggle_active() -> void:
-	if state != State.PLAN or active_ability() == null:
+	if state != State.PLAN or not _active_is_planned():
 		return
 	if not _armed and _end_state.uses.get(active_ability().id, 0) <= 0:
 		return
 	_armed = not _armed
-	if _armed and active_ability().use == Ability.Use.BLOCK:
-		selected.clear()
 	_replan()
 
 
@@ -292,8 +304,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _click_die(index: int) -> void:
 	var die := dice_tray.get_die(index)
 	var result := results[index]
-	if not is_die_available(index):
+	if not is_die_available(index) or result.category() == DieFace.Category.DEFENCE:
 		die.shake(dice_tray.camera.global_basis.x * 0.1 * dice_tray._scale)
+		if result.category() == DieFace.Category.DEFENCE:
+			_hint_note = "Defence dice aren't planned: they're kept to block hits this turn."
+			_refresh()
 		return
 	if selected.has(index):
 		selected.erase(index)
@@ -306,26 +321,22 @@ func _click_die(index: int) -> void:
 
 
 func _click_tile(tile_id: int) -> void:
-	var action: PlannedAction
-	if _armed_block():
-		if _targets.has(tile_id):
-			action = DefendAction.new([], board.get_piece(tile_id), active_ability())
-	elif selected.is_empty():
+	if selected.is_empty():
+		var piece := board.get_piece(tile_id)
+		if piece is Enemy:
+			enemy_inspected.emit(piece)
 		return
-	else:
-		match _selected_category():
-			DieFace.Category.MOVE:
-				if _reachable.has(tile_id):
-					action = MoveAction.new(selected, tile_id)
-			DieFace.Category.ATTACK:
-				if _targets.has(tile_id):
-					action = AttackAction.new(selected, board.get_piece(tile_id), _armed)
-			DieFace.Category.DEFENCE:
-				if _targets.has(tile_id):
-					action = DefendAction.new(selected, board.get_piece(tile_id))
+	var action: PlannedAction
+	match _selected_category():
+		DieFace.Category.MOVE:
+			if _reachable.has(tile_id):
+				action = MoveAction.new(selected, tile_id)
+		DieFace.Category.ATTACK:
+			if _targets.has(tile_id):
+				action = AttackAction.new(selected, board.get_piece(tile_id), _armed)
 	if action == null:
 		return
-	if action is AttackAction or action is DefendAction and action.ability:
+	if action is AttackAction:
 		_armed = false
 	selected.clear()
 	if _editing:
@@ -417,23 +428,12 @@ func _unused_non_defence() -> int:
 func _resolve() -> void:
 	_set_state(State.RESOLVE)
 	_refresh()
-	_defence.clear()
-	_retaliating = null
 	_retaliated.clear()
 	for action in actions:
-		if not _is_defending_retaliation(action, _retaliating):
-			await _settle_retaliation()
-			if _player_dead():
-				await _game_over()
-				return
 		await action.resolve(self)
 		if _player_dead():
 			await _game_over()
 			return
-	await _settle_retaliation()
-	if _player_dead():
-		await _game_over()
-		return
 	await _finish_turn()
 
 
@@ -462,17 +462,18 @@ func _finish_turn() -> void:
 	start_turn()
 
 
-## Restores [amount] HP (up to max). Any healing cures poison.
+## Restores [amount] HP (up to max). If poisoned, the heal cures the poison instead.
 func heal_player(amount: int) -> void:
 	var run := SaveManager.run_data
-	if run.health >= run.max_health and not player.poisoned:
-		return
 	if player.poisoned:
+		# Curing poison takes the place of the heal
 		player.poisoned = false
 		player.popup("CURED", Color(0.5, 1.0, 0.4))
-	if run.health < run.max_health:
+	elif run.health < run.max_health:
 		run.health = mini(run.health + amount, run.max_health)
 		player.popup("+%d" % amount, Color(0.4, 1.0, 0.45))
+	else:
+		return
 	await get_tree().create_timer(Anim.t(0.4)).timeout
 
 
@@ -500,21 +501,6 @@ func _game_over() -> void:
 	_refresh()
 
 
-## True if [action] defends against [enemy]'s pending retaliation, so it lands after the action.
-func _is_defending_retaliation(action: PlannedAction, enemy: Enemy) -> bool:
-	return enemy != null and action is DefendAction and action.defends_against(enemy)
-
-
-func _settle_retaliation() -> void:
-	if _retaliating == null:
-		return
-	var enemy := _retaliating
-	_retaliating = null
-	if is_instance_valid(enemy) and not enemy.is_dead() and not _consume_stun(enemy):
-		if await enemy_attack(enemy):
-			_retaliated.append(enemy)
-
-
 ## If [piece] is stunned, it loses this action: clears the stun and returns true.
 func _consume_stun(piece: BoardPiece) -> bool:
 	if not piece.stunned:
@@ -524,8 +510,8 @@ func _consume_stun(piece: BoardPiece) -> bool:
 	return true
 
 
-## Player attacks [enemy]; it strikes first if it always attacks first, otherwise retaliates if it survives
-## (after any defend actions against it that directly follow).
+## Player attacks [enemy]; it strikes first if it always attacks first, otherwise retaliates straight after if it
+## survives. Either way the player may block with held defence dice.
 func resolve_attack(enemy: Enemy, dice: Array[int], use_active: bool) -> void:
 	if not is_instance_valid(enemy) or enemy.is_dead():
 		return
@@ -565,53 +551,36 @@ func resolve_attack(enemy: Enemy, dice: Array[int], use_active: bool) -> void:
 		dead.play_death()
 	if deaths.size() > 0:
 		await deaths[0].died
-	if not enemy.is_dead() and not enemy_first:
-		_retaliating = enemy
+	if not enemy.is_dead() and not enemy_first and not _consume_stun(enemy):
+		if await enemy_attack(enemy):
+			_retaliated.append(enemy)
 	await get_tree().create_timer(Anim.t(0.25)).timeout
 
 
-## Adds defence against [enemy]'s next attack.
-func resolve_defend(enemy: Enemy, amount: int, ability: Ability = null) -> void:
-	if not is_instance_valid(enemy) or enemy.is_dead():
-		return
-	if ability:
-		if not spend_use(ability, _uses):
-			return
-		player.popup(ability.display_name, Color(1.0, 0.85, 0.4))
-	_defence[enemy] = _defence.get(enemy, 0) + amount
-	enemy.popup("+%s defence" % AttackContext.value_text(amount), Color(0.45, 0.7, 1.0))
-	await get_tree().create_timer(Anim.t(0.3)).timeout
-
-
-## [enemy] attacks the player if it can hit them, using up any defence assigned against it. With [can_block]
-## (enemy turn) the roll is shown in the turn plan first and the player may add held defence dice.
-## Returns true if it attacked.
-func enemy_attack(enemy: Enemy, can_block: bool = false) -> bool:
+## [enemy] attacks the player if it can hit them. The roll is shown in the turn plan and the player may block
+## with held defence dice. Returns true if it attacked.
+func enemy_attack(enemy: Enemy) -> bool:
 	if not enemy.can_hit(player.tile_id):
 		return false
-	var assigned: int = _defence.get(enemy, 0)
-	_defence.erase(enemy)
-	var ctx := AttackContext.roll_enemy(enemy, player, assigned)
+	var ctx := AttackContext.roll_enemy(enemy, player)
 	apply_incoming(ctx)
 	# A ranged attack draws its arc first and keeps it up through the block decision
 	var arc := await board.show_attack_arc(enemy, player)
-	var log_index := -1
-	if can_block:
-		log_index = _enemy_log.size()
-		_enemy_log.append(["", ""])
-		if not ctx.miss and ctx.damage() > 0:
-			ctx.defence += await _choose_block(enemy, ctx.damage(), log_index)
+	var log_index := _enemy_log.size()
+	_enemy_log.append(["", ""])
+	_dodged = false
+	if not ctx.miss and ctx.damage() > 0:
+		ctx.defence += await _choose_block(enemy, ctx.damage(), log_index)
 	var damage := ctx.damage()
-	if log_index != -1:
-		_enemy_log[log_index] = _attack_log(enemy, ctx)
-		_refresh()
+	_enemy_log[log_index] = _attack_log(enemy, ctx)
+	_refresh()
 	await enemy.lunge(player.position)
 	if ctx.miss:
 		player.popup("MISS", Color(0.8, 0.8, 0.8))
 	elif ctx.negated:
 		player.popup(" + ".join(ctx.notes).to_upper(), Color(0.45, 0.7, 1.0))
 	elif damage == 0:
-		player.popup("BLOCKED", Color(0.45, 0.7, 1.0))
+		player.popup("DODGED" if _dodged else "BLOCKED", Color(0.45, 0.7, 1.0))
 	elif await _hurt_player(damage, ("CRIT -%d" if ctx.crit else "-%d") % damage) and not _player_dead():
 		# A sacrificed hit still counts as damage taken (no heal) but doesn't pass on status effects
 		if enemy.data.applies_stun and not player.stunned:
@@ -635,6 +604,8 @@ func _attack_log(enemy: Enemy, ctx: AttackContext) -> Array:
 	var line := "%s %shit you for %d" % [name, "critically " if ctx.crit else "", rolled]
 	if ctx.negated:
 		return [line, "Blocked by " + " + ".join(ctx.notes)]
+	if _dodged:
+		return [line, "Dodged"]
 	if ctx.defence <= 0:
 		return [line, ""]
 	return [line, "%s blocked, %d damage taken" % [AttackContext.value_text(mini(ctx.defence, rolled)), ctx.damage()]]
@@ -675,7 +646,7 @@ func _enemy_turn() -> void:
 		if path.size() > 0:
 			await enemy.move_along(path)
 		if not _retaliated.has(enemy) and enemy.can_hit(player.tile_id):
-			await enemy_attack(enemy, true)
+			await enemy_attack(enemy)
 			if _player_dead():
 				return
 		await get_tree().create_timer(Anim.t(0.15)).timeout
@@ -720,7 +691,8 @@ func _held_dice() -> Array[int]:
 
 
 ## Lets the player pick held defence dice against [enemy]'s rolled [damage] (or spends them automatically, if
-## set), shown as entry [log_index] in the turn plan. Returns the total defence chosen.
+## set), shown as entry [log_index] in the turn plan. Returns the total defence chosen; sets [_dodged] if a dodge
+## face was among them.
 func _choose_block(enemy: Enemy, damage: int, log_index: int) -> int:
 	var held := _held_dice()
 	if held.is_empty() and _block_active_name() == "":
@@ -747,6 +719,7 @@ func _choose_block(enemy: Enemy, damage: int, log_index: int) -> int:
 			_refresh()
 			return AttackContext.BLOCK_ALL
 	_spent.append_array(chosen)
+	_dodged = chosen.any(func(i: int): return results[i].face().has(Symbol.Type.DODGE))
 	_refresh()
 	return dice_value(chosen)
 
@@ -811,6 +784,7 @@ func _click_block_die(index: int) -> void:
 ## Re-simulates the plan from the start of the turn, dropping invalid actions, and updates all previews.
 func _replan() -> void:
 	var insert_at := _edit_index if _editing else actions.size()
+	_hint_note = ""
 	var sim := TurnState.new(player.tile_id, board.get_enemies())
 	sim.uses = _uses.duplicate()
 	var valid: Array[PlannedAction] = []
@@ -818,13 +792,9 @@ func _replan() -> void:
 	for i in actions.size():
 		if i == insert_at:
 			_insert_state = sim.copy()
-		if sim.retaliation and not _is_defending_retaliation(actions[i], sim.retaliation.enemy):
-			sim.retaliation.settle_retaliation(sim, self)
 		if actions[i].simulate(sim, self):
 			valid.append(actions[i])
 	actions = valid
-	if sim.retaliation:
-		sim.retaliation.settle_retaliation(sim, self)
 	_end_state = sim
 	if _insert_state == null:
 		_insert_state = sim.copy()
@@ -839,10 +809,6 @@ func _replan() -> void:
 	_targets.clear()
 	if _armed and _end_state.uses.get(active_ability().id, 0) <= 0 and not _editing:
 		_armed = false
-	if _armed_block():
-		selected.clear()
-		for enemy in _living_enemies(_insert_state):
-			_targets.append(enemy.tile_id)
 	match _selected_category():
 		DieFace.Category.MOVE:
 			_move_ctx = move_context(_insert_state, selected)
@@ -851,9 +817,6 @@ func _replan() -> void:
 			for enemy in _living_enemies(_insert_state):
 				if board.in_attack_range(_insert_state.player_tile, enemy.tile_id, attack_range(selected)):
 					_targets.append(enemy.tile_id)
-		DieFace.Category.DEFENCE:
-			for enemy in _living_enemies(_insert_state):
-				_targets.append(enemy.tile_id)
 	_refresh()
 
 
@@ -880,7 +843,7 @@ func _apply_buffs() -> void:
 		buff_die.pop()
 		await get_tree().create_timer(Anim.t(0.2)).timeout
 		for result in results:
-			if result != buff and not result.face().is_buff() and result.face().is_numeric() and result.category() == buff.face().buff_category():
+			if result != buff and not result.face().is_buff() and result.can_buff() and result.category() == buff.face().buff_category():
 				result.bonus += 1
 				dice_tray.get_die(result.index).set_face_display(result.face_index, result.display_face())
 		buff_die.set_state(Die3D.State.USED)
@@ -965,24 +928,20 @@ func _refresh_board() -> void:
 			if preview:
 				board.highlight(preview.aoe_tiles, HexTile.Highlight.VALID)
 			board.highlight(_targets, HexTile.Highlight.TARGET)
-		DieFace.Category.DEFENCE:
-			board.highlight(_targets, HexTile.Highlight.VALID)
 	board.select(hovered_tile)
 
 
-## Planned HP / defence for the overhead info; enemies killed by the plan are darkened.
+## Planned HP and statuses for the overhead info; enemies killed by the plan are darkened.
 func _refresh_enemies(planning: bool) -> void:
 	for enemy in board.get_enemies():
 		if not planning or _end_state == null:
 			enemy.preview_hp = enemy.hp
-			enemy.preview_defence = 0
 			enemy.preview_skips_attack = state == State.ENEMY_TURN and _retaliated.has(enemy)
 			enemy.preview_stunned = enemy.stunned
 			enemy.preview_poisoned = enemy.poisoned
 			enemy.cutout.flash = Color(0, 0, 0, 0)
 			continue
 		enemy.preview_hp = _end_state.enemy_hp.get(enemy, enemy.hp)
-		enemy.preview_defence = _end_state.defence.get(enemy, 0)
 		enemy.preview_skips_attack = _end_state.retaliated.has(enemy)
 		enemy.preview_stunned = _end_state.stunned.has(enemy)
 		enemy.preview_poisoned = _end_state.poisoned.has(enemy)
@@ -1093,36 +1052,33 @@ func _refresh_list() -> void:
 	if active:
 		var left: int = uses_preview().get(active.id, 0)
 		action_list.set_ability("%s  (%d/%d)" % [active.display_name.to_upper(), left, active.uses_per_level], active.description,
-			state == State.PLAN and (left > 0 or _armed), _armed)
+			state == State.PLAN and _active_is_planned() and (left > 0 or _armed), _armed)
 	action_list.set_hint(_hint())
 
 
 func _hint() -> String:
+	if _blocking:
+		return "%s hits you for %d.  Block with held defence dice or TAKE HIT." % [_blocking.data.display_name, _blocking_damage]
+	if _hint_note != "" and state == State.PLAN:
+		return _hint_note
 	match state:
 		State.ROLL:
 			return "Rolling..."
 		State.RESOLVE:
 			return "Resolving your actions..."
 		State.ENEMY_TURN:
-			if results.is_empty() and actions.is_empty() and not _blocking:
+			if results.is_empty() and actions.is_empty():
 				return "You are stunned and lose this turn."
-			if _blocking:
-				return "%s hits you for %d.  Block with held defence dice or TAKE HIT." % [
-					_blocking.data.display_name, _blocking_damage]
 			return "Enemy turn..."
 		State.LEVEL_CLEAR:
-			return "Level clear!  [R] to rebuild (exits arrive in Phase 09)."
+			return clear_hint
 		State.GAME_OVER:
 			return "Defeated."
 	var active := active_ability()
-	if _armed_block():
-		return "%s: click an enemy to completely block its next attack.  Right-click to cancel." % active.display_name
 	var armed_note := "  %s will be used on this attack." % active.display_name if _armed else ""
 	match _selected_category():
 		DieFace.Category.ATTACK:
 			return "Attack %d (range %d): click a highlighted enemy.  Click more attack dice to combine them.%s  Right-click to cancel." % [dice_value(selected), attack_range(selected), armed_note]
-		DieFace.Category.DEFENCE:
-			return "Defend %s: click an enemy to block its next attack.  Click more defence dice to combine them.  Right-click to cancel." % AttackContext.value_text(dice_value(selected))
 	if selected.size() > 0:
 		if is_teleport_lost(selected):
 			return "Move %d: teleport lost by combining with normal movement.  Click a highlighted tile.  Right-click to cancel." % dice_value(selected)
@@ -1133,7 +1089,7 @@ func _hint() -> String:
 		return "Editing: choose dice, then a target.  Right-click to cancel."
 	if _armed:
 		return "%s armed: choose attack dice, then a target.  Right-click to cancel." % active.display_name
-	return "Click dice to plan moves, attacks and defence, then COMMIT."
+	return "Click dice to plan moves and attacks, then COMMIT.  Defence dice are kept to block hits."
 
 
 var _dot_mesh: SphereMesh
@@ -1170,6 +1126,8 @@ func _create_previews() -> void:
 ## Clears everything ready for a new level.
 func reset() -> void:
 	turn_number = 0
+	hovered_tile = -1
+	hovered_die = -1
 	results.clear()
 	actions.clear()
 	selected.clear()

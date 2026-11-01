@@ -10,15 +10,16 @@ signal moved(from_id: int, to_id: int)
 @export var blocks_line_of_sight: bool = false
 @export var hop_duration: float = 0.22
 @export var hop_height: float = 0.35
-@export var intro_duration: float = 0.5
-@export var intro_drop: float = 2.0
+## Intro/outro match HexTile's so pieces arrive and leave with their tiles
+@export var intro_duration: float = 0.6
+@export var intro_drop: float = 1.5
 
 @onready var cutout: Cutout = get_node_or_null("Cutout")
 
 var board: Board
 var tile_id: int = -1
 ## Status effects: stunned pieces skip their next action, poisoned ones take 1 damage at the start of each of
-## their turns (healing cures it)
+## their turns (a heal cures it instead of restoring health)
 var stunned: bool = false
 var poisoned: bool = false
 
@@ -65,10 +66,22 @@ func play_intro(delay: float = 0.0) -> void:
 	visible = true
 	var end_pos := position
 	position.y += intro_drop
-	var tween := create_tween()
-	tween.tween_property(self, "position", end_pos, Anim.t(intro_duration * 0.5)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	await tween.finished
+	scale = Vector3.ONE * 0.01
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(self, "scale", Vector3.ONE, Anim.t(intro_duration)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "position", end_pos, Anim.t(intro_duration * 0.6)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await get_tree().create_timer(Anim.t(intro_duration * 0.6)).timeout
 	_land()
+
+
+## Shrinks away with its tile, then frees itself.
+func play_outro(delay: float = 0.0) -> void:
+	await get_tree().create_timer(Anim.t(delay)).timeout
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(self, "scale", Vector3.ONE * 0.01, Anim.t(0.35)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "position:y", position.y + intro_drop, Anim.t(0.35)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tween.finished
+	remove_from_board()
 
 
 # ===========================================================================================================================================

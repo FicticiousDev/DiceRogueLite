@@ -30,6 +30,6 @@ func _on_menu_pressed() -> void:
 	var progression := SaveManager.progression_data
 	progression.runs += 1
 	progression.deaths += 1
-	SaveManager.run_data = RunData.new()
+	SaveManager.clear_run()
 	SaveManager.save_data()
 	SceneManager.change_scene(MAIN_MENU_SCENE)

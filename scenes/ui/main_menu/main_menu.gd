@@ -17,7 +17,8 @@ func _ready() -> void:
 	new_run_button.pressed.connect(_on_new_run_pressed)
 	settings_button.pressed.connect(Settings.show_settings)
 	quit_button.pressed.connect(_on_quit_pressed)
-	continue_button.disabled = true # Enabled once runs are saved (Phase 09)
+	continue_button.pressed.connect(_on_continue_pressed)
+	continue_button.disabled = not SaveManager.has_run()
 	_bob_piece()
 
 
@@ -26,7 +27,14 @@ func _process(delta: float) -> void:
 
 
 func _on_new_run_pressed() -> void:
-	SaveManager.run_data = RunData.new()
+	if SaveManager.has_run() and not await confirm_dialog.ask("NEW RUN", "Start a new run?\nYour saved run will be lost."):
+		return
+	SaveManager.clear_run()
+	SaveManager.save_data()
+	SceneManager.change_scene(RUN_SCENE)
+
+
+func _on_continue_pressed() -> void:
 	SceneManager.change_scene(RUN_SCENE)
 
 

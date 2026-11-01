@@ -12,7 +12,7 @@ enum Use { ATTACK, BLOCK }
 @export var display_name: String
 @export_multiline var description: String
 @export var active: bool = false
-## ATTACK: applies to the next attack the player plans. BLOCK: aimed at an enemy, fully blocks its next attack.
+## ATTACK: applies to the next attack the player plans. BLOCK: chosen from the block prompt, fully blocks that hit.
 @export var use: Use = Use.ATTACK
 ## For actives: uses per level
 @export var uses_per_level: int = 0

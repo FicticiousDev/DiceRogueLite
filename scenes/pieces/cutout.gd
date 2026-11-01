@@ -64,6 +64,11 @@ func _process(_delta: float) -> void:
 	global_rotation.y = atan2(to_camera.x, to_camera.z)
 
 
+## Width of the texture in world units (excludes the outline border).
+func width() -> float:
+	return height * float(texture.get_width()) / texture.get_height() if texture else height
+
+
 func _rebuild() -> void:
 	if not is_node_ready() or texture == null:
 		return

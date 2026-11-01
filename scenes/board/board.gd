@@ -6,19 +6,22 @@ extends Node3D
 
 signal intro_finished
 
-enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT }
+enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT, LOOT }
 
 const HEX_TILE_SCENE: PackedScene = preload("res://scenes/board/hex_tile.tscn")
 const OBSTACLE_SCENE: PackedScene = preload("res://scenes/pieces/obstacle.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://scenes/pieces/enemy.tscn")
+const LOOT_SCENE: PackedScene = preload("res://scenes/pieces/loot.tscn")
+const EXIT_SCENE: PackedScene = preload("res://scenes/pieces/exit_gate.tscn")
 ## Distance along the camera ray between picking samples, in world units
 const PICK_STEP: float = 0.005
 
 ## World units per layout pixel. 128 px wide cells -> tiles 1 unit wide.
 @export var world_scale: float = 1.0 / 128.0
 @export var intro_delay_per_ring: float = 0.06
-## Enemy types for the ENEMY markers, in marker order (sorted by cell), repeating if there are more markers
-@export var enemy_ids: Array[StringName] = [&"grunt"]
+
+## Set before adding to the tree. Supplies the tile colours.
+var biome: BiomeData
 
 @onready var layout: TileMapLayer = $Layout
 @onready var markers: TileMapLayer = $Markers
@@ -38,6 +41,7 @@ var _selected: int = -1
 ## Floating popups waiting per piece (instance id -> [[text, color], ...]) and where each piece was last seen
 var _popups: Dictionary[int, Array] = {}
 var _popup_anchors: Dictionary[int, Vector3] = {}
+var _intro_played: bool = false
 
 
 func _ready() -> void:
@@ -47,11 +51,14 @@ func _ready() -> void:
 	_build()
 
 
+## Builds tiles and obstacles. Enemies, loot and exits are placed by the run (see Run._populate).
 func _build() -> void:
 	var cell_radius := layout.tile_set.tile_size.y / 2.0 * world_scale
 	for cell in layout.get_used_cells():
 		var tile: HexTile = HEX_TILE_SCENE.instantiate()
-		tile.setup(cell, layout.get_cell_tile_data(cell).get_custom_data("terrain"), cell_radius)
+		var terrain: Terrain.Type = layout.get_cell_tile_data(cell).get_custom_data("terrain")
+		var color: Color = biome.terrain_colors[terrain] if biome else Terrain.COLORS[terrain]
+		tile.setup(cell, terrain, cell_radius, color)
 		tile.position = cell_to_local(cell)
 		tile.visible = false
 		tiles_root.add_child(tile)
@@ -67,27 +74,49 @@ func _build() -> void:
 	_build_astar()
 	for cell in get_marker_cells(Marker.OBSTACLE):
 		add_piece(OBSTACLE_SCENE.instantiate(), cell)
-	var enemy_cells := get_marker_cells(Marker.ENEMY)
-	enemy_cells.sort()
-	for i in enemy_cells.size():
-		var enemy: Enemy = ENEMY_SCENE.instantiate()
-		enemy.setup(Database.get_content("enemies", enemy_ids[i % enemy_ids.size()]))
-		add_piece(enemy, enemy_cells[i])
 
 
-## Pops tiles in, rippling out from the player start, then drops the pieces in. Awaitable.
-func play_intro() -> void:
+## Pops tiles in, rippling out from the player start, each piece dropping in with its tile. [skip_start] shows the
+## start tile (and anything on it) straight away - the tile carried over from the last level. Awaitable.
+func play_intro(skip_start: bool = false) -> void:
+	_intro_played = true
 	var longest := 0.0
 	for tile in tiles.values():
+		if skip_start and tile.coords == player_start:
+			tile.show_now()
+			continue
 		var delay: float = Hex.distance(player_start, tile.coords) * intro_delay_per_ring
 		longest = maxf(longest, delay + tile.intro_duration)
 		tile.play_intro(delay)
 	for piece: BoardPiece in pieces_root.get_children():
-		var delay: float = longest * 0.6 + Hex.distance(player_start, Hex.coords(piece.tile_id)) * intro_delay_per_ring
+		if skip_start and Hex.coords(piece.tile_id) == player_start:
+			piece.visible = true
+			continue
+		var delay: float = Hex.distance(player_start, Hex.coords(piece.tile_id)) * intro_delay_per_ring
 		longest = maxf(longest, delay + piece.intro_duration)
 		piece.play_intro(delay)
 	await get_tree().create_timer(Anim.t(longest)).timeout
 	intro_finished.emit()
+
+
+## The reverse of the intro: tiles and their pieces vanish in a wave closing in on [keep_id], which stays put
+## along with anything on it. Awaitable.
+func play_outro(keep_id: int) -> void:
+	var centre := Hex.coords(keep_id)
+	var farthest := 0
+	for tile in tiles.values():
+		farthest = maxi(farthest, Hex.distance(centre, tile.coords))
+	var longest := 0.0
+	for tile in tiles.values():
+		if tile.id == keep_id:
+			continue
+		var delay: float = (farthest - Hex.distance(centre, tile.coords)) * intro_delay_per_ring
+		longest = maxf(longest, delay + tile.outro_duration)
+		tile.play_outro(delay)
+	for piece: BoardPiece in pieces_root.get_children():
+		if piece.tile_id != keep_id:
+			piece.play_outro((farthest - Hex.distance(centre, Hex.coords(piece.tile_id))) * intro_delay_per_ring)
+	await get_tree().create_timer(Anim.t(longest)).timeout
 
 
 # ===========================================================================================================================================
@@ -95,9 +124,45 @@ func play_intro() -> void:
 # ===========================================================================================================================================
 
 
+## Pieces added before the intro stay hidden until it reaches them.
 func add_piece(piece: BoardPiece, cell: Vector2i) -> void:
 	pieces_root.add_child(piece)
 	piece.place(self, Hex.id(cell))
+	piece.visible = _intro_played
+
+
+func spawn_enemy(data: EnemyData, cell: Vector2i) -> Enemy:
+	var enemy: Enemy = ENEMY_SCENE.instantiate()
+	enemy.setup(data)
+	add_piece(enemy, cell)
+	return enemy
+
+
+func spawn_loot(gold: int, cell: Vector2i) -> void:
+	var loot: Loot = LOOT_SCENE.instantiate()
+	loot.gold = gold
+	add_piece(loot, cell)
+
+
+func spawn_exit(target: int, icon: Texture2D, color: Color, cell: Vector2i) -> ExitGate:
+	var gate: ExitGate = EXIT_SCENE.instantiate()
+	gate.setup(target, icon, color)
+	add_piece(gate, cell)
+	return gate
+
+
+## Takes the loot on [tile_id], if any, and returns its gold.
+func collect_loot(tile_id: int) -> int:
+	for piece in pieces_root.get_children():
+		if piece is Loot and piece.tile_id == tile_id and not piece.is_queued_for_deletion():
+			return piece.collect()
+	return 0
+
+
+func get_exits() -> Array[ExitGate]:
+	var exits: Array[ExitGate] = []
+	exits.assign(pieces_root.get_children().filter(func(piece: Node): return piece is ExitGate))
+	return exits
 
 
 # ===========================================================================================================================================
@@ -106,8 +171,8 @@ func add_piece(piece: BoardPiece, cell: Vector2i) -> void:
 
 
 const POPUP_FONT_SIZE: int = 72
-## Popups start this high above a piece (clear of the enemy stats bar) and rise this far
-const POPUP_HEIGHT: float = 1.75
+## Popups start this high above a piece and rise this far
+const POPUP_HEIGHT: float = 1.15
 const POPUP_RISE: float = 0.55
 
 

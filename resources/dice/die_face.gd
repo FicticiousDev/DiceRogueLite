@@ -3,7 +3,7 @@ extends Resource
 
 ## One face of a die. Every face holds a single action:
 ## - attack: 1-5 ATTACK, optionally with modifiers: CRIT, STUN, POISON, PENETRATE n, RANGE n (n shown as a number)
-## - defence: 1-5 DEFENCE, or a BLOCK_ALL
+## - defence: 1-5 DEFENCE, or a DODGE (avoids a whole hit)
 ## - move: 1-5 MOVE, optionally with a TELEPORT
 ## - insta-kill: a single INSTA_KILL
 ## - buff: a single BUFF plus [buff_target]; once in the row it adds 1 to every rolled face of that category
@@ -38,7 +38,7 @@ func category() -> Category:
 		return Category.OTHER
 	if has(Symbol.Type.ATTACK) or has(Symbol.Type.CRIT) or has(Symbol.Type.INSTA_KILL):
 		return Category.ATTACK
-	if has(Symbol.Type.DEFENCE) or has(Symbol.Type.BLOCK_ALL):
+	if has(Symbol.Type.DEFENCE) or has(Symbol.Type.DODGE):
 		return Category.DEFENCE
 	if has(Symbol.Type.MOVE) or has(Symbol.Type.TELEPORT):
 		return Category.MOVE

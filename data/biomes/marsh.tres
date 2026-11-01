@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BiomeData" format=3]
+
+[ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"marsh"
+display_name = "Marsh"
+order = 3
+difficulty = 3
+color = Color(0.3, 0.9, 0.75, 1)
+terrain_colors = Array[Color]([Color(0.36, 0.47, 0.3, 1), Color(0.3, 0.36, 0.22, 1), Color(0.33, 0.27, 0.3, 1), Color(0.25, 0.4, 0.34, 1), Color(0.35, 0.33, 0.3, 1)])
+enemy_ids = Array[StringName]([&"spitter", &"lurker", &"leech"])
+boss_id = &"brood_mother"

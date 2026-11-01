@@ -46,6 +46,20 @@ func frame(bounds: AABB, animate: bool = true) -> void:
 		create_tween().tween_property(self, "distance", target, Anim.t(0.9)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 
 
+## Frames [bounds] like frame(), gliding there from the current view.
+func glide(bounds: AABB, duration: float) -> void:
+	var from_position := global_position
+	var from_distance := distance
+	frame(bounds, false)
+	var to_position := global_position
+	var to_distance := distance
+	global_position = from_position
+	distance = from_distance
+	var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(self, "global_position", to_position, Anim.t(duration))
+	tween.tween_property(self, "distance", to_distance, Anim.t(duration))
+
+
 ## Binary search for the closest distance where [bounds] fits inside [safe].
 func _fit_distance(bounds: AABB, safe: Rect2) -> void:
 	var near := 1.0

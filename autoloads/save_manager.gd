@@ -13,8 +13,28 @@ const SETTINGS_DATA = preload("res://saves/settings_data.gd")
 
 # Locally stored variables for the resources
 var run_data: RunData
+## The run as it was when the current level began. Saved in place of run_data, so quitting mid-level resumes
+## from the level's start.
+var run_checkpoint: RunData
 var progression_data: ProgressionData
 var settings_data: SettingsData
+
+
+## Snapshots the run at the start of a level and saves.
+func checkpoint_run() -> void:
+	run_checkpoint = run_data.duplicate(true)
+	save_data()
+
+
+## Ends the run: a fresh RunData with no checkpoint.
+func clear_run() -> void:
+	run_data = RunData.new()
+	run_checkpoint = null
+
+
+## True if there's a run to continue.
+func has_run() -> bool:
+	return run_data.map.size() > 0
 
 
 func save_data() -> void:
@@ -35,7 +55,7 @@ func _ready() -> void:
 
 
 func _save_current_run() -> void:
-	_save_resource_to_file(run_data, RUN_SAVE)
+	_save_resource_to_file(run_checkpoint if run_checkpoint else run_data, RUN_SAVE)
 
 
 func _save_progression() -> void:
