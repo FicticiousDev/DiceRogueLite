@@ -1,7 +1,8 @@
 class_name SacrificeDialog
 extends CanvasLayer
 
-## Last stand prompt: pick a die from the pool to sacrifice, or accept defeat.
+## Last stand prompt: pick a die from the pool to sacrifice, or accept defeat. Each die is a card that can be turned
+## or clicked for its six faces.
 ## Use: var index: int = await dialog.ask(SaveManager.run_data.dice)  (-1 = no sacrifice)
 
 signal answered(index: int)
@@ -9,6 +10,9 @@ signal answered(index: int)
 @onready var panel: PanelContainer = %Panel
 @onready var dice_list: GridContainer = %DiceList
 @onready var give_up_button: Button = %GiveUpButton
+
+const COLUMNS: int = 5
+const VIEW_SIZE: float = 96.0
 
 var _tween: Tween
 
@@ -20,16 +24,11 @@ func _ready() -> void:
 func ask(dice_ids: Array[String]) -> int:
 	for child in dice_list.get_children():
 		child.queue_free()
+	dice_list.columns = COLUMNS
 	for i in dice_ids.size():
-		var type: DieType = Database.get_content("dice", dice_ids[i])
-		var button := Button.new()
-		button.text = type.display_name
-		button.custom_minimum_size = Vector2(200, 52)
-		button.add_theme_font_size_override("font_size", 20)
-		button.add_theme_color_override("font_color", Rarity.COLORS[type.rarity])
-		button.tooltip_text = "\n".join(type.faces.map(func(f: DieFace): return f.describe()))
-		button.pressed.connect(answered.emit.bind(i))
-		dice_list.add_child(button)
+		var card := DieCard.create(Database.get_content("dice", dice_ids[i]), VIEW_SIZE, "SACRIFICE")
+		card.button_pressed.connect(answered.emit.bind(i))
+		dice_list.add_child(card)
 
 	visible = true
 	panel.pivot_offset = panel.size / 2.0

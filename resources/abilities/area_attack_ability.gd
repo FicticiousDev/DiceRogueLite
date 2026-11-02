@@ -10,6 +10,6 @@ func _init() -> void:
 
 
 func modify_attack(ctx: AttackContext, use_active: bool) -> void:
-	if use_active and ctx.target.board:
+	if use_active and ctx.target and ctx.target.board:
 		ctx.aoe_tiles = ctx.target.board.get_neighbours(ctx.target.tile_id)
 		ctx.notes.append(display_name)

@@ -54,11 +54,45 @@ static func _add_biome(rng: RandomNumberGenerator, nodes: Array[Dictionary], bio
 		_connect(rng, nodes, layers[i], layers[i + 1])
 
 	# One challenge level and maybe a shop, somewhere in the middle - not every route passes them
+	# A challenge must never be a level's only way on: prefer a spot where that's already true
 	middle.shuffle()
+	var sole_way := func(index: int) -> bool:
+		return nodes.any(func(node: Dictionary): return node.next.size() == 1 and int(node.next[0]) == index)
+	var spot := middle.find_custom(func(index: int): return not sole_way.call(index))
+	if spot > 0:
+		var swap := middle[0]
+		middle[0] = middle[spot]
+		middle[spot] = swap
 	nodes[middle[0]].type = LevelData.Type.CHALLENGE
+	_ensure_alternative(nodes, layers, middle[0])
 	if rng.randf() < SHOP_CHANCE:
 		nodes[middle[1]].type = LevelData.Type.SHOP_BANK if rng.randf() < BANK_CHANCE else LevelData.Type.SHOP
 	return layers
+
+
+## For when every middle spot is some level's only way on: a level whose sole link is [challenge] also gets the
+## challenge's neighbour in its layer, on a side where the new link doesn't cross another (either side if both would).
+static func _ensure_alternative(nodes: Array[Dictionary], layers: Array[Array], challenge: int) -> void:
+	var at := layers.find_custom(func(layer: Array): return layer.has(challenge))
+	var layer: Array = layers[at]
+	var before: Array = layers[at - 1]
+	var j := layer.find(challenge)
+	# Lowest / highest position each earlier level links to in the challenge's layer
+	var reach := func(node_index: int, lowest: bool) -> int:
+		var positions: Array = nodes[node_index].next.map(func(n: int): return layer.find(n)).filter(func(p: int): return p != -1)
+		return positions.min() if lowest else positions.max()
+	for k in before.size():
+		var node: Dictionary = nodes[before[k]]
+		if node.next.size() != 1 or int(node.next[0]) != challenge:
+			continue
+		var options: Array[int] = []
+		if j + 1 < layer.size() and before.slice(k + 1).all(func(p: int): return reach.call(p, true) > j):
+			options.append(layer[j + 1])
+		if j > 0 and before.slice(0, k).all(func(p: int): return reach.call(p, false) < j):
+			options.append(layer[j - 1])
+		if options.is_empty():
+			options.append(layer[j + 1] if j + 1 < layer.size() else layer[j - 1])
+		node.next.append(options[0])
 
 
 ## Joins two layers with a random non-crossing staircase, so every level has a way in and a way out. Levels after
@@ -88,18 +122,22 @@ static func _connect(rng: RandomNumberGenerator, nodes: Array[Dictionary], from:
 		nodes[from[edge.x]].next.append(to[edge.y])
 
 
-## Picks a level of each node's type with enough exits, using each level once before any repeats.
+## Picks a level of each node's type, sized for its biome's stage (shops fit any), with enough exits, using each
+## level once before any repeats.
 static func _choose_levels(nodes: Array[Dictionary]) -> void:
-	var unused: Dictionary[int, Array] = {}
+	var unused: Dictionary[String, Array] = {}
 	for node in nodes:
 		var type: int = node.type
-		var fits := func(level: LevelData): return level.type == type and level.exit_count >= node.next.size()
-		var candidates: Array = unused.get(type, []).filter(fits)
+		var biome: BiomeData = Database.get_content("biomes", StringName(node.biome))
+		var stage := 0 if type in [LevelData.Type.SHOP, LevelData.Type.SHOP_BANK] else biome.stage()
+		var key := "%d:%d" % [type, stage]
+		var fits := func(level: LevelData): return level.exit_count >= node.next.size()
+		var candidates: Array = unused.get(key, []).filter(fits)
 		if candidates.is_empty():
-			unused[type] = Database.get_all("levels").filter(func(level: LevelData): return level.type == type)
-			candidates = unused[type].filter(fits)
+			unused[key] = Database.get_all("levels").filter(func(level: LevelData): return level.type == type and (stage == 0 or level.stage == stage))
+			candidates = unused[key].filter(fits)
 		var pick: LevelData = candidates.pick_random()
-		unused[type].erase(pick)
+		unused[key].erase(pick)
 		node.level = String(pick.id)
 		node.erase("type")
 

@@ -5,6 +5,9 @@ extends Node3D
 ## away around that tile and carries the tile (player and all) to the next level's start. The run is saved as
 ## each level begins. A new run starts on the character select; death or clearing the final boss ends it with
 ## the run summary. Streaks and the odd die fall through the void behind the board (Backdrop).
+## Clearing a level (shops aside) may award a die before the gates open; chests may hold one too. The pool is
+## capped at [member max_pool_size]: a die found with a full pool is swapped in for another or left (DieAward).
+## Items (EquipmentAward) come from chests, bosses and some challenge rooms (EquipmentLoot).
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
@@ -12,18 +15,26 @@ const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
 ## Screen fraction kept clear for the turn plan panel
 const PANEL_MARGIN: float = 0.22
 const EDGE_MARGIN: float = 0.04
-## Share of a level's enemy points used at the start of the run, plus this per level entered and per biome difficulty
-const ENEMY_SHARE: float = 0.25
-const ENEMY_SHARE_PER_DEPTH: float = 0.025
-const ENEMY_SHARE_PER_DIFFICULTY: float = 0.04
 const LOOT_SHARE: float = 0.2
 const LOOT_SHARE_PER_DEPTH: float = 0.04
 const CARRY_DURATION: float = 0.9
 ## Pause between clearing the final boss and the run summary
 const VICTORY_DELAY: float = 1.2
-## Smallest area the camera frames, so tiny levels aren't blown up, and headroom for gates and their symbols
-const MIN_FRAME_SIZE: Vector2 = Vector2(10.0, 7.0)
+## Headroom above the tiles for pieces, gates and their symbols
 const FRAME_HEADROOM: float = 1.8
+
+## Most dice the pool can hold
+@export var max_pool_size: int = 10
+## Chance of a new die when a level is cleared
+@export_range(0.0, 1.0) var die_award_chance: float = 0.75
+## Chance a chest also holds a die
+@export_range(0.0, 1.0) var chest_die_chance: float = 0.15
+## Chance a chest holds an item instead (never both)
+@export_range(0.0, 1.0) var chest_item_chance: float = 0.1
+## Chance a boss also drops an item
+@export_range(0.0, 1.0) var boss_item_chance: float = 0.5
+## Chance a challenge room's reward is an item (at the biome's rarity or higher) rather than a die
+@export_range(0.0, 1.0) var challenge_item_chance: float = 0.5
 
 @onready var camera_rig: CameraRig = $CameraRig
 @onready var level_root: Node3D = $Level
@@ -49,6 +60,10 @@ var _loading: bool = false
 var _map_view: RunMapView
 var _challenge: ChallengeBanner
 var _enemy_details: EnemyDetails
+var _award: DieAward
+var _item_award: EquipmentAward
+var _attack_preview: AttackPreview
+var _pool_view: DicePoolView
 ## Explains the hovered die's face after a short hover
 var _die_tip_layer: CanvasLayer
 var _die_tip: InfoPanel
@@ -77,6 +92,19 @@ func _ready() -> void:
 	_enemy_details = EnemyDetails.new()
 	add_child(_enemy_details)
 	turn.enemy_inspected.connect(_enemy_details.open)
+	_award = DieAward.new()
+	add_child(_award)
+	_item_award = EquipmentAward.new()
+	add_child(_item_award)
+	_attack_preview = AttackPreview.new()
+	hud.add_child(_attack_preview)
+	hud.move_child(_attack_preview, 0)
+	_attack_preview.center_x = dice_tray.row_screen_x
+	_pool_view = DicePoolView.new()
+	_pool_view.max_size = max_pool_size
+	add_child(_pool_view)
+	top_bar.pool_pressed.connect(_toggle_pool_view)
+	top_bar.max_pool_size = max_pool_size
 	_die_tip_layer = CanvasLayer.new()
 	_die_tip_layer.layer = 34
 	add_child(_die_tip_layer)
@@ -118,8 +146,10 @@ func _apply_layout() -> void:
 	var centre := (margin_left + 1.0 - margin_right) / 2.0
 	dice_tray.tray_screen_point.x = centre
 	dice_tray.row_screen_x = centre
+	if _attack_preview:
+		_attack_preview.center_x = centre
 	if board:
-		camera_rig.frame(_frame_bounds(), false)
+		camera_rig.frame_points(_frame_points(), false)
 	dice_tray.refresh_row()
 
 
@@ -157,10 +187,10 @@ func load_level(carried: HexTile = null) -> void:
 		player.character = Database.get_content("characters", run.character_id)
 		player.moved.connect(_on_player_moved)
 		board.add_piece(player, board.player_start)
-		camera_rig.frame(_frame_bounds())
-	turn.clear_hint = "Level clear!  Click an open gate to choose your next level.  [M] map" if RunMap.next(run, index).size() > 0 \
+		camera_rig.frame_points(_frame_points())
+	turn.clear_hint = "Level clear!  Click an open gate to choose your next level.  [M] map  [P] dice" if RunMap.next(run, index).size() > 0 \
 		else "Run complete!"
-	turn.setup(board, player, dice_tray, action_list, confirm_dialog, sacrifice_dialog, block_prompt)
+	turn.setup(board, player, dice_tray, action_list, confirm_dialog, sacrifice_dialog, block_prompt, _attack_preview)
 	_challenge.start(turn, 0)
 	await board.play_intro(carried != null)
 	var level := RunMap.level(run, index)
@@ -170,12 +200,18 @@ func load_level(carried: HexTile = null) -> void:
 	turn.start_turn()
 
 
-## The board's bounds, grown to the minimum frame size and with headroom for tall pieces.
-func _frame_bounds() -> AABB:
-	var bounds := board.get_bounds()
-	bounds.size.y += FRAME_HEADROOM
-	var grow := Vector3(maxf(MIN_FRAME_SIZE.x - bounds.size.x, 0.0), 0.0, maxf(MIN_FRAME_SIZE.y - bounds.size.z, 0.0))
-	return AABB(bounds.position - grow / 2.0, bounds.size + grow)
+## What the camera fits in the free space: every tile's outline at its top, and again raised by the headroom for
+## tall pieces - so the level's own shape fills the screen whatever its size.
+func _frame_points() -> PackedVector3Array:
+	var points := PackedVector3Array()
+	for tile: HexTile in board.tiles.values():
+		var top := board.to_global(board.cell_top_local(tile.coords))
+		for i in 6:
+			var angle := TAU * i / 6.0
+			var corner := top + Vector3(sin(angle), 0.0, cos(angle)) * tile.radius
+			points.append(corner)
+			points.append(corner + Vector3.UP * FRAME_HEADROOM)
+	return points
 
 
 ## Moves [carried] and the player from the old level's exit to the new level's start while the camera follows.
@@ -183,7 +219,7 @@ func _carry(carried: HexTile) -> void:
 	var start := board.to_global(board.cell_to_local(board.player_start))
 	var from := carried.global_position
 	var lift := player.global_position - from
-	camera_rig.glide(_frame_bounds(), CARRY_DURATION)
+	camera_rig.glide(_frame_points(), CARRY_DURATION)
 	var tween := create_tween()
 	tween.tween_method(func(t: float):
 		carried.global_position = from.lerp(start, t)
@@ -202,19 +238,29 @@ func _populate(index: int) -> void:
 	var biome := board.biome
 	var depth := run.path.size() - 1
 
+	# Enemies per level come from the biome (BiomeData.enemy_count): a normal level rolls in that range, a boss level
+	# is the boss plus one fewer, a challenge level uses every enemy point (the range's top + 2)
 	var enemy_cells := _shuffled(board.get_marker_cells(Board.Marker.ENEMY), rng)
-	var share := ENEMY_SHARE + ENEMY_SHARE_PER_DEPTH * depth + ENEMY_SHARE_PER_DIFFICULTY * biome.difficulty
+	var count := rng.randi_range(biome.enemy_count.x, biome.enemy_count.y)
 	if level.type == LevelData.Type.BOSS and enemy_cells.size() > 0:
 		# The boss takes the enemy point farthest from the start
 		enemy_cells.sort_custom(func(a: Vector2i, b: Vector2i): return Hex.distance(a, board.player_start) > Hex.distance(b, board.player_start))
 		board.spawn_enemy(Database.get_content("enemies", biome.boss_id), enemy_cells.pop_front())
-	var count := enemy_cells.size() if level.type == LevelData.Type.CHALLENGE else _share_of(enemy_cells.size(), share, level.type == LevelData.Type.NORMAL)
+		count -= 1
+	if level.type == LevelData.Type.CHALLENGE:
+		count = enemy_cells.size()
 	for cell in enemy_cells.slice(0, count):
 		board.spawn_enemy(Database.get_content("enemies", biome.enemy_ids[rng.randi() % biome.enemy_ids.size()]), cell)
 
 	var loot_cells := _shuffled(board.get_marker_cells(Board.Marker.LOOT), rng)
+	# Chest dice are fully random each time the level is played, and kept off the level's seeded generator
+	var dice_rng := RandomNumberGenerator.new()
+	dice_rng.randomize()
 	for cell in loot_cells.slice(0, _share_of(loot_cells.size(), LOOT_SHARE + LOOT_SHARE_PER_DEPTH * depth, true)):
-		board.spawn_loot(rng.randi_range(2, 4) + biome.difficulty, cell)
+		var roll := dice_rng.randf()
+		var die: DieType = DiceLoot.roll(dice_rng, biome.difficulty) if roll < chest_die_chance else null
+		var item: EquipmentData = EquipmentLoot.roll(dice_rng, biome.difficulty) if not die and roll < chest_die_chance + chest_item_chance else null
+		board.spawn_loot(rng.randi_range(2, 4) + biome.difficulty, cell, die.id if die else &"", item.id if item else &"")
 
 	# Gates top to bottom on screen match the next levels top to bottom on the map
 	var links := RunMap.next(run, index)
@@ -240,11 +286,63 @@ static func _shuffled(cells: Array[Vector2i], rng: RandomNumberGenerator) -> Arr
 	return cells
 
 
+## Takes any chest on the player's new tile. A die in it is awarded straight away, with the game paused mid-move.
 func _on_player_moved(_from_id: int, to_id: int) -> void:
-	var gold := board.collect_loot(to_id)
+	var contents := board.collect_loot(to_id)
+	var gold: int = contents.get("gold", 0)
 	if gold > 0:
 		SaveManager.run_data.add_gold(gold)
 		player.popup("+%d" % gold, Color(1, 0.82, 0.3))
+	var die_id: StringName = contents.get("die", &"")
+	var item_id: StringName = contents.get("item", &"")
+	if die_id != &"" or item_id != &"":
+		get_tree().paused = true
+		if die_id != &"":
+			await _award.present(Database.get_content("dice", die_id), "Found in a chest", max_pool_size)
+		if item_id != &"":
+			await _item_award.present(Database.get_content("equipment", item_id), "Found in a chest")
+		get_tree().paused = false
+
+
+## Rewards for clearing the current level, all fully random (replaying a level can give different ones):
+## - normal and boss levels: [member die_award_chance] of a die, rarity from the biome (DiceLoot)
+## - bosses: also [member boss_item_chance] of an item (EquipmentLoot, skewed to the biome's rarity)
+## - a challenge beaten within its turn limit: always a reward - an item at the biome's rarity or higher
+##   ([member challenge_item_chance]) or else a die of the biome's top rarity. Over the limit, nothing
+## - shops: nothing
+func _level_award() -> void:
+	var run := SaveManager.run_data
+	var index := RunMap.current_index(run)
+	var level := RunMap.level(run, index)
+	var difficulty := RunMap.biome(run, index).difficulty
+	if level.type in [LevelData.Type.SHOP, LevelData.Type.SHOP_BANK]:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	if level.type == LevelData.Type.CHALLENGE:
+		if turn.turn_number > level.turn_limit:
+			return
+		var item := EquipmentLoot.roll(rng, difficulty, true) if rng.randf() < challenge_item_chance else null
+		if item:
+			await _item_award.present(item, "Challenge reward")
+			return
+		var top := DiceLoot.roll(rng, difficulty, true)
+		if top:
+			await _award.present(top, "Challenge reward", max_pool_size)
+		return
+	if rng.randf() < die_award_chance:
+		var die := DiceLoot.roll(rng, difficulty)
+		if die:
+			await _award.present(die, "Level clear reward", max_pool_size)
+	if level.type == LevelData.Type.BOSS and rng.randf() < boss_item_chance:
+		var drop := EquipmentLoot.roll(rng, difficulty)
+		if drop:
+			await _item_award.present(drop, "Boss reward")
+
+
+func _toggle_pool_view() -> void:
+	if not _award.visible and not _item_award.visible and not character_picker.visible:
+		_pool_view.toggle()
 
 
 # ===========================================================================================================================================
@@ -301,9 +399,13 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _enemy_details.visible or _ended:
+	if _enemy_details.visible or _ended or _award.visible or _item_award.visible:
 		return
-	if event.is_action_pressed("map") and not character_picker.visible:
+	if event.is_action_pressed("dice_pool"):
+		_toggle_pool_view()
+	elif _pool_view.visible:
+		return
+	elif event.is_action_pressed("map") and not character_picker.visible:
 		_map_view.toggle()
 	elif _map_view.visible:
 		return
@@ -333,6 +435,11 @@ func _on_turn_state_changed(state: TurnController.State) -> void:
 		if RunMap.next(run, RunMap.current_index(run)).is_empty():
 			_end_run(ProgressionData.Outcome.VICTORY)
 			return
+		# Chests left behind are lost, and the gates stay shut until the award is dealt with
+		_loading = true
+		await board.clear_loot()
+		await _level_award()
+		_loading = false
 		for exit in board.get_exits():
 			exit.unlock()
 

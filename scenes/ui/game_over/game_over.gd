@@ -44,6 +44,8 @@ func show_screen(run: RunData, outcome: ProgressionData.Outcome) -> void:
 		["Damage taken", run.damage_received],
 		["Critical hits", run.crits],
 		["Enemy misses", run.misses],
+		["Dice obtained", run.dice_obtained],
+		["Items obtained", run.items_obtained],
 		["Dice in pool", run.dice.size()],
 	]:
 		rows.append(_label(entry[0], Color(0.8, 0.8, 0.85), HORIZONTAL_ALIGNMENT_LEFT))

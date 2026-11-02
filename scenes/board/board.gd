@@ -138,9 +138,12 @@ func spawn_enemy(data: EnemyData, cell: Vector2i) -> Enemy:
 	return enemy
 
 
-func spawn_loot(gold: int, cell: Vector2i) -> void:
+## A chest with [gold] and, if they aren't empty, a die and / or an item.
+func spawn_loot(gold: int, cell: Vector2i, die_id: StringName = &"", item_id: StringName = &"") -> void:
 	var loot: Loot = LOOT_SCENE.instantiate()
 	loot.gold = gold
+	loot.die_id = die_id
+	loot.item_id = item_id
 	add_piece(loot, cell)
 
 
@@ -151,12 +154,22 @@ func spawn_exit(target: int, icon: Texture2D, color: Color, cell: Vector2i) -> E
 	return gate
 
 
-## Takes the loot on [tile_id], if any, and returns its gold.
-func collect_loot(tile_id: int) -> int:
+## Takes the loot on [tile_id], if any, and returns its contents ({ gold, die, item }, see [method Loot.collect]).
+func collect_loot(tile_id: int) -> Dictionary:
 	for piece in pieces_root.get_children():
 		if piece is Loot and piece.tile_id == tile_id and not piece.is_queued_for_deletion():
 			return piece.collect()
-	return 0
+	return {}
+
+
+## Removes every chest still on the board, a little apart. Awaitable.
+func clear_loot() -> void:
+	var chests := pieces_root.get_children().filter(func(piece: Node): return piece is Loot and not piece.is_queued_for_deletion())
+	for chest: Loot in chests:
+		chest.vanish()
+		await get_tree().create_timer(Anim.t(0.08)).timeout
+	if chests.size() > 0:
+		await get_tree().create_timer(Anim.t(0.3)).timeout
 
 
 func get_exits() -> Array[ExitGate]:

@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_doom1"]
+script = ExtResource("2_sym")
+symbol = 4
+
+[sub_resource type="Resource" id="Resource_doom2"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom1")])
+
+[sub_resource type="Resource" id="Resource_doom3"]
+script = ExtResource("2_sym")
+symbol = 4
+
+[sub_resource type="Resource" id="Resource_doom4"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom3")])
+
+[sub_resource type="Resource" id="Resource_doom5"]
+script = ExtResource("2_sym")
+count = 5
+
+[sub_resource type="Resource" id="Resource_doom6"]
+script = ExtResource("2_sym")
+symbol = 3
+
+[sub_resource type="Resource" id="Resource_doom7"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom5"), SubResource("Resource_doom6")])
+
+[sub_resource type="Resource" id="Resource_doom8"]
+script = ExtResource("2_sym")
+count = 5
+
+[sub_resource type="Resource" id="Resource_doom9"]
+script = ExtResource("2_sym")
+symbol = 8
+
+[sub_resource type="Resource" id="Resource_doom10"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom8"), SubResource("Resource_doom9")])
+
+[sub_resource type="Resource" id="Resource_doom11"]
+script = ExtResource("2_sym")
+symbol = 5
+
+[sub_resource type="Resource" id="Resource_doom12"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom11")])
+
+[sub_resource type="Resource" id="Resource_doom13"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 5
+
+[sub_resource type="Resource" id="Resource_doom14"]
+script = ExtResource("2_sym")
+symbol = 6
+
+[sub_resource type="Resource" id="Resource_doom15"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom13"), SubResource("Resource_doom14")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"doom"
+display_name = "Doom Die"
+rarity = 5
+faces = Array[ExtResource("1_face")]([SubResource("Resource_doom2"), SubResource("Resource_doom4"), SubResource("Resource_doom7"), SubResource("Resource_doom10"), SubResource("Resource_doom12"), SubResource("Resource_doom15")])
+loot = true

@@ -1,7 +1,8 @@
 class_name LevelData
 extends Resource
 
-## A hand-authored level. Every biome uses the same levels; the biome supplies the tile colours and enemies.
+## A level layout. Levels belong to a biome stage (1 = the run's first biome ... 4 = the last), getting bigger each
+## stage; the biome supplies the tile colours and enemies. Shops (stage 0) fit any stage.
 
 enum Type { NORMAL, SHOP, SHOP_BANK, CHALLENGE, BOSS }
 
@@ -28,3 +29,5 @@ const NAMES: Dictionary[Type, String] = {
 @export var exit_count: int = 3
 ## Challenge levels: clear within this many turns for the challenge reward (0 = no limit)
 @export var turn_limit: int = 0
+## Biome stage the layout is sized for (BiomeData.stage); 0 = any stage (shops). Combat levels with 0 are unused
+@export_range(0, 4) var stage: int = 0

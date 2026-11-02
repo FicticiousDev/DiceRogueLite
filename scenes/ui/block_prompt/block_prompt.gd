@@ -2,11 +2,12 @@ class_name BlockPrompt
 extends CanvasLayer
 
 ## Centre-screen prompt when an enemy's attack lands in the enemy turn: block with held defence dice or take
-## the hit. Doesn't block the mouse, so dice in the row can still be clicked.
+## the hit, or use a block active (one button each). Doesn't block the mouse, so dice in the row can still be clicked.
 
 signal block_pressed
 signal take_pressed
-signal ability_pressed
+## The [index]th block active named in [method show_prompt]
+signal ability_pressed(index: int)
 
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %Title
@@ -19,13 +20,22 @@ signal ability_pressed
 func _ready() -> void:
 	block_button.pressed.connect(block_pressed.emit)
 	take_button.pressed.connect(take_pressed.emit)
-	ability_button.pressed.connect(ability_pressed.emit)
+	ability_button.visible = false
 
 
-## [ability] names a block ability the player can use instead ("" for none).
-func show_prompt(attacker: String, damage: int, ability: String = "") -> void:
-	ability_button.visible = ability != ""
-	ability_button.text = ability.to_upper()
+## [abilities] name the block actives the player can use instead.
+func show_prompt(attacker: String, damage: int, abilities: Array = []) -> void:
+	for child in ability_button.get_parent().get_children():
+		if child.has_meta("ability"):
+			child.queue_free()
+	for i in abilities.size():
+		var button: Button = ability_button.duplicate()
+		button.unique_name_in_owner = false
+		button.set_meta("ability", true)
+		button.visible = true
+		button.text = String(abilities[i]).to_upper()
+		button.pressed.connect(ability_pressed.emit.bind(i))
+		ability_button.add_sibling(button)
 	title_label.text = "%s ATTACKS!" % attacker.to_upper()
 	damage_label.text = "Hits you for %d damage.\nBlock or take it?" % damage
 	set_block_value(0)

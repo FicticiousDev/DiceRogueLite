@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3]
+
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
+[ext_resource type="Script" path="res://resources/abilities/status_immunity_ability.gd" id="2_immune"]
+[ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+
+[sub_resource type="Resource" id="Resource_sanct0"]
+script = ExtResource("2_immune")
+id = &"sanctified"
+display_name = "Sanctified"
+description = "Passive: you can't be stunned or poisoned."
+stun = true
+poison = true
+
+[resource]
+script = ExtResource("9_item")
+id = &"sanctified_armour"
+display_name = "Sanctified Armour"
+slot = 0
+rarity = 5
+abilities = Array[ExtResource("1_ability")]([SubResource("Resource_sanct0")])

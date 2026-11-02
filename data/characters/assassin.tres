@@ -16,7 +16,7 @@ description = "Passive: you always strike first, even against enemies that strik
 script = ExtResource("2_gvekq")
 id = &"ambush"
 display_name = "Ambush"
-description = "Once per level: double the damage of one attack."
+description = "Once per level: double the highest die of one attack (stacks with a crit)."
 active = true
 uses_per_level = 1
 

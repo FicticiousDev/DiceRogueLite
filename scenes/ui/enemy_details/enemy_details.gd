@@ -80,11 +80,11 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 	if data.is_boss:
 		result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), "Boss: can't be insta-killed – an insta-kill face hits it for %d with a crit instead." % AttackContext.BOSS_INSTA_KILL_DAMAGE))
 	result.append(InfoPanel.row(HEART, Color(1, 0.35, 0.35), "Health %d / %d." % [enemy.hp, data.hp]))
-	var attack := "Attack %d–%d damage per hit. %d%% chance to crit (double damage), %d%% chance to miss." % [
-		data.attack_min, data.attack_max, roundi(data.crit_chance * 100), roundi(data.miss_chance * 100)]
+	var attack := "Attack %d damage per hit. %d%% chance to crit (double damage), %d%% chance to miss." % [
+		data.attack, roundi(data.crit_chance * 100), roundi(data.miss_chance * 100)]
 	result.append(InfoPanel.row(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), attack))
 	if data.applies_stun:
-		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), "Stunning hits: a hit that damages you stuns you – you lose your next turn."))
+		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), "Stunning hits: a hit that damages you stuns you – you can't act until the next round (in its turn: you lose your next turn)."))
 	if data.applies_poison:
 		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), "Poisonous hits: a hit that damages you poisons you – 1 damage at the start of each of your turns until a heal cures it."))
 	result.append(InfoPanel.row(SHIELD, Color(0.45, 0.7, 1.0), "Defence %d: every hit it takes is reduced by %d." % [data.defence, data.defence] if data.defence > 0 else "Defence 0: takes the full damage of every hit."))
@@ -95,5 +95,5 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 		result.append(InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), "Melee: attacks adjacent tiles only."))
 	if data.attacks_first:
 		result.append(InfoPanel.row(LIGHTNING, Color(1.0, 0.65, 0.25), HelpText.ATTACKS_FIRST))
-	result.append(InfoPanel.row(COIN, Color(1, 0.82, 0.3), "Worth %d gold." % data.gold))
+	result.append(InfoPanel.row(COIN, Color(1, 0.82, 0.3), "Worth %d gold." % TurnController.kill_gold(data)))
 	return result

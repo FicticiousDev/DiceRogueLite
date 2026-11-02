@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_phan1"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 3
+
+[sub_resource type="Resource" id="Resource_phan2"]
+script = ExtResource("2_sym")
+symbol = 6
+
+[sub_resource type="Resource" id="Resource_phan3"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan1"), SubResource("Resource_phan2")])
+
+[sub_resource type="Resource" id="Resource_phan4"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 4
+
+[sub_resource type="Resource" id="Resource_phan5"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan4")])
+
+[sub_resource type="Resource" id="Resource_phan6"]
+script = ExtResource("2_sym")
+symbol = 5
+
+[sub_resource type="Resource" id="Resource_phan7"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan6")])
+
+[sub_resource type="Resource" id="Resource_phan8"]
+script = ExtResource("2_sym")
+symbol = 5
+
+[sub_resource type="Resource" id="Resource_phan9"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan8")])
+
+[sub_resource type="Resource" id="Resource_phan10"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_phan11"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan10")])
+
+[sub_resource type="Resource" id="Resource_phan12"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 3
+
+[sub_resource type="Resource" id="Resource_phan13"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan12")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"phantom"
+display_name = "Phantom Die"
+rarity = 3
+faces = Array[ExtResource("1_face")]([SubResource("Resource_phan3"), SubResource("Resource_phan5"), SubResource("Resource_phan7"), SubResource("Resource_phan9"), SubResource("Resource_phan11"), SubResource("Resource_phan13")])
+loot = true
+starts_unlocked = false

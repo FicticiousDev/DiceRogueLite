@@ -14,7 +14,7 @@ var attacked: Array[Enemy] = []
 var retaliated: Array[Enemy] = []
 ## Active ability uses left this level (ability id -> uses)
 var uses: Dictionary = {}
-## Enemies that will skip their next action / are poisoned
+## Enemies that are stunned (no actions until the next round) / poisoned
 var stunned: Array[Enemy] = []
 var poisoned: Array[Enemy] = []
 

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3]
+
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
+[ext_resource type="Script" path="res://resources/abilities/attack_modifier_ability.gd" id="2_modifier"]
+[ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+
+[sub_resource type="Resource" id="Resource_thund0"]
+script = ExtResource("2_modifier")
+id = &"thunder"
+display_name = "Thunder"
+description = "Once per level: one attack also stuns its target."
+stun = true
+uses_per_level = 1
+
+[resource]
+script = ExtResource("9_item")
+id = &"thunder_charm"
+display_name = "Thunder Charm"
+slot = 2
+rarity = 2
+abilities = Array[ExtResource("1_ability")]([SubResource("Resource_thund0")])

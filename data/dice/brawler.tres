@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_braw1"]
+script = ExtResource("2_sym")
+
+[sub_resource type="Resource" id="Resource_braw2"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_braw1")])
+
+[sub_resource type="Resource" id="Resource_braw3"]
+script = ExtResource("2_sym")
+count = 2
+
+[sub_resource type="Resource" id="Resource_braw4"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_braw3")])
+
+[sub_resource type="Resource" id="Resource_braw5"]
+script = ExtResource("2_sym")
+count = 2
+
+[sub_resource type="Resource" id="Resource_braw6"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_braw5")])
+
+[sub_resource type="Resource" id="Resource_braw7"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_braw8"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_braw7")])
+
+[sub_resource type="Resource" id="Resource_braw9"]
+script = ExtResource("2_sym")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_braw10"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_braw9")])
+
+[sub_resource type="Resource" id="Resource_braw11"]
+script = ExtResource("2_sym")
+symbol = 2
+
+[sub_resource type="Resource" id="Resource_braw12"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_braw11")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"brawler"
+display_name = "Brawler Die"
+faces = Array[ExtResource("1_face")]([SubResource("Resource_braw2"), SubResource("Resource_braw4"), SubResource("Resource_braw6"), SubResource("Resource_braw8"), SubResource("Resource_braw10"), SubResource("Resource_braw12")])
+loot = true

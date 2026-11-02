@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3]
+
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
+[ext_resource type="Script" path="res://resources/abilities/heal_ability.gd" id="2_heal"]
+[ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+
+[sub_resource type="Resource" id="Resource_heali0"]
+script = ExtResource("2_heal")
+id = &"mend"
+display_name = "Mend"
+description = "Once per level, as an action: heal 2 health (or cure poison)."
+amount = 2
+uses_per_level = 1
+
+[resource]
+script = ExtResource("9_item")
+id = &"healing_charm"
+display_name = "Healing Charm"
+slot = 2
+abilities = Array[ExtResource("1_ability")]([SubResource("Resource_heali0")])

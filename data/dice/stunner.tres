@@ -1,0 +1,71 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_stun1"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_stun2"]
+script = ExtResource("2_sym")
+symbol = 8
+
+[sub_resource type="Resource" id="Resource_stun3"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_stun1"), SubResource("Resource_stun2")])
+
+[sub_resource type="Resource" id="Resource_stun4"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_stun5"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_stun4")])
+
+[sub_resource type="Resource" id="Resource_stun6"]
+script = ExtResource("2_sym")
+count = 4
+
+[sub_resource type="Resource" id="Resource_stun7"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_stun6")])
+
+[sub_resource type="Resource" id="Resource_stun8"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_stun9"]
+script = ExtResource("2_sym")
+symbol = 8
+
+[sub_resource type="Resource" id="Resource_stun10"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_stun8"), SubResource("Resource_stun9")])
+
+[sub_resource type="Resource" id="Resource_stun11"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 3
+
+[sub_resource type="Resource" id="Resource_stun12"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_stun11")])
+
+[sub_resource type="Resource" id="Resource_stun13"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 3
+
+[sub_resource type="Resource" id="Resource_stun14"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_stun13")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"stunner"
+display_name = "Stunner Die"
+rarity = 3
+faces = Array[ExtResource("1_face")]([SubResource("Resource_stun3"), SubResource("Resource_stun5"), SubResource("Resource_stun7"), SubResource("Resource_stun10"), SubResource("Resource_stun12"), SubResource("Resource_stun14")])
+loot = true

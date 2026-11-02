@@ -2,8 +2,8 @@ class_name CharacterPicker
 extends CanvasLayer
 
 ## Character select at the start of a new run. One card per character (by [member CharacterData.order]): its
-## cut-out on a tile, health and range, passive and active, and the six faces of its unique starting die (every
-## character also starts with normal dice, explained under the title). Up to [constant COLUMNS] cards a row,
+## cut-out on a tile, health and range, passive and active, and its unique starting die - turnable, click it for the
+## inspector - with its six faces (every character also starts with normal dice, explained under the title). Up to [constant COLUMNS] cards a row,
 ## extra rows below, all centred and the same size (scaled down together if the rows don't fit the screen).
 ## Locked characters are greyed out and can't be picked.
 ## Clicking a card selects it (scales up in place, the cut-out hops, PLAY highlighted); PLAY starts the run.
@@ -23,6 +23,7 @@ const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 ## The die every character starts with several of; any other starting die is the character's own
 const NORMAL_DIE: StringName = &"normal"
 const FACE_SIZE: float = 44.0
+const DIE_VIEW_SIZE: float = 100.0
 
 @onready var rows: VBoxContainer = %Rows
 @onready var content: Control = %Content
@@ -204,34 +205,25 @@ func _portrait(character: CharacterData, unlocked: bool) -> Array:
 	return [container, cutout]
 
 
-## [die]'s name over its six faces, each explained on hover.
+## [die]'s name over the die itself (drag to turn it, click for the inspector) and its six faces, each explained on hover.
 func _die_faces(die: DieType) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	var heading := _label(die.display_name, 19, HORIZONTAL_ALIGNMENT_LEFT)
 	heading.add_theme_color_override("font_color", HIGHLIGHT)
 	box.add_child(heading)
-	var faces := HBoxContainer.new()
-	faces.add_theme_constant_override("separation", 7)
-	box.add_child(faces)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	box.add_child(row)
+	row.add_child(DieView.create(die, DIE_VIEW_SIZE))
+	var faces := GridContainer.new()
+	faces.columns = 3
+	faces.add_theme_constant_override("h_separation", 7)
+	faces.add_theme_constant_override("v_separation", 7)
+	faces.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(faces)
 	for face in die.faces:
-		var tile := PanelContainer.new()
-		var style := StyleBoxFlat.new()
-		# Dark face with a rarity border: symbol inks read better on dark than on the rarity colour
-		style.bg_color = Color(0.17, 0.17, 0.21)
-		style.border_color = Rarity.COLORS[die.rarity]
-		style.set_border_width_all(2)
-		style.set_corner_radius_all(7)
-		style.set_content_margin_all(3)
-		tile.add_theme_stylebox_override("panel", style)
-		var icon := InfoIcon.new()
-		icon.texture = DieFaceTextures.get_textures(face)[0]
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2.ONE * (FACE_SIZE - 6.0)
-		icon.set_info(die.display_name, HelpText.face_rows(face))
-		tile.add_child(icon)
-		faces.add_child(tile)
+		faces.add_child(DieInspector.face_tile(face, die.rarity, FACE_SIZE, die.display_name))
 	return box
 
 

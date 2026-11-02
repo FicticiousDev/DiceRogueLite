@@ -1,10 +1,9 @@
 class_name EnemyInfo
-extends VBoxContainer
+extends HBoxContainer
 
-## An enemy's combat stats as chips, drawn into a viewport by [EnemyStatsBar] and stood in front of the piece: attack
-## damage range (with the effects its hits give the player), move, attack range (beyond melee) and attacks-first.
-## The first two chips lead; any others go in a second, narrower row, as the hex narrows towards the front. Health,
-## defence and statuses are shown on the piece itself.
+## An enemy's combat stats as a row of chips, drawn into a viewport by [EnemyStatsBar] above the health bar: attack
+## damage (with the effects its hits give the player), move, attack range (beyond melee) and attacks-first. Health,
+## defence and statuses are shown by the health bar and the piece's badges.
 
 const SWORD: Texture2D = preload("res://assets/ui/icons/sword.png")
 const MOVE: Texture2D = preload("res://assets/ui/icons/move.png")
@@ -17,57 +16,34 @@ const FONT_SIZE: int = 26
 const ICON_SIZE: float = 26.0
 const EFFECT_SIZE: float = 22.0
 const OUTLINE_SIZE: int = 7
-const LEADING_CHIPS: int = 2
 
 var enemy: Enemy
-var _front: HBoxContainer
-var _back: HBoxContainer
 var _attack: Control
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_theme_constant_override("separation", 3)
-	_front = _row()
-	_back = _row()
+	alignment = BoxContainer.ALIGNMENT_CENTER
+	add_theme_constant_override("separation", 4)
 	var data := enemy.data
-	var chips: Array[Control] = []
-	_attack = _chip(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), "%d–%d" % [data.attack_min, data.attack_max])
+	_attack = _chip(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), str(data.attack))
 	if data.applies_stun:
 		_attack.get_child(0).add_child(_icon(STUN, Color(1.0, 0.75, 0.3), EFFECT_SIZE))
 	if data.applies_poison:
 		_attack.get_child(0).add_child(_icon(POISON, Color(0.55, 1.0, 0.45), EFFECT_SIZE))
-	chips.append(_attack)
-	chips.append(_chip(MOVE, Symbol.INK[Symbol.Type.MOVE].lightened(0.4), str(data.move)))
+	add_child(_attack)
+	add_child(_chip(MOVE, Symbol.INK[Symbol.Type.MOVE].lightened(0.4), str(data.move)))
 	# Range only matters beyond melee
 	if data.attack_range > 1:
-		chips.append(_chip(BOW, Color(0.95, 0.85, 0.6), str(data.attack_range)))
+		add_child(_chip(BOW, Color(0.95, 0.85, 0.6), str(data.attack_range)))
 	if data.attacks_first:
-		chips.append(_chip(LIGHTNING, PLANNED_COLOR, ""))
-	for i in chips.size():
-		(_front if i < LEADING_CHIPS else _back).add_child(chips[i])
-	_back.visible = _back.get_child_count() > 0
+		add_child(_chip(LIGHTNING, PLANNED_COLOR, ""))
 
 
 func _process(_delta: float) -> void:
 	# Dimmed when the plan has it retaliate, as it then won't attack in the enemy turn
 	if is_instance_valid(enemy):
 		_attack.modulate.a = 0.35 if enemy.preview_skips_attack else 1.0
-
-
-## Minimum widths of the front and back rows, for fitting the plate to the hex.
-func row_widths() -> Vector2:
-	return Vector2(_front.get_combined_minimum_size().x, _back.get_combined_minimum_size().x if _back.visible else 0.0)
-
-
-func _row() -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	row.add_theme_constant_override("separation", 4)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(row)
-	return row
 
 
 ## A dark pill holding an icon and its value.

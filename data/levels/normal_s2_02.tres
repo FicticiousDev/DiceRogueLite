@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://resources/level_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/levels/normal_s2_02.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"normal_s2_02"
+scene = ExtResource("2")
+exit_count = 3
+stage = 2

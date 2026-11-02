@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_rall1"]
+script = ExtResource("2_sym")
+symbol = 7
+
+[sub_resource type="Resource" id="Resource_rall2"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_rall1")])
+
+[sub_resource type="Resource" id="Resource_rall3"]
+script = ExtResource("2_sym")
+symbol = 7
+
+[sub_resource type="Resource" id="Resource_rall4"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_rall3")])
+buff_target = 2
+
+[sub_resource type="Resource" id="Resource_rall5"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_rall6"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_rall5")])
+
+[sub_resource type="Resource" id="Resource_rall7"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 3
+
+[sub_resource type="Resource" id="Resource_rall8"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_rall7")])
+
+[sub_resource type="Resource" id="Resource_rall9"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 3
+
+[sub_resource type="Resource" id="Resource_rall10"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_rall9")])
+
+[sub_resource type="Resource" id="Resource_rall11"]
+script = ExtResource("2_sym")
+symbol = 7
+
+[sub_resource type="Resource" id="Resource_rall12"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_rall11")])
+buff_target = 1
+
+[resource]
+script = ExtResource("3_type")
+id = &"rally"
+display_name = "Rally Die"
+rarity = 2
+faces = Array[ExtResource("1_face")]([SubResource("Resource_rall2"), SubResource("Resource_rall4"), SubResource("Resource_rall6"), SubResource("Resource_rall8"), SubResource("Resource_rall10"), SubResource("Resource_rall12")])
+loot = true
+starts_unlocked = false

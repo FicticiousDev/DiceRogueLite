@@ -15,6 +15,7 @@ enum Outcome { DEFEAT, VICTORY, ABANDONED }
 @export var enemies_defeated: int = 0
 @export var bosses_defeated: int = 0
 @export var dice_obtained: int = 0
+@export var items_obtained: int = 0
 @export var dice_upgraded: int = 0
 @export var rerolls: int = 0
 @export var deaths: int = 0
@@ -52,6 +53,18 @@ func record_run(run: RunData, outcome: Outcome) -> void:
 	damage_received += run.damage_received
 	crits += run.crits
 	misses += run.misses
+	dice_obtained += run.dice_obtained
+	items_obtained += run.items_obtained
+
+
+## True if [type] can drop as loot: unlocked from the start, or unlocked since.
+func is_die_unlocked(type: DieType) -> bool:
+	return type.starts_unlocked or unlocked_dice.has(String(type.id))
+
+
+## True if [item] can drop as loot: unlocked from the start, or unlocked since.
+func is_item_unlocked(item: EquipmentData) -> bool:
+	return item.starts_unlocked or unlocked_items.has(String(item.id))
 
 
 ## True if [character] can be picked: unlocked from the start, or unlocked since.

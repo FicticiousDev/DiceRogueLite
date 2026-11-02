@@ -9,6 +9,5 @@ display_name = "Runt"
 tint = Color(0.9, 0.8, 0.5, 1)
 hp = 4
 move = 3
-attack_min = 1
-attack_max = 2
+attack = 2
 gold = 2

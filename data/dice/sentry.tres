@@ -1,0 +1,62 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_sent1"]
+script = ExtResource("2_sym")
+symbol = 1
+
+[sub_resource type="Resource" id="Resource_sent2"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_sent1")])
+
+[sub_resource type="Resource" id="Resource_sent3"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_sent4"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_sent3")])
+
+[sub_resource type="Resource" id="Resource_sent5"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_sent6"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_sent5")])
+
+[sub_resource type="Resource" id="Resource_sent7"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 3
+
+[sub_resource type="Resource" id="Resource_sent8"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_sent7")])
+
+[sub_resource type="Resource" id="Resource_sent9"]
+script = ExtResource("2_sym")
+
+[sub_resource type="Resource" id="Resource_sent10"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_sent9")])
+
+[sub_resource type="Resource" id="Resource_sent11"]
+script = ExtResource("2_sym")
+symbol = 2
+
+[sub_resource type="Resource" id="Resource_sent12"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_sent11")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"sentry"
+display_name = "Sentry Die"
+faces = Array[ExtResource("1_face")]([SubResource("Resource_sent2"), SubResource("Resource_sent4"), SubResource("Resource_sent6"), SubResource("Resource_sent8"), SubResource("Resource_sent10"), SubResource("Resource_sent12")])
+loot = true

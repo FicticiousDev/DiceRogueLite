@@ -3,9 +3,9 @@ extends RefCounted
 
 ## Player-facing explanations of die symbols, statuses and enemy stats, shared by tooltips and the enemy details.
 
-const PLAYER_STUNNED: String = "Stunned: you lose your next turn – no roll, straight to the enemy turn."
+const PLAYER_STUNNED: String = "Stunned: you can't act until the next round. Stunned during your turn, the rest of your plan is skipped; stunned in the enemy turn, you lose your next turn – no roll, straight to the enemy turn."
 const PLAYER_POISONED: String = "Poisoned: you take 1 damage at the start of each of your turns. The next heal cures it instead of restoring health."
-const ENEMY_STUNNED: String = "Stunned: it skips its next action (a first strike, retaliation or its turn)."
+const ENEMY_STUNNED: String = "Stunned: it can't act until the next round – no first strike, retaliation, move or attack."
 const ENEMY_POISONED: String = "Poisoned: it takes 1 damage at the start of every enemy turn until it dies."
 const ATTACKS_FIRST: String = "Strikes first: when you attack it, it hits you before your attack lands."
 
@@ -20,7 +20,7 @@ static func symbol(type: Symbol.Type, count: int, face: DieFace) -> String:
 		Symbol.Type.MOVE:
 			return "Move %d: move up to %d tiles; difficult terrain costs more. Combine move dice to go further." % [count, count]
 		Symbol.Type.CRIT:
-			return "Critical: the attack's damage is doubled."
+			return "Critical: doubles the highest die in the attack – this one or another die combined with it."
 		Symbol.Type.INSTA_KILL:
 			return "Insta-kill: kills any normal enemy outright. A boss takes %d damage with a crit instead." % AttackContext.BOSS_INSTA_KILL_DAMAGE
 		Symbol.Type.DODGE:
@@ -31,14 +31,38 @@ static func symbol(type: Symbol.Type, count: int, face: DieFace) -> String:
 			return "Buff: +1 to every other rolled %s die this turn (no die goes above %d). Used automatically." % [
 				Symbol.Type.keys()[face.buff_target].to_lower(), DieResult.MAX_BUFFED]
 		Symbol.Type.STUN:
-			return "Stun: the target skips its next action."
+			return "Stun: the target can't act until the next round – no first strike, retaliation, move or attack."
 		Symbol.Type.POISON:
 			return "Poison: the target takes 1 damage at the start of each enemy turn until it dies."
 		Symbol.Type.PENETRATE:
 			return "Pierce %d: ignores %d of the target's defence." % [count, count]
 		Symbol.Type.RANGE:
-			return "Range +%d: this attack reaches %d tiles further." % [count, count]
+			return "Range +%d: this attack reaches %d tiles further. Combined with a die without range, the range is lost." % [count, count]
 	return ""
+
+
+## Short names for face summaries
+const SYMBOL_NAMES: Dictionary[Symbol.Type, String] = {
+	Symbol.Type.ATTACK: "Attack", Symbol.Type.DEFENCE: "Defence", Symbol.Type.MOVE: "Move", Symbol.Type.CRIT: "Crit",
+	Symbol.Type.INSTA_KILL: "Insta-kill", Symbol.Type.DODGE: "Dodge", Symbol.Type.TELEPORT: "Teleport",
+	Symbol.Type.BUFF: "Buff", Symbol.Type.STUN: "Stun", Symbol.Type.POISON: "Poison", Symbol.Type.PENETRATE: "Pierce",
+	Symbol.Type.RANGE: "Range +",
+}
+
+
+## One line naming what [face] does, e.g. "Attack 3 + Crit".
+static func face_summary(face: DieFace) -> String:
+	if face.is_buff():
+		return "Buff: +1 %s" % SYMBOL_NAMES[face.buff_target].to_lower()
+	var parts: PackedStringArray = []
+	for face_symbol in face.symbols:
+		var name: String = SYMBOL_NAMES[face_symbol.symbol]
+		if face_symbol.symbol in [Symbol.Type.ATTACK, Symbol.Type.DEFENCE, Symbol.Type.MOVE, Symbol.Type.PENETRATE]:
+			name += " %d" % face_symbol.count
+		elif face_symbol.symbol == Symbol.Type.RANGE:
+			name += str(face_symbol.count)
+		parts.append(name)
+	return " + ".join(parts)
 
 
 ## Tooltip rows for every symbol on [face] (as shown, buffs included).

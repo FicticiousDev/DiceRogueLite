@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3]
+
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
+[ext_resource type="Script" path="res://resources/abilities/extra_die_ability.gd" id="2_extra"]
+[ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+
+[sub_resource type="Resource" id="Resource_padde0"]
+script = ExtResource("2_extra")
+id = &"padded_armour_die"
+display_name = "Defence 1 die"
+description = "Passive: rolls an extra die every turn showing 1 shield."
+symbol = 1
+count = 1
+rarity = 0
+
+[resource]
+script = ExtResource("9_item")
+id = &"padded_armour"
+display_name = "Padded Armour"
+slot = 0
+abilities = Array[ExtResource("1_ability")]([SubResource("Resource_padde0")])

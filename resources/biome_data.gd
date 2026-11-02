@@ -15,3 +15,10 @@ extends Resource
 @export var terrain_colors: Array[Color] = []
 @export var enemy_ids: Array[StringName] = []
 @export var boss_id: StringName
+## Enemies on a normal level (min, max); boss levels have the boss plus one fewer, challenge levels the max + 2
+@export var enemy_count: Vector2i = Vector2i(3, 4)
+
+
+## Place in the run, 1 (first biome) to 4 (last): biomes 1, 2-3, 4-5, 6. Picks the level sizes (LevelData.stage).
+func stage() -> int:
+	return order / 2 + 1

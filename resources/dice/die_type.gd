@@ -8,3 +8,7 @@ extends Resource
 @export var display_name: String
 @export var rarity: Rarity.Tier = Rarity.Tier.COMMON
 @export var faces: Array[DieFace] = []
+## Can be awarded as loot (level clears, chests). Starting dice are not.
+@export var loot: bool = false
+## Can drop from the start; otherwise only once unlocked (ProgressionData.unlocked_dice, Phase 14)
+@export var starts_unlocked: bool = true

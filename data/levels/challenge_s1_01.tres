@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://resources/level_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/levels/challenge_s1_01.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"challenge_s1_01"
+type = 3
+scene = ExtResource("2")
+exit_count = 3
+stage = 1
+turn_limit = 6

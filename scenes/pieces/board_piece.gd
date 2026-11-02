@@ -18,7 +18,7 @@ signal moved(from_id: int, to_id: int)
 
 var board: Board
 var tile_id: int = -1
-## Status effects: stunned pieces skip their next action, poisoned ones take 1 damage at the start of each of
+## Status effects: stunned pieces can't act until the end of their own turn, poisoned ones take 1 damage at the start of each of
 ## their turns (a heal cures it instead of restoring health)
 var stunned: bool = false
 var poisoned: bool = false

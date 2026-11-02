@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_asce1"]
+script = ExtResource("2_sym")
+count = 5
+
+[sub_resource type="Resource" id="Resource_asce2"]
+script = ExtResource("2_sym")
+symbol = 3
+
+[sub_resource type="Resource" id="Resource_asce3"]
+script = ExtResource("2_sym")
+symbol = 10
+count = 3
+
+[sub_resource type="Resource" id="Resource_asce4"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_asce1"), SubResource("Resource_asce2"), SubResource("Resource_asce3")])
+
+[sub_resource type="Resource" id="Resource_asce5"]
+script = ExtResource("2_sym")
+count = 5
+
+[sub_resource type="Resource" id="Resource_asce6"]
+script = ExtResource("2_sym")
+symbol = 9
+
+[sub_resource type="Resource" id="Resource_asce7"]
+script = ExtResource("2_sym")
+symbol = 8
+
+[sub_resource type="Resource" id="Resource_asce8"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_asce5"), SubResource("Resource_asce6"), SubResource("Resource_asce7")])
+
+[sub_resource type="Resource" id="Resource_asce9"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 5
+
+[sub_resource type="Resource" id="Resource_asce10"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_asce9")])
+
+[sub_resource type="Resource" id="Resource_asce11"]
+script = ExtResource("2_sym")
+symbol = 5
+
+[sub_resource type="Resource" id="Resource_asce12"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_asce11")])
+
+[sub_resource type="Resource" id="Resource_asce13"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 5
+
+[sub_resource type="Resource" id="Resource_asce14"]
+script = ExtResource("2_sym")
+symbol = 6
+
+[sub_resource type="Resource" id="Resource_asce15"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_asce13"), SubResource("Resource_asce14")])
+
+[sub_resource type="Resource" id="Resource_asce16"]
+script = ExtResource("2_sym")
+symbol = 7
+
+[sub_resource type="Resource" id="Resource_asce17"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_asce16")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"ascendant"
+display_name = "Ascendant Die"
+rarity = 5
+faces = Array[ExtResource("1_face")]([SubResource("Resource_asce4"), SubResource("Resource_asce8"), SubResource("Resource_asce10"), SubResource("Resource_asce12"), SubResource("Resource_asce15"), SubResource("Resource_asce17")])
+loot = true
+starts_unlocked = false

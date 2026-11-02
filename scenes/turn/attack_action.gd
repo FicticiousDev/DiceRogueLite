@@ -2,22 +2,22 @@ class_name AttackAction
 extends PlannedAction
 
 ## Attack an enemy in range and line of sight with the combined value of one or more attack dice. Modifiers
-## (crit, insta-kill, stun, poison, penetrate, range) and abilities change it; [use_active] spends the
-## character's active ability on it. A surviving enemy retaliates straight after; enemies that attack first strike
+## (crit, insta-kill, stun, poison, penetrate, range) and abilities change it; [actives] are the attack actives
+## spent on it (character or equipment). A surviving enemy retaliates straight after; enemies that attack first strike
 ## before the player (unless the player always strikes first). The player blocks either with held defence dice.
 
 var enemy: Enemy
-var use_active: bool = false
+var actives: Array[Ability] = []
 ## Simulated outcome, for the action list
 var damage: int
 var _ctx: AttackContext
 var _notes: PackedStringArray = []
 
 
-func _init(attack_dice: Array[int], target: Enemy, active: bool = false) -> void:
+func _init(attack_dice: Array[int], target: Enemy, armed: Array[Ability] = []) -> void:
 	dice = attack_dice.duplicate()
 	enemy = target
-	use_active = active
+	actives = armed.duplicate()
 
 
 func simulate(state: TurnState, turn: TurnController) -> bool:
@@ -26,13 +26,16 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	if not turn.board.in_attack_range(state.player_tile, enemy.tile_id, turn.attack_range(dice)):
 		return false
 	_notes.clear()
+	if turn.is_range_lost(dice):
+		_notes.append("Range lost: combined with dice without it")
 	var enemy_first := enemy.data.attacks_first and not turn.player_strikes_first()
 	if enemy_first:
 		_add_strike_note(state, turn, "Strikes first")
-	var spend := use_active and TurnController.spend_use(turn.active_ability(), state.uses)
-	if use_active and not spend:
-		_notes.append("No %s uses left" % turn.active_ability().display_name)
-	_ctx = turn.player_attack_context(enemy, dice, spend)
+	var spent := TurnController.spend_uses(actives, state.uses)
+	for ability in actives:
+		if not spent.has(ability):
+			_notes.append("No %s uses left" % ability.display_name)
+	_ctx = turn.player_attack_context(enemy, dice, spent)
 	damage = _ctx.damage()
 	_notes.append_array(_ctx.notes)
 	state.enemy_hp[enemy] -= damage
@@ -43,7 +46,7 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 			state.enemy_hp[other] -= splash
 			_notes.append("%s %s" % [other.data.display_name, "killed" if state.enemy_hp[other] <= 0 else "-%d" % splash])
 	if state.enemy_hp[enemy] <= 0:
-		_notes.append("Kills it (+%d gold)" % enemy.data.gold)
+		_notes.append("Kills it (+%d gold)" % TurnController.kill_gold(enemy.data))
 	else:
 		if _ctx.stun and not state.stunned.has(enemy):
 			state.stunned.append(enemy)
@@ -59,27 +62,26 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	return true
 
 
-## Notes the enemy's attack back. Its strongest hit runs through the player's abilities, so a once-per-turn
+## Notes the enemy's attack back. Its hit (before crits) runs through the player's abilities, so a once-per-turn
 ## block is spent here in the plan just as it would be in resolution.
 func _add_strike_note(state: TurnState, turn: TurnController, verb: String) -> void:
 	if not enemy.can_hit(state.player_tile):
 		return
 	if state.stunned.has(enemy):
-		state.stunned.erase(enemy)
 		_notes.append("Stunned: no %s" % ("first strike" if verb == "Strikes first" else "retaliation"))
 		return
 	if not state.retaliated.has(enemy):
 		state.retaliated.append(enemy)
-	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack_max, 0)
+	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack, 0)
 	turn.apply_incoming(strike)
-	var note := "%s %d–%d" % [verb, enemy.data.attack_min, enemy.data.attack_max]
+	var note := "%s %d" % [verb, enemy.data.attack]
 	if strike.negated:
 		note += ", blocked by " + " + ".join(strike.notes)
 	_notes.append(note)
 
 
 func resolve(turn: TurnController) -> void:
-	await turn.resolve_attack(enemy, dice, use_active)
+	await turn.resolve_attack(enemy, dice, actives)
 
 
 func describe(turn: TurnController) -> String:

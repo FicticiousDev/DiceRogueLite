@@ -2,6 +2,6 @@
 
 [ext_resource type="Script" path="res://scenes/ui/enemy_info/enemy_info.gd" id="1"]
 
-[node name="EnemyInfo" type="VBoxContainer"]
+[node name="EnemyInfo" type="HBoxContainer"]
 mouse_filter = 2
 script = ExtResource("1")

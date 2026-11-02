@@ -9,8 +9,8 @@ extends Resource
 @export var tint: Color = Color.WHITE
 @export var hp: int = 5
 @export var move: int = 2
-@export var attack_min: int = 1
-@export var attack_max: int = 2
+## Damage per hit, before crits and the player's defence
+@export var attack: int = 2
 @export_range(0.0, 1.0) var crit_chance: float = 0.05
 @export_range(0.0, 1.0) var miss_chance: float = 0.05
 @export var attack_range: int = 1

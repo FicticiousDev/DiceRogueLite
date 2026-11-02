@@ -1,0 +1,76 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Resource_pier1"]
+script = ExtResource("2_sym")
+count = 2
+
+[sub_resource type="Resource" id="Resource_pier2"]
+script = ExtResource("2_sym")
+symbol = 10
+
+[sub_resource type="Resource" id="Resource_pier3"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_pier1"), SubResource("Resource_pier2")])
+
+[sub_resource type="Resource" id="Resource_pier4"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_pier5"]
+script = ExtResource("2_sym")
+symbol = 10
+count = 2
+
+[sub_resource type="Resource" id="Resource_pier6"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_pier4"), SubResource("Resource_pier5")])
+
+[sub_resource type="Resource" id="Resource_pier7"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_pier8"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_pier7")])
+
+[sub_resource type="Resource" id="Resource_pier9"]
+script = ExtResource("2_sym")
+count = 3
+
+[sub_resource type="Resource" id="Resource_pier10"]
+script = ExtResource("2_sym")
+symbol = 11
+
+[sub_resource type="Resource" id="Resource_pier11"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_pier9"), SubResource("Resource_pier10")])
+
+[sub_resource type="Resource" id="Resource_pier12"]
+script = ExtResource("2_sym")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Resource_pier13"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_pier12")])
+
+[sub_resource type="Resource" id="Resource_pier14"]
+script = ExtResource("2_sym")
+symbol = 2
+count = 2
+
+[sub_resource type="Resource" id="Resource_pier15"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_pier14")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"piercer"
+display_name = "Piercer Die"
+rarity = 2
+faces = Array[ExtResource("1_face")]([SubResource("Resource_pier3"), SubResource("Resource_pier6"), SubResource("Resource_pier8"), SubResource("Resource_pier11"), SubResource("Resource_pier13"), SubResource("Resource_pier15")])
+loot = true
