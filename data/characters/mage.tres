@@ -23,6 +23,7 @@ uses_per_level = 1
 [resource]
 script = ExtResource("3_snl83")
 id = &"mage"
+order = 2
 display_name = "Mage"
 tint = Color(1, 0.7, 1, 1)
 attack_range = 3

@@ -32,6 +32,15 @@ func clear_run() -> void:
 	run_checkpoint = null
 
 
+## Ends the run: adds its stats to the progression, clears it and saves. Returns the finished run (for the summary).
+func end_run(outcome: ProgressionData.Outcome) -> RunData:
+	var finished := run_data
+	progression_data.record_run(finished, outcome)
+	clear_run()
+	save_data()
+	return finished
+
+
 ## True if there's a run to continue.
 func has_run() -> bool:
 	return run_data.map.size() > 0

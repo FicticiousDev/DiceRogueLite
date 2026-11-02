@@ -11,3 +11,7 @@ extends Resource
 @export var attack_range: int = 1
 @export var abilities: Array[Ability] = []
 @export var starting_dice: Array[StringName] = []
+## Position on the character select screen (lowest first)
+@export var order: int = 0
+## Pickable from the first run. Otherwise it needs an entry in ProgressionData.unlocked_characters
+@export var starts_unlocked: bool = true

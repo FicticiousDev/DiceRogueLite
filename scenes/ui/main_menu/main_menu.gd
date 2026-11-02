@@ -27,10 +27,13 @@ func _process(delta: float) -> void:
 
 
 func _on_new_run_pressed() -> void:
-	if SaveManager.has_run() and not await confirm_dialog.ask("NEW RUN", "Start a new run?\nYour saved run will be lost."):
-		return
-	SaveManager.clear_run()
-	SaveManager.save_data()
+	if SaveManager.has_run():
+		if not await confirm_dialog.ask("NEW RUN", "Start a new run?\nYour saved run will be lost."):
+			return
+		SaveManager.end_run(ProgressionData.Outcome.ABANDONED)
+	else:
+		SaveManager.clear_run()
+		SaveManager.save_data()
 	SceneManager.change_scene(RUN_SCENE)
 
 

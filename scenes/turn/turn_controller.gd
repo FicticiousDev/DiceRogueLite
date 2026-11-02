@@ -108,6 +108,7 @@ func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionLis
 func start_turn(new_turn: bool = true) -> void:
 	if new_turn:
 		turn_number += 1
+		SaveManager.run_data.turns += 1
 	results.clear()
 	_end_state = null
 	actions.clear()
@@ -487,7 +488,7 @@ func _hurt_player(damage: int, text: String) -> bool:
 	player.popup(text, Color(1, 0.3, 0.25))
 	var run := SaveManager.run_data
 	run.health = maxi(run.health - damage, 0)
-	SaveManager.progression_data.damage_received += damage
+	run.damage_received += damage
 	return true
 
 
@@ -526,7 +527,9 @@ func resolve_attack(enemy: Enemy, dice: Array[int], use_active: bool) -> void:
 	var ctx := player_attack_context(enemy, dice, use_active and spend_use(active_ability(), _uses))
 	if ctx.notes.size() > 0:
 		player.popup(" + ".join(ctx.notes), Color(1.0, 0.85, 0.4))
-	enemy.take_damage(ctx.damage())
+	if ctx.crit:
+		SaveManager.run_data.crits += 1
+	_damage_enemy(enemy, ctx.damage())
 	if arc:
 		arc.fade_out()
 	# Area hits; only the main target retaliates
@@ -534,7 +537,7 @@ func resolve_attack(enemy: Enemy, dice: Array[int], use_active: bool) -> void:
 	for tile_id in ctx.aoe_tiles:
 		var other := board.get_piece(tile_id) as Enemy
 		if other and not other.is_dead():
-			other.take_damage(ctx.split(other, other.data.defence).damage())
+			_damage_enemy(other, ctx.split(other, other.data.defence).damage())
 			hit.append(other)
 	for target in hit:
 		if not target.is_dead():
@@ -576,6 +579,7 @@ func enemy_attack(enemy: Enemy) -> bool:
 	_refresh()
 	await enemy.lunge(player.position)
 	if ctx.miss:
+		SaveManager.run_data.misses += 1
 		player.popup("MISS", Color(0.8, 0.8, 0.8))
 	elif ctx.negated:
 		player.popup(" + ".join(ctx.notes).to_upper(), Color(0.45, 0.7, 1.0))
@@ -657,7 +661,7 @@ func _poison_tick() -> void:
 	var deaths: Array[Enemy] = []
 	for enemy in board.get_enemies():
 		if enemy.poisoned:
-			enemy.take_damage(1)
+			_damage_enemy(enemy, 1)
 			if enemy.is_dead():
 				deaths.append(enemy)
 	for dead in deaths:
@@ -667,9 +671,18 @@ func _poison_tick() -> void:
 		await deaths[0].died
 
 
+## Hurts [enemy], counting the health it actually lost as damage dealt.
+func _damage_enemy(enemy: Enemy, amount: int) -> void:
+	SaveManager.run_data.damage_dealt += mini(amount, enemy.hp)
+	enemy.take_damage(amount)
+
+
 func _reward_kill(enemy: Enemy) -> void:
-	SaveManager.run_data.gold += enemy.data.gold
-	SaveManager.progression_data.enemies_defeated += 1
+	var run := SaveManager.run_data
+	run.add_gold(enemy.data.gold)
+	run.enemies_defeated += 1
+	if enemy.data.is_boss:
+		run.bosses_defeated += 1
 	player.popup("+%d gold" % enemy.data.gold, Color(1.0, 0.85, 0.3))
 
 

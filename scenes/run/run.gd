@@ -3,7 +3,8 @@ extends Node3D
 ## Root of a run. Loads the current level of the run map, populates it, places the player and hands over to the
 ## turn controller. Once a level is clear its exit gates open; choosing one walks the player into it, folds the level
 ## away around that tile and carries the tile (player and all) to the next level's start. The run is saved as
-## each level begins.
+## each level begins. A new run starts on the character select; death or clearing the final boss ends it with
+## the run summary.
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
@@ -18,12 +19,15 @@ const ENEMY_SHARE_PER_DIFFICULTY: float = 0.04
 const LOOT_SHARE: float = 0.2
 const LOOT_SHARE_PER_DEPTH: float = 0.04
 const CARRY_DURATION: float = 0.9
+## Pause between clearing the final boss and the run summary
+const VICTORY_DELAY: float = 1.2
 ## Smallest area the camera frames, so tiny levels aren't blown up, and headroom for gates and their symbols
 const MIN_FRAME_SIZE: Vector2 = Vector2(10.0, 7.0)
 const FRAME_HEADROOM: float = 1.8
 
 @onready var camera_rig: CameraRig = $CameraRig
 @onready var level_root: Node3D = $Level
+@onready var hud: CanvasLayer = $HUD
 @onready var exit_button: TextureButton = %ExitButton
 @onready var settings_button: TextureButton = %SettingsButton
 @onready var debug_label: Label = %DebugLabel
@@ -51,6 +55,8 @@ var _die_tip: InfoPanel
 var _die_tip_index: int = -1
 var _die_tip_time: float = 0.0
 var _hovered_exit: ExitGate
+## Set once the run has ended (summary showing)
+var _ended: bool = false
 
 
 func _ready() -> void:
@@ -73,7 +79,11 @@ func _ready() -> void:
 	add_child(_die_tip_layer)
 	var run := SaveManager.run_data
 	if run.character_id == "" or run.dice.is_empty():
-		_start_run(await character_picker.pick())
+		var character_id := await character_picker.pick()
+		if character_id == &"":
+			SceneManager.change_scene(MAIN_MENU_SCENE)
+			return
+		_start_run(character_id)
 	if not SaveManager.has_run():
 		run.map = RunMap.generate()
 		run.path = [0]
@@ -146,7 +156,7 @@ func load_level(carried: HexTile = null) -> void:
 		board.add_piece(player, board.player_start)
 		camera_rig.frame(_frame_bounds())
 	turn.clear_hint = "Level clear!  Click an open gate to choose your next level.  [M] map" if RunMap.next(run, index).size() > 0 \
-		else "Run complete!  (The run end screen arrives in Phase 10.)"
+		else "Run complete!"
 	turn.setup(board, player, dice_tray, action_list, confirm_dialog, sacrifice_dialog, block_prompt)
 	_challenge.start(turn, 0)
 	await board.play_intro(carried != null)
@@ -230,7 +240,7 @@ static func _shuffled(cells: Array[Vector2i], rng: RandomNumberGenerator) -> Arr
 func _on_player_moved(_from_id: int, to_id: int) -> void:
 	var gold := board.collect_loot(to_id)
 	if gold > 0:
-		SaveManager.run_data.gold += gold
+		SaveManager.run_data.add_gold(gold)
 		player.popup("+%d" % gold, Color(1, 0.82, 0.3))
 
 
@@ -288,7 +298,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _enemy_details.visible:
+	if _enemy_details.visible or _ended:
 		return
 	if event.is_action_pressed("map") and not character_picker.visible:
 		_map_view.toggle()
@@ -313,10 +323,28 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_turn_state_changed(state: TurnController.State) -> void:
 	if state == TurnController.State.GAME_OVER:
-		game_over.show_screen(turn.turn_number)
+		_end_run(ProgressionData.Outcome.DEFEAT)
 	elif state == TurnController.State.LEVEL_CLEAR:
+		var run := SaveManager.run_data
+		run.levels_cleared += 1
+		if RunMap.next(run, RunMap.current_index(run)).is_empty():
+			_end_run(ProgressionData.Outcome.VICTORY)
+			return
 		for exit in board.get_exits():
 			exit.unlock()
+
+
+## Ends the run (stats into the progression, save cleared) and shows the summary over the board.
+func _end_run(outcome: ProgressionData.Outcome) -> void:
+	_ended = true
+	if _map_view.visible:
+		_map_view.toggle()
+	if outcome == ProgressionData.Outcome.VICTORY:
+		await get_tree().create_timer(Anim.t(VICTORY_DELAY)).timeout
+	var finished := SaveManager.end_run(outcome)
+	hud.visible = false
+	_challenge.visible = false
+	game_over.show_screen(finished, outcome)
 
 
 func _on_exit_pressed() -> void:
