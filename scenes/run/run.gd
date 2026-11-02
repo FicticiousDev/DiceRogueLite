@@ -4,7 +4,7 @@ extends Node3D
 ## turn controller. Once a level is clear its exit gates open; choosing one walks the player into it, folds the level
 ## away around that tile and carries the tile (player and all) to the next level's start. The run is saved as
 ## each level begins. A new run starts on the character select; death or clearing the final boss ends it with
-## the run summary.
+## the run summary. Streaks and the odd die fall through the void behind the board (Backdrop).
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
@@ -63,6 +63,9 @@ func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_pressed)
 	settings_button.pressed.connect(Settings.show_settings)
 	dice_tray.camera = camera_rig.camera
+	var backdrop := Backdrop.new()
+	backdrop.rig = camera_rig
+	camera_rig.camera.add_child(backdrop)
 	turn.state_changed.connect(_on_turn_state_changed)
 	top_bar.turn = turn
 	SaveManager.settings_data.changed.connect(_apply_layout)
