@@ -6,7 +6,8 @@ extends Node3D
 ## each level begins. A new run starts on the character select; death or clearing the final boss ends it with
 ## the run summary. Streaks and the odd die fall through the void behind the board (Backdrop).
 ## Clearing a level (shops aside) may award a die before the gates open; chests may hold one too. The pool is
-## capped at [member max_pool_size]: a die found with a full pool is swapped in for another or left (DieAward).
+## capped at RunData.max_dice: a die found with a full pool is swapped in for another or left (DieAward). Defeating
+## a boss raises max health and the pool cap by one, fully heals, clears statuses and always awards a die.
 ## Items (EquipmentAward) come from chests, bosses and some challenge rooms (EquipmentLoot).
 ## Shop levels have a shop and maybe a bank (Building pieces): clicking one once the level is clear opens its menu
 ## (ShopMenu, BankMenu).
@@ -28,10 +29,10 @@ const VICTORY_DELAY: float = 1.2
 ## Headroom above the tiles for pieces, gates and their symbols
 const FRAME_HEADROOM: float = 1.8
 
-## Most dice the pool can hold
-@export var max_pool_size: int = 9
-## Chance of a new die when a level is cleared
-@export_range(0.0, 1.0) var die_award_chance: float = 0.66
+## Most dice the pool can hold at the start of a run (RunData.max_dice)
+@export var starting_max_dice: int = 5
+## Chance of a new die when a normal level is cleared (bosses always give one)
+@export_range(0.0, 1.0) var die_award_chance: float = 0.53
 ## Chance a chest also holds a die
 @export_range(0.0, 1.0) var chest_die_chance: float = 0.15
 ## Chance a chest holds an item instead (never both)
@@ -125,10 +126,8 @@ func _ready() -> void:
 	_bank_menu = BankMenu.new()
 	add_child(_bank_menu)
 	_pool_view = DicePoolView.new()
-	_pool_view.max_size = max_pool_size
 	add_child(_pool_view)
 	top_bar.pool_pressed.connect(_toggle_pool_view)
-	top_bar.max_pool_size = max_pool_size
 	_die_tip_layer = CanvasLayer.new()
 	_die_tip_layer.layer = 34
 	add_child(_die_tip_layer)
@@ -145,12 +144,13 @@ func _ready() -> void:
 	load_level()
 
 
-## Sets up a new run for [character_id]: its starting dice and full health.
+## Sets up a new run for [character_id]: its starting dice, pool cap and full health.
 func _start_run(character_id: StringName) -> void:
 	var character: CharacterData = Database.get_content("characters", character_id)
 	var run := SaveManager.run_data
 	run.character_id = character_id
 	run.dice.assign(character.starting_dice)
+	run.max_dice = starting_max_dice
 	run.max_health = character.max_hp
 	run.health = character.max_hp
 
@@ -402,7 +402,7 @@ func _on_player_moved(_from_id: int, to_id: int) -> void:
 	if die_id != &"" or item_id != &"" or mystery:
 		get_tree().paused = true
 		if die_id != &"":
-			await _award.present(Database.get_content("dice", die_id), "Found in a chest", max_pool_size)
+			await _award.present(Database.get_content("dice", die_id), "Found in a chest", SaveManager.run_data.max_dice)
 		if item_id != &"":
 			await _item_award.present(Database.get_content("equipment", item_id), "Found in a chest")
 		if mystery:
@@ -428,8 +428,9 @@ func _unlock() -> void:
 
 
 ## Rewards for clearing the current level, all fully random (replaying a level can give different ones):
-## - normal and boss levels: [member die_award_chance] of a die, rarity from the biome (DiceLoot)
-## - bosses: also [member boss_item_chance] of an item (EquipmentLoot, skewed to the biome's rarity)
+## - normal levels: [member die_award_chance] of a die, rarity from the biome skewed low (DiceLoot)
+## - bosses: always a die (as above), and [member boss_item_chance] of an item (EquipmentLoot, skewed to the biome's
+##   rarity). The boss bonus (_boss_bonus) comes first, so the die has a free slot
 ## - a challenge beaten within its turn limit: always a reward - an item at the biome's rarity or higher
 ##   ([member challenge_item_chance]) or else a die of the biome's top rarity. Over the limit, nothing
 ## - shops: nothing
@@ -451,13 +452,14 @@ func _level_award() -> void:
 			return
 		var top := DiceLoot.roll(rng, difficulty, true)
 		if top:
-			await _award.present(top, "Challenge reward", max_pool_size)
+			await _award.present(top, "Challenge reward", SaveManager.run_data.max_dice)
 		return
-	if rng.randf() < die_award_chance:
+	var boss := level.type == LevelData.Type.BOSS
+	if boss or rng.randf() < die_award_chance:
 		var die := DiceLoot.roll(rng, difficulty)
 		if die:
-			await _award.present(die, "Level clear reward", max_pool_size)
-	if level.type == LevelData.Type.BOSS and rng.randf() < boss_item_chance:
+			await _award.present(die, "Boss reward" if boss else "Level clear reward", SaveManager.run_data.max_dice)
+	if boss and rng.randf() < boss_item_chance:
 		var drop := EquipmentLoot.roll(rng, difficulty)
 		if drop:
 			await _item_award.present(drop, "Boss reward")
@@ -541,7 +543,7 @@ func _shop(shop: Building) -> void:
 		var source := "From the shop for %d gold  ·  only paid if you keep it" % price
 		var taken: bool
 		if offer is DieType:
-			taken = await _award.present(offer, source, max_pool_size)
+			taken = await _award.present(offer, source, SaveManager.run_data.max_dice)
 		else:
 			taken = await _item_award.present(offer, source)
 		if taken:
@@ -618,10 +620,25 @@ func _on_turn_state_changed(state: TurnController.State) -> void:
 		# Chests left behind are lost, and the gates stay shut until the award is dealt with
 		_loading = true
 		await board.clear_loot()
+		if RunMap.level(run, RunMap.current_index(run)).type == LevelData.Type.BOSS:
+			await _boss_bonus()
 		await _level_award()
 		_loading = false
 		for exit in board.get_exits():
 			exit.unlock()
+
+
+## Defeating a boss (the final one aside - the run ends): +1 max health and a full heal, statuses cleared, and one
+## more die slot.
+func _boss_bonus() -> void:
+	var run := SaveManager.run_data
+	run.max_health += 1
+	run.health = run.max_health
+	run.max_dice += 1
+	player.poisoned = false
+	player.stunned = false
+	player.popup("+1 MAX HP  ·  +1 DIE SLOT", Color(0.5, 1.0, 0.4))
+	await get_tree().create_timer(Anim.t(0.8)).timeout
 
 
 ## Ends the run (stats into the progression, save cleared) and shows the summary over the board.

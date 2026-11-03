@@ -7,7 +7,6 @@ extends CanvasLayer
 const COLUMNS: int = 5
 const VIEW_SIZE: float = 120.0
 
-var max_size: int = 9
 var _content: VBoxContainer
 
 
@@ -48,7 +47,7 @@ func open() -> void:
 		child.queue_free()
 	var dice := SaveManager.run_data.dice
 	var title := Label.new()
-	title.text = "YOUR DICE  %d / %d" % [dice.size(), max_size]
+	title.text = "YOUR DICE  %d / %d" % [dice.size(), SaveManager.run_data.max_dice]
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 40)
 	_content.add_child(title)

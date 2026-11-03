@@ -6,8 +6,10 @@ class_name RunData
 @export var gold: int = 0
 ## Map index of the level whose bank has been used (one transaction per visit), or -1
 @export var bank_used_at: int = -1
-@export var health: int = 10
-@export var max_health: int = 10
+@export var health: int = 5
+@export var max_health: int = 5
+## Most dice the pool can hold; one more per boss defeated
+@export var max_dice: int = 5
 @export var items: Array[String] = []
 @export var dice: Array[String] = []
 ## Equipped item ids by slot (see [constant SLOTS]); "" for an empty slot

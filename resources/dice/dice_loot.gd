@@ -7,25 +7,25 @@ extends RefCounted
 ## rarity at first). With none available at the rarity, the next rarity up that has one is used (or the nearest
 ## below if there are none above).
 
-## Chance of the base tier, one tier higher and two tiers higher
-const TIER_ODDS: Array[float] = [0.45, 0.45, 0.1]
+## Chance of the base tier, one tier higher and two tiers higher (level clears, bosses, chests)
+const TIER_ODDS: Array[float] = [0.65, 0.28, 0.07]
 
 
 ## A random loot die for a biome of [difficulty], or null if no loot dice are available at all. [top] always
-## takes the highest tier (challenge rooms).
-static func roll(rng: RandomNumberGenerator, difficulty: int, top: bool = false) -> DieType:
+## takes the highest tier (challenge rooms); otherwise the tier rolls by [odds].
+static func roll(rng: RandomNumberGenerator, difficulty: int, top: bool = false, odds: Array[float] = TIER_ODDS) -> DieType:
 	var tier := clampi(difficulty - 1, 0, Rarity.Tier.MYTHIC)
-	var step := TIER_ODDS.size() - 1 if top else roll_step(rng)
+	var step := odds.size() - 1 if top else roll_step(rng, odds)
 	var dice := available(mini(tier + step, Rarity.Tier.MYTHIC))
 	return dice[rng.randi() % dice.size()] if dice.size() > 0 else null
 
 
-## How many tiers above the base a reward rolls: 0, 1 or 2 by [constant TIER_ODDS]. Shops use it too (ShopStock).
-static func roll_step(rng: RandomNumberGenerator) -> int:
+## How many tiers above the base a reward rolls: 0, 1 or 2 by [odds]. Shops use it too (ShopStock).
+static func roll_step(rng: RandomNumberGenerator, odds: Array[float] = TIER_ODDS) -> int:
 	var r := rng.randf()
 	var step := 0
-	while step < TIER_ODDS.size() - 1 and r >= TIER_ODDS[step]:
-		r -= TIER_ODDS[step]
+	while step < odds.size() - 1 and r >= odds[step]:
+		r -= odds[step]
 		step += 1
 	return step
 

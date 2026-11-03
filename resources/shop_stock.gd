@@ -5,11 +5,13 @@ extends RefCounted
 ## [constant ITEM_CHANCE] an item). Rarity follows the number of biomes visited this run (BiomeData.stage, 1-4): with
 ## rarities numbered common = 1 ... mythic = 6, one offer is always rarer than that count (the first biome's shop has
 ## an uncommon or better, the last biome's a legendary or better); the others roll like a level award from the tier
-## at that count (DiceLoot.roll_step: 45% that tier, 45% one higher, 10% two higher). When a tier has nothing left
+## at that count, by [constant TIER_ODDS] (less skewed to the base tier than DiceLoot's). When a tier has nothing left
 ## (unavailable, or already on sale), the next tier up that has something is used (then down), as with loot.
 
 const OFFERS: int = 3
 const ITEM_CHANCE: float = 0.5
+## Chance of the base tier, one tier higher and two tiers higher
+const TIER_ODDS: Array[float] = [0.55, 0.365, 0.085]
 ## Price per rarity, common to mythic
 const PRICES: Array[int] = [10, 20, 35, 55, 80, 120]
 
@@ -20,7 +22,7 @@ static func roll(rng: RandomNumberGenerator, visited: int) -> Array[Resource]:
 	# The guaranteed rarer offer is picked first, so it never has to fall back below its tier
 	var tiers: Array[int] = [mini(base + 1, Rarity.Tier.MYTHIC)]
 	for i in OFFERS - 1:
-		tiers.append(mini(base + DiceLoot.roll_step(rng), Rarity.Tier.MYTHIC))
+		tiers.append(mini(base + DiceLoot.roll_step(rng, TIER_ODDS), Rarity.Tier.MYTHIC))
 	var offers: Array[Resource] = []
 	for tier in tiers:
 		var offer := _pick(rng, tier, offers)

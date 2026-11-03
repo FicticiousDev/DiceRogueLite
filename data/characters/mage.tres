@@ -28,4 +28,4 @@ display_name = "Mage"
 tint = Color(1, 0.7, 1, 1)
 attack_range = 3
 abilities = Array[ExtResource("1_xh7cf")]([SubResource("Resource_dtkdx"), SubResource("Resource_kx2kg")])
-starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"phase"])
+starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"phase", &"phase"])

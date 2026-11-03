@@ -5,7 +5,7 @@ extends CanvasLayer
 ## the pool it's added (COLLECT); with a full pool the player picks a die to swap out for it, or leaves it. Every die
 ## shown - the new one included - can be dragged to turn it or clicked for all six faces.
 ## Updates the run's pool itself. Runs while the game is paused (chest dice pause it mid-move).
-## Use: await award.present(type, "Level clear reward", max_pool_size) - true if the die was taken (collected or swapped in).
+## Use: await award.present(type, "Level clear reward", run.max_dice) - true if the die was taken (collected or swapped in).
 
 signal _finished
 

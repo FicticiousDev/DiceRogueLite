@@ -26,7 +26,6 @@ var _stun: InfoIcon
 var _poison: InfoIcon
 var _gold: StatIcon
 var _bank: StatIcon
-var max_pool_size: int = 9
 var _equipment_box: HBoxContainer
 ## Equipment as last shown, and each item's uses label (item id -> Label, actives only)
 var _equipment_shown: Array[String] = []
@@ -129,7 +128,7 @@ func _update_equipment() -> void:
 ## Rebuilds the pool die when the pool changes.
 func _update_pool() -> void:
 	var dice := SaveManager.run_data.dice
-	_pool_label.text = "%d / %d" % [dice.size(), max_pool_size]
+	_pool_label.text = "%d / %d" % [dice.size(), SaveManager.run_data.max_dice]
 	if dice == _pool_shown:
 		return
 	_pool_shown = dice.duplicate()
