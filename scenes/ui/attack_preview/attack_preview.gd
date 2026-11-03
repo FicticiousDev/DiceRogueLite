@@ -1,20 +1,21 @@
 class_name AttackPreview
 extends Control
 
-## Shows how the attack being planned adds up, at the top centre of the play area: each selected die's face with its
-## value (and ×2 / ×4 where a crit or ability doubles it), the attack's modifiers and armed actives, then the total.
-## Hovering a target adds its defence, the damage dealt and its health after. Once the target is chosen the panel
-## flies into its entry in the turn plan ([method fly_to]). Fed by TurnController._refresh_attack_preview.
+## Shows how the attack being planned adds up, just under the turn plan and as wide as it: each selected die's face
+## with its value (and ×2 / ×4 where a crit or ability doubles it), the attack's modifiers and armed actives, then the
+## total. Lines wrap to fit. Hovering a target adds its defence, the damage dealt and its health after. Once the target
+## is chosen the panel flies into its entry in the turn plan ([method fly_to]). Fed by TurnController._refresh_attack_preview.
 
-const TOP: float = 140.0
+## Gap between the turn plan and the panel
+const GAP: float = 12.0
 const FACE_SIZE: float = 54.0
 const GOLD: Color = Color(1.0, 0.82, 0.35)
 const SHIELD: Texture2D = preload("res://assets/ui/icons/shield.png")
 const HEART: Texture2D = preload("res://assets/ui/icons/heart.png")
 const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 
-## Horizontal centre of the play area, as a screen fraction (the turn plan takes one side)
-var center_x: float = 0.5
+## The turn plan panel it sits under
+var anchor: Control
 var _panel: PanelContainer
 var _rows: VBoxContainer
 var _key: String = ""
@@ -43,9 +44,11 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _panel.visible and not _flying:
+	if _panel.visible and not _flying and anchor:
+		var rect := anchor.get_global_rect()
+		_panel.custom_minimum_size.x = rect.size.x
 		_panel.size = _panel.get_combined_minimum_size()
-		_panel.position = Vector2(get_viewport_rect().size.x * center_x - _panel.size.x / 2.0, TOP)
+		_panel.position = Vector2(rect.position.x, rect.end.y + GAP)
 
 
 ## Shows [ctx], made from [results] (the selected dice, in the context's part order) and the [armed] actives.
@@ -60,7 +63,7 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 	for child in _rows.get_children():
 		child.queue_free()
 
-	var line := _line()
+	var line := _flow()
 	_rows.add_child(line)
 	if results.is_empty():
 		line.add_child(_text("%s armed: choose attack dice" % " + ".join(armed.map(func(a: Ability): return a.display_name)), 22, GOLD))
@@ -77,7 +80,7 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 		line.add_child(_text("KILL" if ctx.insta_kill else str(ctx.raw()), 40, Color(1, 0.45, 0.35)))
 
 	if target and results.size() > 0:
-		var outcome := _line()
+		var outcome := _flow()
 		_rows.add_child(outcome)
 		outcome.add_child(_text("vs %s:" % target.data.display_name, 20, Color(0.85, 0.85, 0.9)))
 		if not ctx.insta_kill:
@@ -188,6 +191,16 @@ func _chip(texture: Texture2D, color: Color, text: String, mask: bool) -> Contro
 	box.add_child(icon)
 	box.add_child(_text(text, 18, color.lightened(0.4)))
 	return box
+
+
+## A centred line of parts that wraps onto more lines when it's wider than the panel.
+func _flow() -> HFlowContainer:
+	var flow := HFlowContainer.new()
+	flow.alignment = FlowContainer.ALIGNMENT_CENTER
+	flow.add_theme_constant_override("h_separation", 10)
+	flow.add_theme_constant_override("v_separation", 6)
+	flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return flow
 
 
 func _line() -> HBoxContainer:

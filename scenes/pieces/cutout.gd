@@ -34,6 +34,11 @@ const PADDING: float = 0.08
 		outline_width = value
 		_rebuild()
 @export var face_camera: bool = true
+## The back layer shows the texture and border too (for pieces seen from both sides), instead of bare cardboard
+@export var double_sided: bool = false:
+	set(value):
+		double_sided = value
+		_rebuild()
 @export var casts_shadow: bool = true:
 	set(value):
 		casts_shadow = value
@@ -91,7 +96,7 @@ func _rebuild() -> void:
 		material.set_shader_parameter("tint", tint)
 		material.set_shader_parameter("outline_width", outline_width)
 		material.set_shader_parameter("padding", PADDING)
-		material.set_shader_parameter("is_edge", i > 0)
+		material.set_shader_parameter("is_edge", i > 0 and not (double_sided and i == layers - 1))
 		material.set_shader_parameter("flash", flash)
 		var layer := MeshInstance3D.new()
 		layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if casts_shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

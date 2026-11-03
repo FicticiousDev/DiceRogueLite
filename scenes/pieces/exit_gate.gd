@@ -33,6 +33,13 @@ func _ready() -> void:
 	indicator.visible = false
 
 
+## Changes the symbol, e.g. when the debug menu swaps the next level.
+func set_icon(icon: Texture2D) -> void:
+	_icon = icon
+	if is_node_ready():
+		symbol.texture = icon
+
+
 func unlock() -> void:
 	unlocked = true
 	cutout.texture = OPEN

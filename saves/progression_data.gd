@@ -68,6 +68,26 @@ func is_item_unlocked(item: EquipmentData) -> bool:
 	return item.starts_unlocked or unlocked_items.has(String(item.id))
 
 
+## Loot dice and items not unlocked yet, as DieType / EquipmentData. A Mystery piece unlocks one of them.
+func locked_content() -> Array[Resource]:
+	var result: Array[Resource] = []
+	for type: DieType in Database.get_all("dice"):
+		if type.loot and not is_die_unlocked(type):
+			result.append(type)
+	for item: EquipmentData in Database.get_all("equipment"):
+		if item.loot and not is_item_unlocked(item):
+			result.append(item)
+	return result
+
+
+## Unlocks [content] (a DieType or EquipmentData) for good, so loot, rewards and shops can offer it.
+func unlock(content: Resource) -> void:
+	if content is DieType and not unlocked_dice.has(String(content.id)):
+		unlocked_dice.append(String(content.id))
+	elif content is EquipmentData and not unlocked_items.has(String(content.id)):
+		unlocked_items.append(String(content.id))
+
+
 ## True if [character] can be picked: unlocked from the start, or unlocked since.
 func is_character_unlocked(character: CharacterData) -> bool:
 	return character.starts_unlocked or unlocked_characters.has(String(character.id))

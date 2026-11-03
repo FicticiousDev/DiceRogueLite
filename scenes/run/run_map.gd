@@ -4,12 +4,15 @@ extends RefCounted
 ## The whole run's level graph, generated up front and stored in RunData.map. Each node is a Dictionary:
 ## level (LevelData id), biome (BiomeData id), next (node indices), row (map position) and seed (level population).
 ## Biomes run 1 -> 2 or 3 -> 4 or 5 -> 6. Each is a layered graph from one entry level to its boss, 4-7 levels
-## deep, with one challenge level and a chance of a shop. Node 0 is the start of the run.
+## deep, with one challenge level and a chance of a shop. Node 0 is the start of the run. A node with "unlock" set
+## gets a Mystery piece (if anything is still locked): [constant UNLOCK_CHANCE] per biome, on one layer of levels.
 
 const MIN_DEPTH: int = 4
 const MAX_DEPTH: int = 7
 const SHOP_CHANCE: float = 0.4
 const BANK_CHANCE: float = 0.25
+## Chance a biome has a Mystery piece
+const UNLOCK_CHANCE: float = 0.7
 ## Biome orders each boss leads on to
 const BIOME_LINKS: Dictionary[int, Array] = { 1: [2, 3], 2: [4, 5], 3: [4, 5], 4: [6], 5: [6], 6: [] }
 ## Map rows: the alternative biomes sit above and below the main line
@@ -67,6 +70,14 @@ static func _add_biome(rng: RandomNumberGenerator, nodes: Array[Dictionary], bio
 	_ensure_alternative(nodes, layers, middle[0])
 	if rng.randf() < SHOP_CHANCE:
 		nodes[middle[1]].type = LevelData.Type.SHOP_BANK if rng.randf() < BANK_CHANCE else LevelData.Type.SHOP
+
+	# Every route through a biome passes one level per layer, so marking a whole layer (one without a shop: shops have
+	# no fight to find it in) means the biome's Mystery piece is met whichever way the player goes
+	if rng.randf() < UNLOCK_CHANCE:
+		var shopless := layers.filter(func(layer: Array): return layer.all(func(index: int):
+			return nodes[index].type not in [LevelData.Type.SHOP, LevelData.Type.SHOP_BANK]))
+		for index: int in shopless[rng.randi() % shopless.size()]:
+			nodes[index]["unlock"] = true
 	return layers
 
 
@@ -164,6 +175,11 @@ static func next(run: RunData, index: int) -> Array[int]:
 
 static func level(run: RunData, index: int) -> LevelData:
 	return Database.get_content("levels", StringName(run.map[index].level))
+
+
+## True if the level is to have a Mystery piece (and it hasn't been collected there).
+static func has_unlock(run: RunData, index: int) -> bool:
+	return run.map[index].get("unlock", false)
 
 
 static func biome(run: RunData, index: int) -> BiomeData:

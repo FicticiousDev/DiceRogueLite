@@ -10,6 +10,9 @@ extends Node3D
 ## Items (EquipmentAward) come from chests, bosses and some challenge rooms (EquipmentLoot).
 ## Shop levels have a shop and maybe a bank (Building pieces): clicking one once the level is clear opens its menu
 ## (ShopMenu, BankMenu).
+## Most biomes hide a Mystery piece on one of their levels (RunMap): moving onto or through it before the level is
+## clear unlocks a locked loot die or item for good, celebrated by the UnlockReveal.
+## Hovering a tile names it above the dice row (TileInfo). Developer commands live in the DebugMenu.
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
@@ -43,7 +46,6 @@ const FRAME_HEADROOM: float = 1.8
 @onready var hud: CanvasLayer = $HUD
 @onready var exit_button: TextureButton = %ExitButton
 @onready var settings_button: TextureButton = %SettingsButton
-@onready var debug_label: Label = %DebugLabel
 @onready var action_list: ActionList = %ActionList
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
 @onready var sacrifice_dialog: SacrificeDialog = $SacrificeDialog
@@ -64,6 +66,7 @@ var _challenge: ChallengeBanner
 var _enemy_details: EnemyDetails
 var _award: DieAward
 var _item_award: EquipmentAward
+var _unlock_reveal: UnlockReveal
 var _attack_preview: AttackPreview
 var _pool_view: DicePoolView
 ## Explains the hovered die's face after a short hover
@@ -77,6 +80,10 @@ var _bank_menu: BankMenu
 var _hovered: BoardPiece
 ## Set once the run has ended (summary showing)
 var _ended: bool = false
+var _tile_info: TileInfo
+## The board tile under the mouse, -1 for none (or while something covers the board)
+var _info_tile: int = -1
+var _debug: DebugMenu
 
 
 func _ready() -> void:
@@ -88,6 +95,12 @@ func _ready() -> void:
 	camera_rig.camera.add_child(backdrop)
 	turn.state_changed.connect(_on_turn_state_changed)
 	top_bar.turn = turn
+	_tile_info = TileInfo.new()
+	hud.add_child(_tile_info)
+	_tile_info.row_y = dice_tray.row_screen_y
+	_debug = DebugMenu.new()
+	hud.add_child(_debug)
+	_debug.command.connect(_on_debug_command)
 	SaveManager.settings_data.changed.connect(_apply_layout)
 	_apply_layout()
 	_map_view = RunMapView.new()
@@ -101,10 +114,12 @@ func _ready() -> void:
 	add_child(_award)
 	_item_award = EquipmentAward.new()
 	add_child(_item_award)
+	_unlock_reveal = UnlockReveal.new()
+	add_child(_unlock_reveal)
 	_attack_preview = AttackPreview.new()
 	hud.add_child(_attack_preview)
 	hud.move_child(_attack_preview, 0)
-	_attack_preview.center_x = dice_tray.row_screen_x
+	_attack_preview.anchor = action_list
 	_shop_menu = ShopMenu.new()
 	add_child(_shop_menu)
 	_bank_menu = BankMenu.new()
@@ -144,10 +159,12 @@ func _exit_tree() -> void:
 	SaveManager.settings_data.changed.disconnect(_apply_layout)
 
 
-## Puts the turn plan on the chosen side and centres the board, tray and dice row in the rest of the screen.
+## Puts the turn plan (and the attack preview under it) on the chosen side, the debug menu on the other, and centres
+## the board, tray, dice row and tile info in the rest of the screen.
 func _apply_layout() -> void:
 	var left := SaveManager.settings_data.turn_plan_side == SettingsData.SIDE_LEFT
 	action_list.set_side(left)
+	_debug.set_side(not left)
 	var margin_left := PANEL_MARGIN if left else EDGE_MARGIN
 	var margin_right := EDGE_MARGIN if left else PANEL_MARGIN
 	camera_rig.frame_margins.x = margin_left
@@ -155,8 +172,7 @@ func _apply_layout() -> void:
 	var centre := (margin_left + 1.0 - margin_right) / 2.0
 	dice_tray.tray_screen_point.x = centre
 	dice_tray.row_screen_x = centre
-	if _attack_preview:
-		_attack_preview.center_x = centre
+	_tile_info.center_x = centre
 	if board:
 		camera_rig.frame_points(_frame_points(), false)
 	dice_tray.refresh_row()
@@ -301,6 +317,61 @@ func _populate(index: int) -> void:
 		if run.bank_used_at == index:
 			bank.close(false)
 
+	# The Mystery piece, from its own generator so the rest stays as it was
+	if RunMap.has_unlock(run, index) and not SaveManager.progression_data.locked_content().is_empty():
+		var mystery_rng := RandomNumberGenerator.new()
+		mystery_rng.seed = rng.seed + 1
+		var cells := _mystery_cells(Hex.id(board.player_start))
+		if cells.size() > 0:
+			board.spawn_mystery(cells[mystery_rng.randi() % cells.size()])
+
+
+## Where a Mystery piece can go: free tiles the player can walk to, on the board's edge, at least half the board's
+## reach (the farthest tile from the start) away from the player. Failing that, tiles next to the edge, then the
+## farthest free tiles. [from] is the player's tile.
+func _mystery_cells(from: int) -> Array[Vector2i]:
+	# Reachable on foot: enemies move, so only obstacles and other fixed pieces block
+	var reachable: Dictionary[int, int] = { from: 0 }
+	var frontier: Array[int] = [from]
+	while frontier.size() > 0:
+		var current: int = frontier.pop_front()
+		for next in board.get_neighbours(current):
+			var piece := board.get_piece(next)
+			if reachable.has(next) or not board.is_walkable(next) or (piece and piece.blocks_movement and not (piece is Enemy)):
+				continue
+			reachable[next] = reachable[current] + 1
+			frontier.append(next)
+	var start := Hex.coords(from)
+	var reach := 0
+	for tile_id in board.tiles:
+		reach = maxi(reach, Hex.distance(start, Hex.coords(tile_id)))
+	var looted: Array[int] = []
+	for piece in board.pieces_root.get_children():
+		if piece is Loot or piece is Mystery:
+			looted.append(piece.tile_id)
+	var free: Array[int] = []
+	for tile_id in reachable:
+		if tile_id != from and board.get_piece(tile_id) == null and not looted.has(tile_id):
+			free.append(tile_id)
+
+	var edge := func(tile_id: int) -> bool: return board.get_neighbours(tile_id).size() < 6
+	var near_edge := func(tile_id: int) -> bool: return edge.call(tile_id) or board.get_neighbours(tile_id).any(edge)
+	var far := func(tile_id: int) -> bool: return Hex.distance(start, Hex.coords(tile_id)) * 2 >= reach
+	var result: Array[Vector2i] = []
+	for test: Callable in [edge, near_edge]:
+		for tile_id in free:
+			if test.call(tile_id) and far.call(tile_id):
+				result.append(Hex.coords(tile_id))
+		if result.size() > 0:
+			return result
+	var farthest := 0
+	for tile_id in free:
+		farthest = maxi(farthest, Hex.distance(start, Hex.coords(tile_id)))
+	for tile_id in free:
+		if Hex.distance(start, Hex.coords(tile_id)) == farthest:
+			result.append(Hex.coords(tile_id))
+	return result
+
 
 ## round(total * share), clamped to the total, and at least one if [at_least_one].
 static func _share_of(total: int, share: float, at_least_one: bool) -> int:
@@ -317,7 +388,8 @@ static func _shuffled(cells: Array[Vector2i], rng: RandomNumberGenerator) -> Arr
 	return cells
 
 
-## Takes any chest on the player's new tile. A die in it is awarded straight away, with the game paused mid-move.
+## Takes any chest or Mystery piece on the player's new tile. A die or item in the chest is awarded straight away, and
+## a Mystery piece's unlock revealed, with the game paused mid-move.
 func _on_player_moved(_from_id: int, to_id: int) -> void:
 	var contents := board.collect_loot(to_id)
 	var gold: int = contents.get("gold", 0)
@@ -326,13 +398,33 @@ func _on_player_moved(_from_id: int, to_id: int) -> void:
 		player.popup("+%d" % gold, Color(1, 0.82, 0.3))
 	var die_id: StringName = contents.get("die", &"")
 	var item_id: StringName = contents.get("item", &"")
-	if die_id != &"" or item_id != &"":
+	var mystery := board.collect_mystery(to_id)
+	if die_id != &"" or item_id != &"" or mystery:
 		get_tree().paused = true
 		if die_id != &"":
 			await _award.present(Database.get_content("dice", die_id), "Found in a chest", max_pool_size)
 		if item_id != &"":
 			await _item_award.present(Database.get_content("equipment", item_id), "Found in a chest")
+		if mystery:
+			await _unlock()
 		get_tree().paused = false
+
+
+## Unlocks a random locked die or item for good and reveals it. Saved straight away, with the level marked in both
+## the run and its checkpoint, so resuming the level doesn't bring the piece back.
+func _unlock() -> void:
+	var progression := SaveManager.progression_data
+	var locked := progression.locked_content()
+	if locked.is_empty():
+		return
+	var content: Resource = locked.pick_random()
+	progression.unlock(content)
+	var index := RunMap.current_index(SaveManager.run_data)
+	for run: RunData in [SaveManager.run_data, SaveManager.run_checkpoint]:
+		if run:
+			run.map[index]["unlock"] = false
+	SaveManager.save_data()
+	await _unlock_reveal.present(content)
 
 
 ## Rewards for clearing the current level, all fully random (replaying a level can give different ones):
@@ -372,7 +464,7 @@ func _level_award() -> void:
 
 
 func _toggle_pool_view() -> void:
-	if not _award.visible and not _item_award.visible and not character_picker.visible and not _menu_open():
+	if not _award.visible and not _item_award.visible and not _unlock_reveal.visible and not character_picker.visible and not _menu_open():
 		_pool_view.toggle()
 
 
@@ -484,11 +576,17 @@ func _process(delta: float) -> void:
 	_update_die_tip(delta)
 	if _grid_overlay:
 		_grid_overlay.show_pick(turn.hovered_tile, board.last_pick_point)
-	_update_debug_label()
+	_update_tile_info()
+	_update_debug_menu()
+
+
+## True while a screen over the board takes the input.
+func _overlay_open() -> bool:
+	return _enemy_details.visible or _ended or _award.visible or _item_award.visible or _unlock_reveal.visible or _menu_open()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _enemy_details.visible or _ended or _award.visible or _item_award.visible or _menu_open():
+	if _overlay_open():
 		return
 	if event.is_action_pressed("dice_pool"):
 		_toggle_pool_view()
@@ -502,21 +600,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_choose_exit(_hovered)
 	elif event.is_action_pressed("select") and _hovered is Building:
 		_use_building(_hovered)
-	elif event.is_action_pressed("debug_rebuild") and _can_debug(true):
-		SaveManager.run_data.health = SaveManager.run_data.max_health
-		load_level()
-	elif event.is_action_pressed("debug_roll") and _can_debug():
-		turn.debug_pool.clear()
-		turn.start_turn(false)
-	elif event.is_action_pressed("debug_roll_showcase") and _can_debug():
-		_debug_showcase()
-	elif event.is_action_pressed("debug_shop") and _can_debug(true):
-		_debug_shop()
-	elif event.is_action_pressed("debug_grid"):
-		_toggle_grid_overlay()
-	elif event.is_action_pressed("debug_los"):
-		turn.show_los = not turn.show_los
-		turn._refresh()
+	elif event.is_action_pressed("debug_menu"):
+		_debug.toggle()
+	elif _debug.command_for(event) != -1:
+		_on_debug_command(_debug.command_for(event))
 
 
 func _on_turn_state_changed(state: TurnController.State) -> void:
@@ -585,9 +672,57 @@ func _update_die_tip(delta: float) -> void:
 		_die_tip.position = at.clamp(Vector2.ZERO, screen - _die_tip.size)
 
 
+## Names the tile under the mouse above the dice row - not while the mouse is over a die or a panel, or something
+## covers the board.
+func _update_tile_info() -> void:
+	_info_tile = -1
+	if not (_loading or _overlay_open() or _map_view.visible or _pool_view.visible or character_picker.visible or dice_tray.rolling):
+		var mouse := get_viewport().get_mouse_position()
+		if get_viewport().gui_get_hovered_control() == null and dice_tray.get_die_at(mouse) == -1:
+			_info_tile = board.tile_at_screen(camera_rig.camera, mouse)
+	if board.has_tile(_info_tile):
+		_tile_info.show_tile(board, _info_tile)
+	else:
+		_tile_info.clear()
+
+
 # ===========================================================================================================================================
 # Debug
 # ===========================================================================================================================================
+
+
+func _on_debug_command(id: DebugMenu.Command) -> void:
+	if _overlay_open() or _map_view.visible or _pool_view.visible:
+		return
+	match id:
+		DebugMenu.Command.REROLL:
+			if _can_debug():
+				turn.debug_pool.clear()
+				turn.start_turn(false)
+		DebugMenu.Command.SHOWCASE:
+			if _can_debug():
+				_debug_showcase()
+		DebugMenu.Command.RESTART:
+			if _can_debug(true):
+				SaveManager.run_data.health = SaveManager.run_data.max_health
+				load_level()
+		DebugMenu.Command.SHOP_HERE:
+			if _can_debug(true):
+				_debug_shop()
+		DebugMenu.Command.NEXT_SHOP:
+			if _can_force_next():
+				_debug_next_shop(LevelData.Type.SHOP)
+		DebugMenu.Command.NEXT_SHOP_BANK:
+			if _can_force_next():
+				_debug_next_shop(LevelData.Type.SHOP_BANK)
+		DebugMenu.Command.MYSTERY:
+			if _can_debug():
+				_debug_mystery()
+		DebugMenu.Command.LINE_OF_SIGHT:
+			turn.show_los = not turn.show_los
+			turn._refresh()
+		DebugMenu.Command.GRID:
+			_toggle_grid_overlay()
 
 
 func _can_debug(allow_cleared: bool = false) -> bool:
@@ -616,6 +751,35 @@ func _debug_shop() -> void:
 	load_level()
 
 
+func _can_force_next() -> bool:
+	return not _loading and not RunMap.next(SaveManager.run_data, RunMap.current_index(SaveManager.run_data)).is_empty()
+
+
+## Turns every level the current one leads to into a level of [type] (Shop or Shop & Bank), for good in this run's map
+## and its checkpoint (so it survives quitting), and changes the gates' symbols to match.
+func _debug_next_shop(type: LevelData.Type) -> void:
+	var levels := Database.get_all("levels").filter(func(level: LevelData): return level.type == type)
+	var index := RunMap.current_index(SaveManager.run_data)
+	for target in RunMap.next(SaveManager.run_data, index):
+		var level_id := String(levels.pick_random().id)
+		for run: RunData in [SaveManager.run_data, SaveManager.run_checkpoint]:
+			if run:
+				RunMap.node(run, target).level = level_id
+	for exit in board.get_exits():
+		exit.set_icon(LevelData.ICONS[type])
+	player.popup("Next: %s" % LevelData.NAMES[type], Color(1.0, 0.45, 0.85))
+
+
+## Puts a Mystery piece on this level now (where one would go), if anything is still locked and there isn't one already.
+func _debug_mystery() -> void:
+	var exists := board.pieces_root.get_children().any(func(piece: Node): return piece is Mystery)
+	var cells := _mystery_cells(player.tile_id)
+	if exists or cells.is_empty() or SaveManager.progression_data.locked_content().is_empty():
+		player.popup("Nothing to unlock" if not exists else "Already here", Color(0.8, 0.8, 0.85))
+		return
+	board.spawn_mystery(cells.pick_random()).play_intro()
+
+
 func _toggle_grid_overlay() -> void:
 	if _grid_overlay:
 		_grid_overlay.queue_free()
@@ -626,17 +790,28 @@ func _toggle_grid_overlay() -> void:
 		_grid_overlay.setup(board)
 
 
-func _update_debug_label() -> void:
-	var text := "[D] re-roll   [F] showcase dice   [L] line of sight %s   [G] grid %s   [R] restart level   [B] shop & bank" % [
-		"ON" if turn.show_los else "off", "ON" if _grid_overlay else "off"]
+## Keeps the open debug menu's buttons, toggles and readout (rolled dice, hovered cell and path cost) current.
+func _update_debug_menu() -> void:
+	if not _debug.is_open():
+		return
+	var plan := _can_debug()
+	var plan_or_clear := _can_debug(true)
+	var next := _can_force_next()
+	_debug.set_enabled(DebugMenu.Command.REROLL, plan)
+	_debug.set_enabled(DebugMenu.Command.SHOWCASE, plan)
+	_debug.set_enabled(DebugMenu.Command.RESTART, plan_or_clear)
+	_debug.set_enabled(DebugMenu.Command.SHOP_HERE, plan_or_clear)
+	_debug.set_enabled(DebugMenu.Command.NEXT_SHOP, next)
+	_debug.set_enabled(DebugMenu.Command.NEXT_SHOP_BANK, next)
+	_debug.set_enabled(DebugMenu.Command.MYSTERY, plan)
+	_debug.set_toggled(DebugMenu.Command.LINE_OF_SIGHT, turn.show_los)
+	_debug.set_toggled(DebugMenu.Command.GRID, _grid_overlay != null)
+	var lines := PackedStringArray()
 	if turn.results.size() > 0:
-		text += "\nRolled: " + ", ".join(turn.results.map(func(r: DieResult): return r.describe()))
-	if board.has_tile(turn.hovered_tile):
-		var tile := board.get_tile(turn.hovered_tile)
-		text += "\nCell %s  |  %s  |  cost %d" % [tile.coords, Terrain.Type.keys()[tile.terrain], board.move_cost(turn.hovered_tile)]
-		if turn._move_ctx and turn._move_ctx.costs.has(turn.hovered_tile):
-			text += "  |  path cost %d" % turn._move_ctx.costs[turn.hovered_tile]
-		if tile.piece:
-			# Node names get made unique (@Enemy@12) when a type repeats, so name enemies by their data
-			text += "  |  " + (tile.piece.data.display_name if tile.piece is Enemy else String(tile.piece.name))
-	debug_label.text = text
+		lines.append("Rolled: " + ", ".join(turn.results.map(func(r: DieResult): return r.describe())))
+	if board.has_tile(_info_tile):
+		var line := "Cell %s" % board.get_tile(_info_tile).coords
+		if turn._move_ctx and turn._move_ctx.costs.has(_info_tile):
+			line += "  |  path cost %d" % turn._move_ctx.costs[_info_tile]
+		lines.append(line)
+	_debug.set_info("\n".join(lines))

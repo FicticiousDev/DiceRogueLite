@@ -26,7 +26,7 @@ const SLOT_ICONS: Dictionary[Slot, Texture2D] = {
 @export var max_hp: int = 0
 ## Can drop as loot (chests, bosses, challenge rooms)
 @export var loot: bool = true
-## Can drop from the start; otherwise only once in ProgressionData.unlocked_items
+## Can drop from the start; otherwise only once unlocked by a Mystery piece (ProgressionData.unlocked_items)
 @export var starts_unlocked: bool = true
 
 

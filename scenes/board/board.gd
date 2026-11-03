@@ -148,6 +148,13 @@ func spawn_loot(gold: int, cell: Vector2i, die_id: StringName = &"", item_id: St
 	add_piece(loot, cell)
 
 
+## A Mystery piece (unlocks a die or item) on [cell].
+func spawn_mystery(cell: Vector2i) -> Mystery:
+	var mystery := Mystery.new()
+	add_piece(mystery, cell)
+	return mystery
+
+
 func spawn_exit(target: int, icon: Texture2D, color: Color, cell: Vector2i) -> ExitGate:
 	var gate: ExitGate = EXIT_SCENE.instantiate()
 	gate.setup(target, icon, color)
@@ -171,10 +178,20 @@ func collect_loot(tile_id: int) -> Dictionary:
 	return {}
 
 
-## Removes every chest still on the board, a little apart. Awaitable.
+## Takes the Mystery piece on [tile_id], if there is one. Returns true if it did.
+func collect_mystery(tile_id: int) -> bool:
+	for piece in pieces_root.get_children():
+		if piece is Mystery and piece.tile_id == tile_id and not piece.is_queued_for_deletion():
+			piece.collect()
+			return true
+	return false
+
+
+## Removes every chest and Mystery piece still on the board, a little apart. Awaitable.
 func clear_loot() -> void:
-	var chests := pieces_root.get_children().filter(func(piece: Node): return piece is Loot and not piece.is_queued_for_deletion())
-	for chest: Loot in chests:
+	var chests := pieces_root.get_children().filter(func(piece: Node):
+		return (piece is Loot or piece is Mystery) and not piece.is_queued_for_deletion())
+	for chest in chests:
 		chest.vanish()
 		await get_tree().create_timer(Anim.t(0.08)).timeout
 	if chests.size() > 0:
