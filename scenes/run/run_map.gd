@@ -9,7 +9,7 @@ extends RefCounted
 
 const MIN_DEPTH: int = 4
 const MAX_DEPTH: int = 7
-const SHOP_CHANCE: float = 0.4
+const SHOP_CHANCE: float = 0.6
 const BANK_CHANCE: float = 0.25
 ## Chance a biome has a Mystery piece
 const UNLOCK_CHANCE: float = 0.7
