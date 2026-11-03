@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="DieType" format=3]
+[gd_resource type="Resource" script_class="DieType" format=3 uid="uid://lyc465rfu35e"]
 
-[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_li0q1"]
-[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_4yvbe"]
-[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_rxpk5"]
+[ext_resource type="Script" uid="uid://ba8o4whk84k8r" path="res://resources/dice/die_face.gd" id="1_li0q1"]
+[ext_resource type="Script" uid="uid://cvbhunpruoras" path="res://resources/dice/face_symbol.gd" id="2_4yvbe"]
+[ext_resource type="Script" uid="uid://bumdsq01d4gdw" path="res://resources/dice/die_type.gd" id="3_rxpk5"]
 
 [sub_resource type="Resource" id="Resource_hls73"]
 script = ExtResource("2_4yvbe")
+symbol = 5
 
 [sub_resource type="Resource" id="Resource_a0w8a"]
 script = ExtResource("1_li0q1")
@@ -28,11 +29,15 @@ symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_vokyl")])
 
 [sub_resource type="Resource" id="Resource_ele6s"]
 script = ExtResource("2_4yvbe")
-count = 2
+
+[sub_resource type="Resource" id="Resource_bi3er"]
+script = ExtResource("2_4yvbe")
+symbol = 9
+metadata/_custom_type_script = "uid://cvbhunpruoras"
 
 [sub_resource type="Resource" id="Resource_atfmo"]
 script = ExtResource("1_li0q1")
-symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_ele6s")])
+symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_ele6s"), SubResource("Resource_bi3er")])
 
 [sub_resource type="Resource" id="Resource_x6uoq"]
 script = ExtResource("2_4yvbe")
@@ -47,6 +52,7 @@ symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_x6uoq"), SubResou
 
 [sub_resource type="Resource" id="Resource_2f840"]
 script = ExtResource("2_4yvbe")
+symbol = 2
 count = 3
 
 [sub_resource type="Resource" id="Resource_tkipg"]

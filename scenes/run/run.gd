@@ -8,6 +8,8 @@ extends Node3D
 ## Clearing a level (shops aside) may award a die before the gates open; chests may hold one too. The pool is
 ## capped at [member max_pool_size]: a die found with a full pool is swapped in for another or left (DieAward).
 ## Items (EquipmentAward) come from chests, bosses and some challenge rooms (EquipmentLoot).
+## Shop levels have a shop and maybe a bank (Building pieces): clicking one once the level is clear opens its menu
+## (ShopMenu, BankMenu).
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
@@ -24,9 +26,9 @@ const VICTORY_DELAY: float = 1.2
 const FRAME_HEADROOM: float = 1.8
 
 ## Most dice the pool can hold
-@export var max_pool_size: int = 10
+@export var max_pool_size: int = 9
 ## Chance of a new die when a level is cleared
-@export_range(0.0, 1.0) var die_award_chance: float = 0.75
+@export_range(0.0, 1.0) var die_award_chance: float = 0.66
 ## Chance a chest also holds a die
 @export_range(0.0, 1.0) var chest_die_chance: float = 0.15
 ## Chance a chest holds an item instead (never both)
@@ -69,7 +71,10 @@ var _die_tip_layer: CanvasLayer
 var _die_tip: InfoPanel
 var _die_tip_index: int = -1
 var _die_tip_time: float = 0.0
-var _hovered_exit: ExitGate
+var _shop_menu: ShopMenu
+var _bank_menu: BankMenu
+## The open gate, shop or bank under the mouse
+var _hovered: BoardPiece
 ## Set once the run has ended (summary showing)
 var _ended: bool = false
 
@@ -100,6 +105,10 @@ func _ready() -> void:
 	hud.add_child(_attack_preview)
 	hud.move_child(_attack_preview, 0)
 	_attack_preview.center_x = dice_tray.row_screen_x
+	_shop_menu = ShopMenu.new()
+	add_child(_shop_menu)
+	_bank_menu = BankMenu.new()
+	add_child(_bank_menu)
 	_pool_view = DicePoolView.new()
 	_pool_view.max_size = max_pool_size
 	add_child(_pool_view)
@@ -188,8 +197,7 @@ func load_level(carried: HexTile = null) -> void:
 		player.moved.connect(_on_player_moved)
 		board.add_piece(player, board.player_start)
 		camera_rig.frame_points(_frame_points())
-	turn.clear_hint = "Level clear!  Click an open gate to choose your next level.  [M] map  [P] dice" if RunMap.next(run, index).size() > 0 \
-		else "Run complete!"
+	turn.clear_hint = _clear_hint(index)
 	turn.setup(board, player, dice_tray, action_list, confirm_dialog, sacrifice_dialog, block_prompt, _attack_preview)
 	_challenge.start(turn, 0)
 	await board.play_intro(carried != null)
@@ -198,6 +206,19 @@ func load_level(carried: HexTile = null) -> void:
 		await _challenge.start(turn, level.turn_limit)
 	_loading = false
 	turn.start_turn()
+
+
+## The turn plan's text once the level is clear, naming the shop / bank while they're open.
+func _clear_hint(index: int) -> String:
+	if RunMap.next(SaveManager.run_data, index).is_empty():
+		return "Run complete!"
+	var open := PackedStringArray()
+	for building in board.get_buildings():
+		if not building.closed:
+			open.append("the shop" if building.kind == Building.Kind.SHOP else "the bank")
+	if open.is_empty():
+		return "Level clear!  Click an open gate to choose your next level.  [M] map  [P] dice"
+	return "Click %s to use %s, or an open gate to move on.  [M] map  [P] dice" % [" or ".join(open), "it" if open.size() == 1 else "them"]
 
 
 ## What the camera fits in the free space: every tile's outline at its top, and again raised by the headroom for
@@ -228,8 +249,8 @@ func _carry(carried: HexTile) -> void:
 
 
 ## Chooses which of the level's enemy and loot points are used - more the deeper the run and the harder the biome -
-## and puts gates on as many exit points as the level has connections. Seeded by the map node, so a resumed level
-## matches.
+## puts gates on as many exit points as the level has connections, and a shop / bank on their points. Seeded by the
+## map node, so a resumed level matches (the shop's stock included).
 func _populate(index: int) -> void:
 	var run := SaveManager.run_data
 	var rng := RandomNumberGenerator.new()
@@ -269,6 +290,16 @@ func _populate(index: int) -> void:
 	exit_cells.sort_custom(func(a: Vector2i, b: Vector2i): return board.cell_to_local(a).z < board.cell_to_local(b).z)
 	for i in exit_cells.size():
 		board.spawn_exit(links[i], LevelData.ICONS[RunMap.level(run, links[i]).type], RunMap.biome(run, links[i]).color, exit_cells[i])
+
+	# Shop rarity rises with each biome visited; a bank used on this level stays closed if it's resumed
+	for cell in board.get_marker_cells(Board.Marker.SHOP):
+		var shop := board.spawn_building(Building.Kind.SHOP, cell)
+		shop.stock = ShopStock.roll(rng, biome.stage())
+		shop.sold.resize(shop.stock.size())
+	for cell in board.get_marker_cells(Board.Marker.BANK):
+		var bank := board.spawn_building(Building.Kind.BANK, cell)
+		if run.bank_used_at == index:
+			bank.close(false)
 
 
 ## round(total * share), clamped to the total, and at least one if [at_least_one].
@@ -341,27 +372,32 @@ func _level_award() -> void:
 
 
 func _toggle_pool_view() -> void:
-	if not _award.visible and not _item_award.visible and not character_picker.visible:
+	if not _award.visible and not _item_award.visible and not character_picker.visible and not _menu_open():
 		_pool_view.toggle()
 
 
+func _menu_open() -> bool:
+	return _shop_menu.visible or _bank_menu.visible
+
+
 # ===========================================================================================================================================
-# Exits
+# Exits, shops & banks
 # ===========================================================================================================================================
 
 
-func _update_exit_hover() -> void:
-	var exit: ExitGate = null
+## Highlights the open gate, shop or bank under the mouse once the level is clear.
+func _update_hover() -> void:
+	var hovered: BoardPiece = null
 	if turn.state == TurnController.State.LEVEL_CLEAR and not _loading and not _map_view.visible:
 		var piece := board.get_piece(board.tile_at_screen(camera_rig.camera, get_viewport().get_mouse_position()))
-		if piece is ExitGate and piece.unlocked:
-			exit = piece
-	if exit != _hovered_exit:
-		if is_instance_valid(_hovered_exit):
-			_hovered_exit.set_hovered(false)
-		_hovered_exit = exit
-		if exit:
-			exit.set_hovered(true)
+		if (piece is ExitGate and piece.unlocked) or (piece is Building and not piece.closed):
+			hovered = piece
+	if hovered != _hovered:
+		if is_instance_valid(_hovered):
+			_hovered.set_hovered(false)
+		_hovered = hovered
+		if hovered:
+			hovered.set_hovered(true)
 
 
 func _choose_exit(exit: ExitGate) -> void:
@@ -375,7 +411,7 @@ func _choose_exit(exit: ExitGate) -> void:
 	var target := exit.target
 	var tile_id := exit.tile_id
 	exit.set_hovered(false)
-	_hovered_exit = null
+	_hovered = null
 	exit.open()
 	var path := board.find_path(player.tile_id, tile_id)
 	if path.is_empty():
@@ -388,10 +424,63 @@ func _choose_exit(exit: ExitGate) -> void:
 	load_level(board.get_tile(tile_id))
 
 
+## Opens the building's menu; the board waits until it's closed.
+func _use_building(building: Building) -> void:
+	_loading = true
+	building.set_hovered(false)
+	_hovered = null
+	if building.kind == Building.Kind.SHOP:
+		await _shop(building)
+	else:
+		await _bank(building)
+	_loading = false
+
+
+## The shop menu until the player closes it. Buying shows the die or item as an award (with the swap / replace when
+## the pool or slots are full); the price is only paid if it's taken, and it's sold out after.
+func _shop(shop: Building) -> void:
+	var run := SaveManager.run_data
+	while true:
+		var index := await _shop_menu.choose(shop.stock, shop.sold)
+		if index == -1:
+			return
+		var offer := shop.stock[index]
+		var price := ShopStock.price(offer)
+		var source := "From the shop for %d gold  ·  only paid if you keep it" % price
+		var taken: bool
+		if offer is DieType:
+			taken = await _award.present(offer, source, max_pool_size)
+		else:
+			taken = await _item_award.present(offer, source)
+		if taken:
+			run.spend_gold(price)
+			shop.sold[index] = true
+			player.popup("-%d" % price, Color(1, 0.82, 0.3))
+
+
+## One deposit or withdrawal, then the bank closes. Banked gold lives in the progression, which is saved straight
+## away - so the level's checkpoint takes the same change, or quitting and resuming the level would bank it twice.
+func _bank(bank: Building) -> void:
+	var amount := await _bank_menu.choose()
+	if amount == 0:
+		return
+	var index := RunMap.current_index(SaveManager.run_data)
+	for run: RunData in [SaveManager.run_data, SaveManager.run_checkpoint]:
+		if run:
+			run.gold = maxi(run.gold - amount, 0)
+			run.bank_used_at = index
+	SaveManager.progression_data.gold_in_bank += amount
+	SaveManager.save_data()
+	bank.close()
+	turn.clear_hint = _clear_hint(index)
+	turn._refresh()
+	bank.popup("%d banked" % amount if amount > 0 else "+%d" % -amount, Color(1, 0.82, 0.3))
+
+
 func _process(delta: float) -> void:
 	if not board:
 		return
-	_update_exit_hover()
+	_update_hover()
 	_update_die_tip(delta)
 	if _grid_overlay:
 		_grid_overlay.show_pick(turn.hovered_tile, board.last_pick_point)
@@ -399,7 +488,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _enemy_details.visible or _ended or _award.visible or _item_award.visible:
+	if _enemy_details.visible or _ended or _award.visible or _item_award.visible or _menu_open():
 		return
 	if event.is_action_pressed("dice_pool"):
 		_toggle_pool_view()
@@ -409,8 +498,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_map_view.toggle()
 	elif _map_view.visible:
 		return
-	elif event.is_action_pressed("select") and _hovered_exit:
-		_choose_exit(_hovered_exit)
+	elif event.is_action_pressed("select") and _hovered is ExitGate:
+		_choose_exit(_hovered)
+	elif event.is_action_pressed("select") and _hovered is Building:
+		_use_building(_hovered)
 	elif event.is_action_pressed("debug_rebuild") and _can_debug(true):
 		SaveManager.run_data.health = SaveManager.run_data.max_health
 		load_level()
@@ -419,6 +510,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		turn.start_turn(false)
 	elif event.is_action_pressed("debug_roll_showcase") and _can_debug():
 		_debug_showcase()
+	elif event.is_action_pressed("debug_shop") and _can_debug(true):
+		_debug_shop()
 	elif event.is_action_pressed("debug_grid"):
 		_toggle_grid_overlay()
 	elif event.is_action_pressed("debug_los"):
@@ -513,6 +606,16 @@ func _debug_showcase() -> void:
 	turn.start_turn(false)
 
 
+## Turns the current level into the Shop & Bank (for good, in this run's map) with 100 extra gold, and restarts it.
+func _debug_shop() -> void:
+	var run := SaveManager.run_data
+	var node := RunMap.node(run, RunMap.current_index(run))
+	node.level = "shop_bank_01"
+	node.type = LevelData.Type.SHOP_BANK
+	run.gold += 100
+	load_level()
+
+
 func _toggle_grid_overlay() -> void:
 	if _grid_overlay:
 		_grid_overlay.queue_free()
@@ -524,7 +627,7 @@ func _toggle_grid_overlay() -> void:
 
 
 func _update_debug_label() -> void:
-	var text := "[D] re-roll   [F] showcase dice   [L] line of sight %s   [G] grid %s   [R] restart level" % [
+	var text := "[D] re-roll   [F] showcase dice   [L] line of sight %s   [G] grid %s   [R] restart level   [B] shop & bank" % [
 		"ON" if turn.show_los else "off", "ON" if _grid_overlay else "off"]
 	if turn.results.size() > 0:
 		text += "\nRolled: " + ", ".join(turn.results.map(func(r: DieResult): return r.describe()))

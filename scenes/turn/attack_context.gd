@@ -38,6 +38,8 @@ var aoe_tiles: Array[int] = []
 var stun: bool = false
 var poison: bool = false
 var penetrate: int = 0
+## The player's first attack of the turn (Quick Strike crits it)
+var first_attack: bool = false
 ## Names of the abilities that changed this attack, for the turn plan
 var notes: PackedStringArray = []
 

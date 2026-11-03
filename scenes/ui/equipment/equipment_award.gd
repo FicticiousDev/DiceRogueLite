@@ -5,7 +5,7 @@ extends CanvasLayer
 ## its rarity colour, with what it does. With a free slot of its kind it's equipped (EQUIP); with none, the items in
 ## those slots are shown to replace, or it can be left. Updates the run's equipment itself. Runs while the game is
 ## paused (chest items pause it mid-move).
-## Use: await award.present(item, "Boss reward")
+## Use: await award.present(item, "Boss reward") - true if the item was equipped.
 
 signal _finished
 
@@ -21,6 +21,7 @@ var _cards: Array[EquipmentCard] = []
 var _slots: Array[int] = []
 var _replace: int = -1
 var _replace_button: Button
+var _taken: bool = false
 
 
 func _ready() -> void:
@@ -47,8 +48,10 @@ func _process(delta: float) -> void:
 
 
 ## Shows [item] from [source], then equips it, replaces an item with it or leaves it, as the player chooses.
-func present(item: EquipmentData, source: String) -> void:
+## Returns true unless it was left.
+func present(item: EquipmentData, source: String) -> bool:
 	_item = item
+	_taken = false
 	_cards.clear()
 	_replace = -1
 	for child in _content.get_children():
@@ -141,11 +144,13 @@ func present(item: EquipmentData, source: String) -> void:
 	_glow = null
 	for child in _content.get_children():
 		child.queue_free()
+	return _taken
 
 
 func _equip(index: int) -> void:
 	SaveManager.run_data.equip(_item, index)
 	SaveManager.run_data.items_obtained += 1
+	_taken = true
 	_finished.emit()
 
 

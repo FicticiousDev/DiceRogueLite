@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="DieType" format=3]
+[gd_resource type="Resource" script_class="DieType" format=3 uid="uid://dfejuuypksnaf"]
 
-[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
-[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
-[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+[ext_resource type="Script" uid="uid://ba8o4whk84k8r" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" uid="uid://cvbhunpruoras" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" uid="uid://bumdsq01d4gdw" path="res://resources/dice/die_type.gd" id="3_type"]
 
 [sub_resource type="Resource" id="Resource_stun1"]
 script = ExtResource("2_sym")

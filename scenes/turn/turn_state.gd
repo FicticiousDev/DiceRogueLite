@@ -17,6 +17,8 @@ var uses: Dictionary = {}
 ## Enemies that are stunned (no actions until the next round) / poisoned
 var stunned: Array[Enemy] = []
 var poisoned: Array[Enemy] = []
+## Player attacks planned so far this turn
+var attacks: int = 0
 
 
 func _init(start_tile: int, enemies: Array[Enemy] = []) -> void:
@@ -38,6 +40,7 @@ func copy() -> TurnState:
 	state.uses = uses.duplicate()
 	state.stunned = stunned.duplicate()
 	state.poisoned = poisoned.duplicate()
+	state.attacks = attacks
 	return state
 
 

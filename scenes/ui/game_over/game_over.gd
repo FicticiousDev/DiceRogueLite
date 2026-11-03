@@ -40,6 +40,7 @@ func show_screen(run: RunData, outcome: ProgressionData.Outcome) -> void:
 		["Enemies defeated", run.enemies_defeated],
 		["Bosses defeated", run.bosses_defeated],
 		["Gold earned", run.gold_earned],
+		["Gold spent", run.gold_spent],
 		["Damage dealt", run.damage_dealt],
 		["Damage taken", run.damage_received],
 		["Critical hits", run.crits],

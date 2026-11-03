@@ -8,7 +8,7 @@ extends RefCounted
 
 const MIN_DEPTH: int = 4
 const MAX_DEPTH: int = 7
-const SHOP_CHANCE: float = 0.2
+const SHOP_CHANCE: float = 0.4
 const BANK_CHANCE: float = 0.25
 ## Biome orders each boss leads on to
 const BIOME_LINKS: Dictionary[int, Array] = { 1: [2, 3], 2: [4, 5], 3: [4, 5], 4: [6], 5: [6], 6: [] }

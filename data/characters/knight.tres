@@ -27,4 +27,4 @@ id = &"knight"
 display_name = "Knight"
 tint = Color(0.55, 0.75, 1, 1)
 abilities = Array[ExtResource("1_h4ooa")]([SubResource("Resource_nspk1"), SubResource("Resource_db1m4")])
-starting_dice = Array[StringName]([&"normal", &"normal", &"normal", &"normal", &"normal", &"guardian"])
+starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"guardian"])

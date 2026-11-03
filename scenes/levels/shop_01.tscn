@@ -1,11 +1,11 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://bogenqj4qn801"]
 
 [ext_resource type="PackedScene" path="res://scenes/board/board.tscn" id="1_board"]
 
-[node name="Shop01" instance=ExtResource("1_board")]
+[node name="Shop01" unique_id=1987059002 instance=ExtResource("1_board")]
 
 [node name="Layout" parent="." index="0"]
 tile_map_data = PackedByteArray("AAD9/wAAAAAAAAAAAAD9/wEAAAAAAAAAAAD+//7/AAAAAAAAAAD+////AAAAAAAAAAD+/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAD///7/AAAAAAAAAAD/////AAAAAAAAAAD//wAAAAAAAAAAAAD//wEAAAAAAAAAAAAAAP3/AAAAAAAAAAAAAP7/AAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAABAP3/AAAAAAAAAAABAP7/AAAAAAAAAAABAP//AAAAAAAAAAA=")
 
 [node name="Markers" parent="." index="1"]
-tile_map_data = PackedByteArray("AAD+//7/AAADAAAAAAAAAAAAAAAAAAAAAAABAP3/AAADAAAAAAA=")
+tile_map_data = PackedByteArray("AAD+//7/AAADAAAAAAAAAAAAAAAAAAAAAAABAP3/AAADAAAAAAD/////AAAFAAAAAAA=")

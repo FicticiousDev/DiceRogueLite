@@ -26,7 +26,7 @@ var _stun: InfoIcon
 var _poison: InfoIcon
 var _gold: StatIcon
 var _bank: StatIcon
-var max_pool_size: int = 10
+var max_pool_size: int = 9
 var _equipment_box: HBoxContainer
 ## Equipment as last shown, and each item's uses label (item id -> Label, actives only)
 var _equipment_shown: Array[String] = []

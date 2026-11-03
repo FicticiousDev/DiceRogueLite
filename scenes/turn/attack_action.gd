@@ -35,7 +35,8 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	for ability in actives:
 		if not spent.has(ability):
 			_notes.append("No %s uses left" % ability.display_name)
-	_ctx = turn.player_attack_context(enemy, dice, spent)
+	_ctx = turn.player_attack_context(enemy, dice, spent, state.attacks == 0)
+	state.attacks += 1
 	damage = _ctx.damage()
 	_notes.append_array(_ctx.notes)
 	state.enemy_hp[enemy] -= damage

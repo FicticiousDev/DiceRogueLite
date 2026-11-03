@@ -5,7 +5,7 @@ extends CanvasLayer
 ## the pool it's added (COLLECT); with a full pool the player picks a die to swap out for it, or leaves it. Every die
 ## shown - the new one included - can be dragged to turn it or clicked for all six faces.
 ## Updates the run's pool itself. Runs while the game is paused (chest dice pause it mid-move).
-## Use: await award.present(type, "Level clear reward", max_pool_size)
+## Use: await award.present(type, "Level clear reward", max_pool_size) - true if the die was taken (collected or swapped in).
 
 signal _finished
 
@@ -24,6 +24,7 @@ var _new_type: DieType
 var _cards: Array[DieCard] = []
 var _swap_index: int = -1
 var _swap_button: Button
+var _taken: bool = false
 
 
 func _ready() -> void:
@@ -50,8 +51,10 @@ func _process(delta: float) -> void:
 
 
 ## Shows [type] as a new die from [source], then adds it to the pool, swaps it in or leaves it, as the player chooses.
-func present(type: DieType, source: String, max_size: int) -> void:
+## Returns true unless it was left.
+func present(type: DieType, source: String, max_size: int) -> bool:
 	_new_type = type
+	_taken = false
 	_cards.clear()
 	_swap_index = -1
 	for child in _content.get_children():
@@ -137,12 +140,14 @@ func present(type: DieType, source: String, max_size: int) -> void:
 	_glow = null
 	for child in _content.get_children():
 		child.queue_free()
+	return _taken
 
 
 func _collect() -> void:
 	var run := SaveManager.run_data
 	run.dice.append(String(_new_type.id))
 	run.dice_obtained += 1
+	_taken = true
 	_finished.emit()
 
 
@@ -159,6 +164,7 @@ func _swap() -> void:
 	var run := SaveManager.run_data
 	run.dice[_swap_index] = String(_new_type.id)
 	run.dice_obtained += 1
+	_taken = true
 	var card := _cards[_swap_index]
 	card.pivot_offset = card.size / 2.0
 	var tween := create_tween().set_parallel(true)

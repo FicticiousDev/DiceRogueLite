@@ -66,6 +66,8 @@ var _spent: Array[int] = []
 var _uses: Dictionary = {}
 ## Planning: attack actives armed for the next attack
 var _armed: Array[Ability] = []
+## Player attacks resolved this turn (the first can be a crit, see AttackContext.first_attack)
+var _attacks_made: int = 0
 ## Block prompt: the block active the player chose, if any
 var _block_with: Ability
 ## Block prompt: the enemy whose hit the player is choosing held defence dice for, and the dice chosen
@@ -122,6 +124,7 @@ func start_turn(new_turn: bool = true) -> void:
 	_enemy_log.clear()
 	_armed.clear()
 	_editing = null
+	_attacks_made = 0
 	# Levels without enemies are clear from the start
 	if board.get_enemies().is_empty():
 		_set_state(State.LEVEL_CLEAR)
@@ -249,10 +252,11 @@ func is_range_lost(dice: Array[int]) -> bool:
 	return dice.any(func(i: int): return player.attack_range + results[i].face().count(Symbol.Type.RANGE) > attack_range(dice))
 
 
-## The player's attack on [enemy] with [dice]: modifier symbols, then abilities ([used]: the actives spent on it).
-## [enemy] may be null to preview an attack with no target yet (no defence).
-func player_attack_context(enemy: Enemy, dice: Array[int], used: Array[Ability] = []) -> AttackContext:
+## The player's attack on [enemy] with [dice]: modifier symbols, then abilities ([used]: the actives spent on it;
+## [first]: it's the turn's first attack). [enemy] may be null to preview an attack with no target yet (no defence).
+func player_attack_context(enemy: Enemy, dice: Array[int], used: Array[Ability] = [], first: bool = false) -> AttackContext:
 	var ctx := AttackContext.new(player, enemy, 0, enemy.data.defence if enemy else 0)
+	ctx.first_attack = first
 	var crits := 0
 	for i in dice:
 		var face := results[i].face()
@@ -636,7 +640,8 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 			return
 	var arc := await board.show_attack_arc(player, enemy)
 	await player.lunge(enemy.position)
-	var ctx := player_attack_context(enemy, dice, spend_uses(wanted, _uses))
+	var ctx := player_attack_context(enemy, dice, spend_uses(wanted, _uses), _attacks_made == 0)
+	_attacks_made += 1
 	if ctx.notes.size() > 0:
 		player.popup(" + ".join(ctx.notes), Color(1.0, 0.85, 0.4))
 	if ctx.crit:
@@ -1114,7 +1119,7 @@ func _refresh_enemies(planning: bool) -> void:
 func _hovered_attack() -> AttackContext:
 	if state != State.PLAN or _selected_category() != DieFace.Category.ATTACK or not _targets.has(hovered_tile):
 		return null
-	return player_attack_context(board.get_piece(hovered_tile), selected, _armed)
+	return player_attack_context(board.get_piece(hovered_tile), selected, _armed, _first_planned())
 
 
 ## Dotted line along every planned move; teleports get an arrow out of the start and one into the target.
@@ -1230,7 +1235,12 @@ func _refresh_attack_preview() -> void:
 	for i in dice:
 		chosen.append(results[i])
 	var target_hp: int = _end_state.enemy_hp.get(target, target.hp) if target else 0
-	attack_preview.show_attack(chosen, player_attack_context(target, dice, _armed), _armed, target, target_hp)
+	attack_preview.show_attack(chosen, player_attack_context(target, dice, _armed, _first_planned()), _armed, target, target_hp)
+
+
+## True if an attack added to the plan now would be the turn's first.
+func _first_planned() -> bool:
+	return _insert_state != null and _insert_state.attacks == 0
 
 
 func _hint() -> String:

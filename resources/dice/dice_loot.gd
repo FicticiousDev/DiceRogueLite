@@ -15,15 +15,19 @@ const TIER_ODDS: Array[float] = [0.45, 0.45, 0.1]
 ## takes the highest tier (challenge rooms).
 static func roll(rng: RandomNumberGenerator, difficulty: int, top: bool = false) -> DieType:
 	var tier := clampi(difficulty - 1, 0, Rarity.Tier.MYTHIC)
-	var step := TIER_ODDS.size() - 1
-	if not top:
-		var r := rng.randf()
-		step = 0
-		while step < TIER_ODDS.size() - 1 and r >= TIER_ODDS[step]:
-			r -= TIER_ODDS[step]
-			step += 1
+	var step := TIER_ODDS.size() - 1 if top else roll_step(rng)
 	var dice := available(mini(tier + step, Rarity.Tier.MYTHIC))
 	return dice[rng.randi() % dice.size()] if dice.size() > 0 else null
+
+
+## How many tiers above the base a reward rolls: 0, 1 or 2 by [constant TIER_ODDS]. Shops use it too (ShopStock).
+static func roll_step(rng: RandomNumberGenerator) -> int:
+	var r := rng.randf()
+	var step := 0
+	while step < TIER_ODDS.size() - 1 and r >= TIER_ODDS[step]:
+		r -= TIER_ODDS[step]
+		step += 1
+	return step
 
 
 ## Available loot dice of [tier], or of the next tier up that has any (then down if none above).

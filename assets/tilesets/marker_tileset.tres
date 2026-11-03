@@ -1,6 +1,6 @@
-[gd_resource type="TileSet" format=3]
+[gd_resource type="TileSet" format=3 uid="uid://odtdfsgmqocx"]
 
-[ext_resource type="Texture2D" path="res://assets/tilesets/marker_tiles.png" id="1_ykxnu"]
+[ext_resource type="Texture2D" uid="uid://c2dd4xr6hodrn" path="res://assets/tilesets/marker_tiles.png" id="1_ykxnu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4hj6a"]
 texture = ExtResource("1_ykxnu")
@@ -14,6 +14,10 @@ texture_region_size = Vector2i(128, 148)
 3:0/0/custom_data_0 = 3
 4:0/0 = 0
 4:0/0/custom_data_0 = 4
+5:0/0 = 0
+5:0/0/custom_data_0 = 5
+6:0/0 = 0
+6:0/0/custom_data_0 = 6
 
 [resource]
 tile_shape = 3

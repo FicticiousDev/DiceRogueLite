@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="DieType" format=3]
+[gd_resource type="Resource" script_class="DieType" format=3 uid="uid://dn4hdb6jpjh63"]
 
-[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
-[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_sym"]
-[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+[ext_resource type="Script" uid="uid://ba8o4whk84k8r" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" uid="uid://cvbhunpruoras" path="res://resources/dice/face_symbol.gd" id="2_sym"]
+[ext_resource type="Script" uid="uid://bumdsq01d4gdw" path="res://resources/dice/die_type.gd" id="3_type"]
 
 [sub_resource type="Resource" id="Resource_doom1"]
 script = ExtResource("2_sym")
@@ -14,11 +14,16 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom1")])
 
 [sub_resource type="Resource" id="Resource_doom3"]
 script = ExtResource("2_sym")
-symbol = 4
+count = 4
+
+[sub_resource type="Resource" id="Resource_ykxnu"]
+script = ExtResource("2_sym")
+symbol = 10
+metadata/_custom_type_script = "uid://cvbhunpruoras"
 
 [sub_resource type="Resource" id="Resource_doom4"]
 script = ExtResource("1_face")
-symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom3")])
+symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom3"), SubResource("Resource_ykxnu")])
 
 [sub_resource type="Resource" id="Resource_doom5"]
 script = ExtResource("2_sym")

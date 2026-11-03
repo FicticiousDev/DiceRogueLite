@@ -4,6 +4,8 @@ class_name RunData
 ## Data relevant to the current run
 @export var character_id: String
 @export var gold: int = 0
+## Map index of the level whose bank has been used (one transaction per visit), or -1
+@export var bank_used_at: int = -1
 @export var health: int = 10
 @export var max_health: int = 10
 @export var items: Array[String] = []
@@ -23,6 +25,7 @@ class_name RunData
 @export var enemies_defeated: int = 0
 @export var bosses_defeated: int = 0
 @export var gold_earned: int = 0
+@export var gold_spent: int = 0
 @export var damage_dealt: int = 0
 @export var damage_received: int = 0
 ## Player attacks that crit
@@ -82,3 +85,9 @@ func equip(item: EquipmentData, index: int) -> void:
 func add_gold(amount: int) -> void:
 	gold += amount
 	gold_earned += amount
+
+
+## Takes [amount] gold, counting it as spent (shops).
+func spend_gold(amount: int) -> void:
+	gold -= amount
+	gold_spent += amount

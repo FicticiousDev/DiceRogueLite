@@ -6,13 +6,14 @@ extends Node3D
 
 signal intro_finished
 
-enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT, LOOT }
+enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT, LOOT, SHOP, BANK }
 
 const HEX_TILE_SCENE: PackedScene = preload("res://scenes/board/hex_tile.tscn")
 const OBSTACLE_SCENE: PackedScene = preload("res://scenes/pieces/obstacle.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://scenes/pieces/enemy.tscn")
 const LOOT_SCENE: PackedScene = preload("res://scenes/pieces/loot.tscn")
 const EXIT_SCENE: PackedScene = preload("res://scenes/pieces/exit_gate.tscn")
+const BUILDING_SCENE: PackedScene = preload("res://scenes/pieces/building.tscn")
 ## Distance along the camera ray between picking samples, in world units
 const PICK_STEP: float = 0.005
 
@@ -51,7 +52,7 @@ func _ready() -> void:
 	_build()
 
 
-## Builds tiles and obstacles. Enemies, loot and exits are placed by the run (see Run._populate).
+## Builds tiles and obstacles. Enemies, loot, exits, shops and banks are placed by the run (see Run._populate).
 func _build() -> void:
 	var cell_radius := layout.tile_set.tile_size.y / 2.0 * world_scale
 	for cell in layout.get_used_cells():
@@ -154,6 +155,14 @@ func spawn_exit(target: int, icon: Texture2D, color: Color, cell: Vector2i) -> E
 	return gate
 
 
+## A shop or bank on [cell].
+func spawn_building(kind: Building.Kind, cell: Vector2i) -> Building:
+	var building: Building = BUILDING_SCENE.instantiate()
+	building.setup(kind)
+	add_piece(building, cell)
+	return building
+
+
 ## Takes the loot on [tile_id], if any, and returns its contents ({ gold, die, item }, see [method Loot.collect]).
 func collect_loot(tile_id: int) -> Dictionary:
 	for piece in pieces_root.get_children():
@@ -176,6 +185,13 @@ func get_exits() -> Array[ExitGate]:
 	var exits: Array[ExitGate] = []
 	exits.assign(pieces_root.get_children().filter(func(piece: Node): return piece is ExitGate))
 	return exits
+
+
+## The level's shop and bank, if it has them.
+func get_buildings() -> Array[Building]:
+	var buildings: Array[Building] = []
+	buildings.assign(pieces_root.get_children().filter(func(piece: Node): return piece is Building))
+	return buildings
 
 
 # ===========================================================================================================================================

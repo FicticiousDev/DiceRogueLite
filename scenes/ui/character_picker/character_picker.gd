@@ -3,7 +3,7 @@ extends CanvasLayer
 
 ## Character select at the start of a new run. One card per character (by [member CharacterData.order]): its
 ## cut-out on a tile, health and range, passive and active, and its unique starting die - turnable, click it for the
-## inspector - with its six faces (every character also starts with normal dice, explained under the title). Up to [constant COLUMNS] cards a row,
+## inspector - with its six faces (every character also starts with the shared dice, explained under the title). Up to [constant COLUMNS] cards a row,
 ## extra rows below, all centred and the same size (scaled down together if the rows don't fit the screen).
 ## Locked characters are greyed out and can't be picked.
 ## Clicking a card selects it (scales up in place, the cut-out hops, PLAY highlighted); PLAY starts the run.
@@ -20,8 +20,8 @@ const SELECTED_SCALE: float = 1.06
 const HIGHLIGHT: Color = Color(1.0, 0.82, 0.35)
 const HEART: Texture2D = preload("res://assets/ui/icons/heart.png")
 const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
-## The die every character starts with several of; any other starting die is the character's own
-const NORMAL_DIE: StringName = &"normal"
+## The dice every character starts with; any other starting die is the character's own
+const SHARED_DICE: Array[StringName] = [&"movement", &"defence", &"attack"]
 const FACE_SIZE: float = 44.0
 const DIE_VIEW_SIZE: float = 100.0
 
@@ -139,7 +139,7 @@ func _card(character: CharacterData) -> Control:
 			box.add_child(_gap(2))
 		for die_id in character.starting_dice:
 			var die: DieType = Database.get_content("dice", die_id)
-			if die and die_id != NORMAL_DIE:
+			if die and die_id not in SHARED_DICE:
 				box.add_child(_die_faces(die))
 	else:
 		box.add_child(_wrapped("Locked.", 17))

@@ -144,6 +144,11 @@ func popup(text: String, color: Color) -> void:
 	board.popup(self, text, color)
 
 
+## Hover feedback for pieces the player clicks on (gates, shops, banks).
+func set_hovered(_hovered: bool) -> void:
+	pass
+
+
 ## Takes the piece off its tile and frees it.
 func remove_from_board() -> void:
 	if board.has_tile(tile_id) and board.get_tile(tile_id).piece == self:

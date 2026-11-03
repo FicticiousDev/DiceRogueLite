@@ -49,6 +49,7 @@ func record_run(run: RunData, outcome: Outcome) -> void:
 	enemies_defeated += run.enemies_defeated
 	bosses_defeated += run.bosses_defeated
 	gold_earned += run.gold_earned
+	gold_spent += run.gold_spent
 	damage_dealt += run.damage_dealt
 	damage_received += run.damage_received
 	crits += run.crits

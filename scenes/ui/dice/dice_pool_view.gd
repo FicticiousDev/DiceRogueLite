@@ -7,7 +7,7 @@ extends CanvasLayer
 const COLUMNS: int = 5
 const VIEW_SIZE: float = 120.0
 
-var max_size: int = 10
+var max_size: int = 9
 var _content: VBoxContainer
 
 
