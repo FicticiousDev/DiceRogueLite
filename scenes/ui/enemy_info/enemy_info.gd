@@ -11,6 +11,8 @@ const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 const LIGHTNING: Texture2D = preload("res://assets/ui/icons/lightning.png")
 const STUN: Texture2D = preload("res://assets/ui/icons/stun.png")
 const POISON: Texture2D = preload("res://assets/ui/icons/poison.png")
+const FREEZE: Texture2D = preload("res://assets/ui/icons/freeze.png")
+const FIRE: Texture2D = preload("res://assets/ui/icons/fire.png")
 const PLANNED_COLOR: Color = Color(1.0, 0.65, 0.25)
 const FONT_SIZE: int = 26
 const ICON_SIZE: float = 26.0
@@ -25,12 +27,27 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	alignment = BoxContainer.ALIGNMENT_CENTER
 	add_theme_constant_override("separation", 4)
+	_build()
+	# Bosses change stats mid-fight
+	enemy.stats_changed.connect(_build)
+
+
+## Lays out the chips for the enemy's current stats.
+func _build() -> void:
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
 	var data := enemy.data
-	_attack = _chip(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), str(data.attack))
+	var attack_text := str(data.attack) if data.attacks_per_turn <= 1 else "%d×%d" % [data.attack, data.attacks_per_turn]
+	_attack = _chip(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), attack_text)
 	if data.applies_stun:
 		_attack.get_child(0).add_child(_icon(STUN, Color(1.0, 0.75, 0.3), EFFECT_SIZE))
 	if data.applies_poison:
 		_attack.get_child(0).add_child(_icon(POISON, Color(0.55, 1.0, 0.45), EFFECT_SIZE))
+	if data.applies_freeze:
+		_attack.get_child(0).add_child(_icon(FREEZE, Color(0.55, 0.85, 1.0), EFFECT_SIZE))
+	if data.applies_fire:
+		_attack.get_child(0).add_child(_icon(FIRE, Color(1.0, 0.55, 0.2), EFFECT_SIZE))
 	add_child(_attack)
 	add_child(_chip(MOVE, Symbol.INK[Symbol.Type.MOVE].lightened(0.4), str(data.move)))
 	# Range only matters beyond melee

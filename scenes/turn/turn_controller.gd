@@ -58,7 +58,7 @@ var _reachable: Array[int] = []
 var _targets: Array[int] = []
 ## Damage taken this turn
 var _damage_taken: int = 0
-## Resolution: enemies that struck back this turn - they move in the enemy turn but don't attack
+## Resolution: one entry per strike an enemy made back this turn; each uses up one of its attacks in the enemy turn
 var _retaliated: Array[Enemy] = []
 ## Held defence dice spent blocking hits
 var _spent: Array[int] = []
@@ -130,15 +130,26 @@ func start_turn(new_turn: bool = true) -> void:
 		_set_state(State.LEVEL_CLEAR)
 		_refresh()
 		return
-	# Player status effects come first: poison bites, a stun (from the enemy turn) costs the whole turn
+	# Player status effects come first: poison bites, fire burns, a stun (from the enemy turn) costs the whole turn
 	if player.poisoned:
 		player.popup("POISON", Color(0.5, 1.0, 0.4))
 		await _hurt_player(1, "-1")
 		if _player_dead():
 			await _game_over()
 			return
-	# Poison doesn't count against the end-of-turn heal, so a quiet turn can still cure it
+	if player.burn > 0:
+		var burn := player.burn
+		player.burn = 0
+		player.popup("BURNING", Color(1.0, 0.55, 0.2))
+		await _hurt_player(burn, "-%d" % burn)
+		if _player_dead():
+			await _game_over()
+			return
+	# Poison and burning don't count against the end-of-turn heal, so a quiet turn can still cure the poison
 	_damage_taken = 0
+	# A freeze (from a hit in the last round) slows this turn's movement
+	player.frozen = player.frozen_next
+	player.frozen_next = false
 	if player.stunned:
 		await _offer_stun_cure()
 	if _stun_blocks(player):
@@ -170,6 +181,9 @@ func move_context(sim: TurnState, dice: Array[int]) -> MoveContext:
 	ctx.ignored = sim.dead_enemies()
 	for ability in abilities():
 		ability.modify_move(ctx)
+	# Frozen: half the movement, rounded up - teleports aren't slowed
+	if player.frozen and not ctx.teleport:
+		ctx.budget = ceili(ctx.budget / 2.0)
 	return ctx
 
 
@@ -550,9 +564,12 @@ func _resolve() -> void:
 
 ## After the player's actions (or a stunned turn): level clear check, enemy turn, end-of-turn healing, next turn.
 func _finish_turn() -> void:
-	# A stun lasts until the end of the stunned piece's own turn
+	# A stun lasts until the end of the stunned piece's own turn, a freeze until the end of the turn it slowed
 	player.stunned = false
+	player.frozen = false
 	if board.get_enemies().is_empty():
+		player.frozen_next = false
+		player.burn = 0
 		await dice_tray.clear()
 		# The turn that clears the level still heals if it was taken without damage
 		if _damage_taken == 0:
@@ -632,6 +649,11 @@ func _stun_blocks(piece: BoardPiece) -> bool:
 func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> void:
 	if not is_instance_valid(enemy) or enemy.is_dead():
 		return
+	# The target can have gone out of reach since the plan was made (a boss teleporting away)
+	if not board.in_attack_range(player.tile_id, enemy.tile_id, attack_range(dice)):
+		player.popup("OUT OF RANGE", Color(0.8, 0.8, 0.85))
+		await get_tree().create_timer(Anim.t(0.3)).timeout
+		return
 	var enemy_first := enemy.data.attacks_first and not player_strikes_first()
 	if enemy_first and not _stun_blocks(enemy):
 		if await enemy_attack(enemy):
@@ -646,6 +668,8 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 		player.popup(" + ".join(ctx.notes), Color(1.0, 0.85, 0.4))
 	if ctx.crit:
 		SaveManager.run_data.crits += 1
+	# Health and shield before the hit, for bosses that react to losing them
+	var before: Dictionary[Enemy, Vector2i] = { enemy: Vector2i(enemy.hp, enemy.shield) }
 	_damage_enemy(enemy, ctx.damage())
 	if arc:
 		arc.fade_out()
@@ -654,11 +678,14 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 	for tile_id in ctx.aoe_tiles:
 		var other := board.get_piece(tile_id) as Enemy
 		if other and not other.is_dead():
+			before[other] = Vector2i(other.hp, other.shield)
 			_damage_enemy(other, ctx.split(other, other.data.defence).damage())
 			hit.append(other)
 	for target in hit:
 		if not target.is_dead():
-			if ctx.stun and not target.stunned:
+			if ctx.stun and target.data.stun_immune:
+				target.popup("IMMUNE", Color(0.8, 0.8, 0.85))
+			elif ctx.stun and not target.stunned:
 				target.stunned = true
 				target.popup("STUNNED", Color(1.0, 0.8, 0.3))
 			if ctx.poison and not target.poisoned:
@@ -671,6 +698,9 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 		dead.play_death()
 	if deaths.size() > 0:
 		await deaths[0].died
+	for dead in deaths:
+		await _dismiss_minions(dead)
+	await _react_to_damage(before)
 	if not enemy.is_dead() and not enemy_first and not _stun_blocks(enemy):
 		if await enemy_attack(enemy):
 			_retaliated.append(enemy)
@@ -682,10 +712,19 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 func enemy_attack(enemy: Enemy) -> bool:
 	if not enemy.can_hit(player.tile_id):
 		return false
-	var ctx := AttackContext.roll_enemy(enemy, player)
+	await hit_player(enemy, AttackContext.roll_enemy(enemy, player))
+	return true
+
+
+## [enemy]'s [ctx] lands on the player: through their abilities, then the block decision with held defence dice, then
+## the damage and any status the hit gives. [swing]: draws a ranged arc and lunges - off for charges and flames, which
+## aren't a swing at the player.
+func hit_player(enemy: Enemy, ctx: AttackContext, swing: bool = true) -> void:
 	apply_incoming(ctx)
 	# A ranged attack draws its arc first and keeps it up through the block decision
-	var arc := await board.show_attack_arc(enemy, player)
+	var arc: AttackArc = null
+	if swing:
+		arc = await board.show_attack_arc(enemy, player)
 	var log_index := _enemy_log.size()
 	_enemy_log.append(["", ""])
 	_dodged = false
@@ -694,7 +733,8 @@ func enemy_attack(enemy: Enemy) -> bool:
 	var damage := ctx.damage()
 	_enemy_log[log_index] = _attack_log(enemy, ctx)
 	_refresh()
-	await enemy.lunge(player.position)
+	if swing:
+		await enemy.lunge(player.position)
 	if ctx.miss:
 		SaveManager.run_data.misses += 1
 		player.popup("MISS", Color(0.8, 0.8, 0.8))
@@ -704,27 +744,44 @@ func enemy_attack(enemy: Enemy) -> bool:
 		player.popup("DODGED" if _dodged else "BLOCKED", Color(0.45, 0.7, 1.0))
 	elif await _hurt_player(damage, ("CRIT -%d" if ctx.crit else "-%d") % damage) and not _player_dead():
 		# A sacrificed hit still counts as damage taken (no heal) but doesn't pass on status effects
-		if enemy.data.applies_stun and not player.stunned:
-			if player_prevents(&"stun"):
-				player.popup("STUN RESISTED", Color(0.8, 0.8, 0.85))
-			else:
-				player.stunned = true
-				player.popup("STUNNED", Color(1.0, 0.8, 0.3))
-		if enemy.data.applies_poison and not player.poisoned:
-			if player_prevents(&"poison"):
-				player.popup("POISON RESISTED", Color(0.8, 0.8, 0.85))
-			else:
-				player.poisoned = true
-				player.popup("POISONED", Color(0.5, 1.0, 0.4))
+		_apply_hit_effects(enemy, damage)
 	if arc:
 		arc.fade_out()
 	await get_tree().create_timer(Anim.t(0.35)).timeout
-	return true
+
+
+## The statuses [enemy]'s hit gives the player, for [damage] that got through.
+func _apply_hit_effects(enemy: Enemy, damage: int) -> void:
+	if enemy.data.applies_stun and not player.stunned:
+		if player_prevents(&"stun"):
+			player.popup("STUN RESISTED", Color(0.8, 0.8, 0.85))
+		else:
+			player.stunned = true
+			player.popup("STUNNED", Color(1.0, 0.8, 0.3))
+	if enemy.data.applies_poison and not player.poisoned:
+		if player_prevents(&"poison"):
+			player.popup("POISON RESISTED", Color(0.8, 0.8, 0.85))
+		else:
+			player.poisoned = true
+			player.popup("POISONED", Color(0.5, 1.0, 0.4))
+	if enemy.data.applies_freeze and not player.frozen_next:
+		if player_prevents(&"freeze"):
+			player.popup("FREEZE RESISTED", Color(0.8, 0.8, 0.85))
+		else:
+			player.frozen_next = true
+			player.popup("FROZEN", Color(0.6, 0.85, 1.0))
+	# Fire adds half of each damaging hit again at the start of the next turn
+	if enemy.data.applies_fire and damage / 2 > 0:
+		if player_prevents(&"fire"):
+			player.popup("FIRE RESISTED", Color(0.8, 0.8, 0.85))
+		else:
+			player.burn += damage / 2
+			player.popup("ON FIRE", Color(1.0, 0.55, 0.2))
 
 
 ## Turn plan entry for a resolved enemy attack.
 func _attack_log(enemy: Enemy, ctx: AttackContext) -> Array:
-	var name := enemy.data.display_name
+	var name := enemy.data.display_name + (" (%s)" % ctx.source_note if ctx.source_note != "" else "")
 	if ctx.miss:
 		return ["%s missed you" % name, ""]
 	var rolled := ctx.raw()
@@ -768,8 +825,9 @@ func _last_stand() -> bool:
 # ===========================================================================================================================================
 
 
-## Each living enemy, nearest first: move (Gloomhaven rules), then attack unless it struck back this turn. Stunned
-## enemies lose the whole turn, and their stuns end with it.
+## Each living enemy, nearest first: move (Gloomhaven rules), then attack unless it struck back this turn - or whatever
+## its boss behaviour does instead. Stunned enemies lose the whole turn, and their stuns end with it. Bosses then get
+## their end-of-round rules (an ice shield recovering, say).
 func _enemy_turn() -> void:
 	await _poison_tick()
 	for enemy in _enemy_order():
@@ -778,23 +836,44 @@ func _enemy_turn() -> void:
 		if _stun_blocks(enemy):
 			await get_tree().create_timer(Anim.t(0.3)).timeout
 			continue
-		var path := EnemyAI.find_path(enemy, board, player.tile_id)
-		if path.size() > 0:
-			await enemy.move_along(path)
-		if not _retaliated.has(enemy) and enemy.can_hit(player.tile_id):
-			await enemy_attack(enemy)
-			if _player_dead():
-				return
+		if enemy.data.behaviour:
+			await enemy.data.behaviour.take_turn(self, enemy)
+		else:
+			await standard_enemy_turn(enemy)
+		if _player_dead():
+			return
 		await get_tree().create_timer(Anim.t(0.15)).timeout
 	for enemy in board.get_enemies():
 		enemy.stunned = false
+		if enemy.data.behaviour:
+			await enemy.data.behaviour.end_of_round(self, enemy)
+		enemy.damaged_this_round = false
+
+
+## The usual enemy turn: move into position (Gloomhaven rules), then attack.
+func standard_enemy_turn(enemy: Enemy) -> void:
+	var path := EnemyAI.find_path(enemy, board, player.tile_id)
+	if path.size() > 0:
+		await enemy.move_along(path)
+	await enemy_strikes(enemy)
+
+
+## The enemy's attacks for its turn ([member EnemyData.attacks_per_turn], each blocked separately) if the player is in
+## reach - each strike it made back this round used up one.
+func enemy_strikes(enemy: Enemy) -> void:
+	for i in maxi(enemy.data.attacks_per_turn - _retaliated.count(enemy), 0):
+		if _player_dead() or not enemy.can_hit(player.tile_id):
+			return
+		await enemy_attack(enemy)
 
 
 ## Poisoned enemies take 1 damage each.
 func _poison_tick() -> void:
 	var deaths: Array[Enemy] = []
+	var before: Dictionary[Enemy, Vector2i] = {}
 	for enemy in board.get_enemies():
 		if enemy.poisoned:
+			before[enemy] = Vector2i(enemy.hp, enemy.shield)
 			_damage_enemy(enemy, 1)
 			if enemy.is_dead():
 				deaths.append(enemy)
@@ -803,11 +882,14 @@ func _poison_tick() -> void:
 		dead.play_death()
 	if deaths.size() > 0:
 		await deaths[0].died
+	for dead in deaths:
+		await _dismiss_minions(dead)
+	await _react_to_damage(before)
 
 
 ## Hurts [enemy], counting the health it actually lost as damage dealt.
 func _damage_enemy(enemy: Enemy, amount: int) -> void:
-	SaveManager.run_data.damage_dealt += mini(amount, enemy.hp)
+	SaveManager.run_data.damage_dealt += mini(Enemy.through_shield(enemy.shield, amount), enemy.hp)
 	enemy.take_damage(amount)
 
 
@@ -929,6 +1011,95 @@ func _click_block_die(index: int) -> void:
 		_block_selected.append(index)
 	block_prompt.set_block_value(dice_value(_block_selected))
 	_refresh()
+
+
+# ===========================================================================================================================================
+# Bosses
+# ===========================================================================================================================================
+
+
+## Spawns [boss]'s minion on each of [tiles], popping in one after another. Awaitable.
+func summon(boss: Enemy, tiles: Array[int]) -> void:
+	boss.popup("SUMMON", Color(0.75, 0.55, 1.0))
+	for tile_id in tiles:
+		board.spawn_minion(boss, tile_id)
+		await get_tree().create_timer(Anim.t(0.2)).timeout
+	await get_tree().create_timer(Anim.t(0.3)).timeout
+
+
+## [boss] charges through [path]; every piece along it takes an attack of its attack value. It ends on the last free
+## tile of the path (or stays put if there is none). Awaitable.
+func charge(boss: Enemy, path: Array[int]) -> void:
+	var landing := boss.tile_id
+	for tile_id in path:
+		if board.get_piece(tile_id) == null:
+			landing = tile_id
+	await boss.charge_along(path, landing, func(tile_id: int): await _hit_piece(boss, tile_id, boss.data.attack, "charge"))
+
+
+## [boss] bursts into flames: [damage] to every piece on the tiles up to [reach] along the six straight lines from it,
+## which stop at walls and obstacles. Awaitable.
+func flame_burst(boss: Enemy, reach: int, damage: int) -> void:
+	boss.popup("FLAME BURST", Color(1.0, 0.55, 0.2))
+	var tiles: Array[int] = []
+	for offset in Hex.NEIGHBOUR_OFFSETS:
+		var cell := Hex.coords(boss.tile_id)
+		for step in reach:
+			cell += offset
+			var tile_id := Hex.id(cell)
+			if not board.has_tile(tile_id) or board.blocks_sight(tile_id):
+				break
+			tiles.append(tile_id)
+	board.highlight(tiles, HexTile.Highlight.TARGET)
+	await get_tree().create_timer(Anim.t(0.6)).timeout
+	for tile_id in tiles:
+		board.spawn_terrain_effect(tile_id)
+	for tile_id in tiles:
+		if _player_dead():
+			break
+		await _hit_piece(boss, tile_id, damage, "flames")
+	board.clear_highlights()
+
+
+## An attack of [damage] by [attacker] on whatever stands on [tile_id]: the player (who may block) or another enemy.
+func _hit_piece(attacker: Enemy, tile_id: int, damage: int, note: String) -> void:
+	var piece := board.get_piece(tile_id)
+	if piece == player:
+		var ctx := AttackContext.new(attacker, player, damage, 0)
+		ctx.source_note = note
+		await hit_player(attacker, ctx, false)
+	elif piece is Enemy and piece != attacker:
+		await _hit_enemy(piece, damage)
+
+
+## A boss's attack landing on one of its own side: defence applies, no gold or kill counted.
+func _hit_enemy(victim: Enemy, damage: int) -> void:
+	if victim.is_dead():
+		return
+	victim.take_damage(maxi(damage - victim.data.defence, 0))
+	if victim.is_dead():
+		victim.play_death()
+		await victim.died
+	else:
+		await get_tree().create_timer(Anim.t(0.2)).timeout
+
+
+## A boss that dies takes the minions it summoned with it (no gold).
+func _dismiss_minions(boss: Enemy) -> void:
+	var followers := boss.minions()
+	for follower in followers:
+		follower.hp = 0
+		follower.play_death()
+	if followers.size() > 0:
+		await followers[0].died
+
+
+## Lets bosses react to damage they took: [before] is each damaged enemy's health and shield (x, y) as they were.
+func _react_to_damage(before: Dictionary[Enemy, Vector2i]) -> void:
+	for target in before:
+		if is_instance_valid(target) and not target.is_dead() and target.data.behaviour \
+				and (target.hp < before[target].x or target.shield < before[target].y):
+			await target.data.behaviour.on_damaged(self, target, before[target].x)
 
 
 # ===========================================================================================================================================
@@ -1092,27 +1263,36 @@ func _refresh_enemies(planning: bool) -> void:
 	for enemy in board.get_enemies():
 		if not planning or _end_state == null:
 			enemy.preview_hp = enemy.hp
-			enemy.preview_skips_attack = state == State.ENEMY_TURN and _retaliated.has(enemy)
+			enemy.preview_shield = enemy.shield
+			enemy.preview_skips_attack = state == State.ENEMY_TURN and _retaliated.count(enemy) >= enemy.data.attacks_per_turn
 			enemy.preview_stunned = enemy.stunned
 			enemy.preview_poisoned = enemy.poisoned
 			enemy.cutout.flash = Color(0, 0, 0, 0)
 			continue
 		enemy.preview_hp = _end_state.enemy_hp.get(enemy, enemy.hp)
-		enemy.preview_skips_attack = _end_state.retaliated.has(enemy)
+		enemy.preview_shield = _end_state.enemy_shield.get(enemy, enemy.shield)
+		enemy.preview_skips_attack = _end_state.retaliated.count(enemy) >= enemy.data.attacks_per_turn
 		enemy.preview_stunned = _end_state.stunned.has(enemy)
 		enemy.preview_poisoned = _end_state.poisoned.has(enemy)
 	# Hovering a target previews the selected attack (and any area hits) on top of the plan
 	var preview := _hovered_attack()
 	if planning and preview:
 		var target := preview.target as Enemy
-		target.preview_hp -= preview.damage()
+		_preview_damage(target, preview.damage())
 		for tile_id in preview.aoe_tiles:
 			var other := board.get_piece(tile_id) as Enemy
 			if other and _end_state.is_alive(other):
-				other.preview_hp -= preview.split(other, other.data.defence).damage()
+				_preview_damage(other, preview.split(other, other.data.defence).damage())
 	for enemy in board.get_enemies():
 		if planning and _end_state:
 			enemy.cutout.flash = Color(0.1, 0.08, 0.1, 0.6 if enemy.preview_hp <= 0 else 0.0)
+
+
+## Takes [amount] off the planned shield and health shown for [enemy].
+func _preview_damage(enemy: Enemy, amount: int) -> void:
+	var through := Enemy.through_shield(enemy.preview_shield, amount)
+	enemy.preview_shield -= amount - through
+	enemy.preview_hp -= through
 
 
 ## The selected attack dice aimed at the hovered target, or null.
@@ -1234,7 +1414,8 @@ func _refresh_attack_preview() -> void:
 	var chosen: Array[DieResult] = []
 	for i in dice:
 		chosen.append(results[i])
-	var target_hp: int = _end_state.enemy_hp.get(target, target.hp) if target else 0
+	# An ice shield counts as health to get through
+	var target_hp: int = _end_state.enemy_hp.get(target, target.hp) + _end_state.enemy_shield.get(target, target.shield) if target else 0
 	attack_preview.show_attack(chosen, player_attack_context(target, dice, _armed, _first_planned()), _armed, target, target_hp)
 
 
@@ -1271,8 +1452,9 @@ func _hint() -> String:
 		if is_teleport_lost(selected):
 			return "Move %d: teleport lost by combining with normal movement.  Click a highlighted tile.  Right-click to cancel." % dice_value(selected)
 		if _move_ctx and _move_ctx.teleport:
-			return "Teleport %d: click a highlighted tile in line of sight.  Right-click to cancel." % dice_value(selected)
-		return "Move %d: click a highlighted tile.  Click more movement dice to combine them.  Right-click to cancel." % dice_value(selected)
+			return "Teleport %d: click a highlighted tile in line of sight.  Right-click to cancel." % _move_ctx.budget
+		var frozen_note := " (frozen: half of %d)" % dice_value(selected) if player.frozen and _move_ctx and not _move_ctx.teleport else ""
+		return "Move %d%s: click a highlighted tile.  Click more movement dice to combine them.  Right-click to cancel." % [_move_ctx.budget if _move_ctx else dice_value(selected), frozen_note]
 	if _editing:
 		return "Editing: choose dice, then a target.  Right-click to cancel."
 	if _armed.size() > 0:

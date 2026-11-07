@@ -7,13 +7,14 @@ extends Control
 
 signal command(id: Command)
 
-enum Command { REROLL, SHOWCASE, RESTART, SHOP_HERE, NEXT_SHOP, NEXT_SHOP_BANK, MYSTERY, LINE_OF_SIGHT, GRID }
+enum Command { REROLL, SHOWCASE, RESTART, SHOP_HERE, BOSS, NEXT_SHOP, NEXT_SHOP_BANK, MYSTERY, LINE_OF_SIGHT, GRID }
 
 const LABELS: Dictionary[Command, String] = {
 	Command.REROLL: "Re-roll dice",
 	Command.SHOWCASE: "Showcase dice (one per rarity)",
 	Command.RESTART: "Restart level (full health)",
 	Command.SHOP_HERE: "This level → Shop & Bank (+100 gold)",
+	Command.BOSS: "This level → boss (next biome's each press)",
 	Command.NEXT_SHOP: "Next levels → Shop",
 	Command.NEXT_SHOP_BANK: "Next levels → Shop & Bank",
 	Command.MYSTERY: "Place a Mystery piece",

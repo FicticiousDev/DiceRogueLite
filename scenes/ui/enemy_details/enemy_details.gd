@@ -12,6 +12,8 @@ const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 const LIGHTNING: Texture2D = preload("res://assets/ui/icons/lightning.png")
 const STUN: Texture2D = preload("res://assets/ui/icons/stun.png")
 const POISON: Texture2D = preload("res://assets/ui/icons/poison.png")
+const FREEZE: Texture2D = preload("res://assets/ui/icons/freeze.png")
+const FIRE: Texture2D = preload("res://assets/ui/icons/fire.png")
 const CROWN: Texture2D = preload("res://assets/ui/icons/crown.png")
 const COIN: Texture2D = preload("res://assets/ui/icons/coin.png")
 const PORTRAIT_SIZE: float = 320.0
@@ -79,12 +81,27 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), HelpText.ENEMY_POISONED))
 	if data.is_boss:
 		result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), "Boss: can't be insta-killed – an insta-kill face hits it for %d with a crit instead." % AttackContext.BOSS_INSTA_KILL_DAMAGE))
-	result.append(InfoPanel.row(HEART, Color(1, 0.35, 0.35), "Health %d / %d." % [enemy.hp, data.hp]))
+		for line in data.description.split("\n", false):
+			result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), line))
+		if data.stun_immune:
+			result.append(InfoPanel.row(STUN, Color(0.7, 0.7, 0.75), HelpText.STUN_IMMUNE))
+	var health := "Health %d / %d." % [enemy.hp, data.hp]
+	if data.segments > 1:
+		health += " Split into %d segments." % data.segments
+	result.append(InfoPanel.row(HEART, Color(1, 0.35, 0.35), health))
+	if data.shield > 0:
+		result.append(InfoPanel.row(SHIELD, Color(0.55, 0.85, 1.0), "Ice shield %d / %d: damage hits the shield first and the rest carries over to health. Recovers %d in any round it takes no damage." % [enemy.shield, data.shield, data.shield_regen]))
 	var attack := "Attack %d damage per hit. %d%% chance to crit (double damage), %d%% chance to miss." % [
 		data.attack, roundi(data.crit_chance * 100), roundi(data.miss_chance * 100)]
+	if data.attacks_per_turn > 1:
+		attack += " Attacks %d times in its turn, each rolled and blocked separately. A strike back uses up one of them that round." % data.attacks_per_turn
 	result.append(InfoPanel.row(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), attack))
 	if data.applies_stun:
 		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), "Stunning hits: a hit that damages you stuns you – you can't act until the next round (in its turn: you lose your next turn)."))
+	if data.applies_freeze:
+		result.append(InfoPanel.row(FREEZE, Color(0.55, 0.85, 1.0), HelpText.FREEZING_HITS))
+	if data.applies_fire:
+		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), HelpText.FIRE_HITS))
 	if data.applies_poison:
 		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), "Poisonous hits: a hit that damages you poisons you – 1 damage at the start of each of your turns until a heal cures it."))
 	result.append(InfoPanel.row(SHIELD, Color(0.45, 0.7, 1.0), "Defence %d: every hit it takes is reduced by %d." % [data.defence, data.defence] if data.defence > 0 else "Defence 0: takes the full damage of every hit."))

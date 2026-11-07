@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"overlord_minion"
+display_name = "Void Husk"
+tint = Color(0.7, 0.4, 0.85, 1)
+hp = 4
+move = 3
+attack = 3
+defence = 2
+gold = 0

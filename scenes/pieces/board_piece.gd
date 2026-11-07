@@ -22,6 +22,11 @@ var tile_id: int = -1
 ## their turns (a heal cures it instead of restoring health)
 var stunned: bool = false
 var poisoned: bool = false
+## Player only. Frozen: this turn's movement is halved (rounded up), set at the start of the turn after a freezing hit
+## ([member frozen_next]). Burn: damage still to take at the start of the next turn from hits that set the piece on fire
+var frozen: bool = false
+var frozen_next: bool = false
+var burn: int = 0
 
 
 ## Puts the piece on a tile instantly. Called by Board.add_piece.

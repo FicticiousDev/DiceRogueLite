@@ -32,3 +32,30 @@ static func find_path(enemy: Enemy, board: Board, target: int) -> Array[int]:
 	while steps > 0 and (ctx.costs[path[steps - 1]] > enemy.data.move or not endable.has(path[steps - 1])):
 		steps -= 1
 	return path.slice(0, steps)
+
+
+## For enemies that shoot from as far away as they can: of the tiles reachable this turn (staying put counts) that are in
+## range of [target] with line of sight, the one furthest from it, least movement on ties. If none is in range it closes
+## in as [method find_path] does.
+static func find_kite_path(enemy: Enemy, board: Board, target: int) -> Array[int]:
+	var ctx := MoveContext.new(enemy.tile_id, enemy.data.move, board.move_cost, enemy)
+	var options := board.find_reachable(ctx)
+	options.append(enemy.tile_id)
+	var target_cell := Hex.coords(target)
+	var best := -1
+	var best_distance := -1
+	for tile_id in options:
+		if not enemy.can_hit(target, tile_id):
+			continue
+		var distance := Hex.distance(Hex.coords(tile_id), target_cell)
+		var cost: int = ctx.costs.get(tile_id, 0)
+		var best_cost: int = ctx.costs.get(best, 0)
+		if best == -1 or distance > best_distance or (distance == best_distance and (cost < best_cost or (cost == best_cost and tile_id < best))):
+			best = tile_id
+			best_distance = distance
+	if best == -1:
+		return find_path(enemy, board, target)
+	if best == enemy.tile_id:
+		var stay: Array[int] = []
+		return stay
+	return ctx.path_to(best)

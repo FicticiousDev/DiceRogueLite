@@ -1,16 +1,27 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/bosses/frost_behaviour.gd" id="2"]
+
+[sub_resource type="Resource" id="Resource_behaviour"]
+script = ExtResource("2")
 
 [resource]
 script = ExtResource("1")
 id = &"colossus"
 display_name = "Colossus"
-tint = Color(0.6, 0.75, 0.95, 1)
-hp = 32
-move = 2
+tint = Color(0.55, 0.85, 1.0, 1)
+hp = 20
+move = 3
 attack = 4
-defence = 3
+attack_range = 3
+defence = 0
 gold = 28
-applies_stun = true
+shield = 10
+shield_regen = 2
+applies_freeze = true
+size = 1.7
 is_boss = true
+stun_immune = true
+behaviour = SubResource("Resource_behaviour")
+description = "An ice shield takes damage before its health and recovers 2 each round it takes none\nShield up: closes in and attacks from adjacent\nShield broken: keeps away and attacks from range\nA landed hit freezes you: half movement next turn"

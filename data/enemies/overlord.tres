@@ -1,18 +1,27 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/bosses/teleport_phase_behaviour.gd" id="2"]
+[ext_resource type="Resource" path="res://data/enemies/overlord_minion.tres" id="3"]
+
+[sub_resource type="Resource" id="Resource_behaviour"]
+script = ExtResource("2")
 
 [resource]
 script = ExtResource("1")
 id = &"overlord"
 display_name = "Overlord"
 tint = Color(0.85, 0.3, 0.9, 1)
-hp = 45
+hp = 40
 move = 2
-attack = 6
-attack_range = 3
-defence = 3
-attacks_first = true
+attack = 3
+attack_range = 4
+defence = 1
 gold = 40
-applies_stun = true
+segments = 5
 is_boss = true
+stun_immune = true
+size = 1.6
+behaviour = SubResource("Resource_behaviour")
+minion = ExtResource("3")
+description = "Emptying a health segment teleports it to the marked tile furthest from you and calls a Void Husk on the closest\nAlternates form after each teleport: ranged (range 4, attack 3, def 1) and melee (attack 4, move 3, def 2)"

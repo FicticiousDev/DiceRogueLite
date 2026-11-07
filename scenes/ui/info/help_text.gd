@@ -7,6 +7,11 @@ const PLAYER_STUNNED: String = "Stunned: you can't act until the next round. Stu
 const PLAYER_POISONED: String = "Poisoned: you take 1 damage at the start of each of your turns. The next heal cures it instead of restoring health."
 const ENEMY_STUNNED: String = "Stunned: it can't act until the next round – no first strike, retaliation, move or attack."
 const ENEMY_POISONED: String = "Poisoned: it takes 1 damage at the start of every enemy turn until it dies."
+const PLAYER_FROZEN: String = "Frozen: your movement is halved (rounded up) for your next turn. Teleporting is not affected."
+const PLAYER_BURNING: String = "Burning: you take half the damage of the hit that set you on fire (rounded down) at the start of your next turn, then the flames go out."
+const STUN_IMMUNE: String = "Immune to stun."
+const FREEZING_HITS: String = "Freezing hits: a hit that damages you freezes you – your movement is halved (rounded up) on your next turn. Teleporting is not affected."
+const FIRE_HITS: String = "Fiery hits: a hit that damages you sets you on fire – half that damage again (rounded down) at the start of your next turn."
 const ATTACKS_FIRST: String = "Strikes first: when you attack it, it hits you before your attack lands."
 
 

@@ -13,6 +13,8 @@ const BANK: Texture2D = preload("res://assets/ui/icons/bank.png")
 const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 const STUN: Texture2D = preload("res://assets/ui/icons/stun.png")
 const POISON: Texture2D = preload("res://assets/ui/icons/poison.png")
+const FREEZE: Texture2D = preload("res://assets/ui/icons/freeze.png")
+const FIRE: Texture2D = preload("res://assets/ui/icons/fire.png")
 
 @onready var stats: HBoxContainer = %Stats
 
@@ -24,6 +26,8 @@ var _hp: StatIcon
 var _range: StatIcon
 var _stun: InfoIcon
 var _poison: InfoIcon
+var _frozen: InfoIcon
+var _burning: InfoIcon
 var _gold: StatIcon
 var _bank: StatIcon
 var _equipment_box: HBoxContainer
@@ -46,6 +50,8 @@ func _ready() -> void:
 	_range.tooltip_text = "Attack range"
 	_stun = _status(STUN, Color(1.0, 0.75, 0.3), "Stunned", HelpText.PLAYER_STUNNED)
 	_poison = _status(POISON, Color(0.55, 1.0, 0.45), "Poisoned", HelpText.PLAYER_POISONED)
+	_frozen = _status(FREEZE, Color(0.55, 0.85, 1.0), "Frozen", HelpText.PLAYER_FROZEN)
+	_burning = _status(FIRE, Color(1.0, 0.55, 0.2), "Burning", HelpText.PLAYER_BURNING)
 	_gold = _add(COIN, Color(1, 0.82, 0.3))
 	_bank = _add(BANK, Color(0.75, 0.8, 0.9))
 	_equipment_box = HBoxContainer.new()
@@ -85,6 +91,8 @@ func _process(_delta: float) -> void:
 	var stunned := turn != null and turn.player != null and is_instance_valid(turn.player) and turn.player.stunned
 	_stun.visible = stunned
 	_poison.visible = poisoned
+	_frozen.visible = has_player and (turn.player.frozen or turn.player.frozen_next)
+	_burning.visible = has_player and turn.player.burn > 0
 
 
 ## One icon per equipped item (rarity colour, tooltip explains it); actives show uses left, as planned.

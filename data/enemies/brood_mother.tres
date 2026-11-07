@@ -1,17 +1,28 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/bosses/summoner_behaviour.gd" id="2"]
+[ext_resource type="Resource" path="res://data/enemies/brood_minion.tres" id="3"]
+
+[sub_resource type="Resource" id="Resource_behaviour"]
+script = ExtResource("2")
+count = 2
 
 [resource]
 script = ExtResource("1")
 id = &"brood_mother"
 display_name = "Brood Mother"
-tint = Color(0.3, 0.75, 0.35, 1)
-hp = 26
-move = 2
+tint = Color(0.35, 0.75, 0.4, 1)
+hp = 24
+move = 3
 attack = 3
-attack_range = 2
-defence = 2
+attack_range = 4
+defence = 0
 gold = 22
-applies_poison = true
+starting_minions = 2
 is_boss = true
+stun_immune = true
+size = 1.6
+behaviour = SubResource("Resource_behaviour")
+minion = ExtResource("3")
+description = "Steps back to the furthest tile still in range before attacking\nCalls 2 Brood Spawn beside it whenever none are alive; attacks instead if there is no room"

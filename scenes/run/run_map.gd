@@ -140,6 +140,11 @@ static func _choose_levels(nodes: Array[Dictionary]) -> void:
 	for node in nodes:
 		var type: int = node.type
 		var biome: BiomeData = Database.get_content("biomes", StringName(node.biome))
+		# Each biome's boss level is fixed
+		if type == LevelData.Type.BOSS and biome.boss_level != &"":
+			node.level = String(biome.boss_level)
+			node.erase("type")
+			continue
 		var stage := 0 if type in [LevelData.Type.SHOP, LevelData.Type.SHOP_BANK] else biome.stage()
 		var key := "%d:%d" % [type, stage]
 		var fits := func(level: LevelData): return level.exit_count >= node.next.size()

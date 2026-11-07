@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"brood_minion"
+display_name = "Brood Spawn"
+tint = Color(0.55, 0.8, 0.35, 1)
+hp = 1
+move = 3
+attack = 1
+defence = 0
+gold = 0
+applies_poison = true

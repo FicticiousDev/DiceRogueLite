@@ -10,6 +10,9 @@ const SHIELD: Texture2D = preload("res://assets/ui/icons/shield.png")
 const FILL_COLOR: Color = Color(0.92, 0.27, 0.24)
 const PLANNED_COLOR: Color = Color(1.0, 0.65, 0.25)
 const DEFENCE_COLOR: Color = Color(0.45, 0.7, 1.0)
+const ICE_COLOR: Color = Color(0.6, 0.88, 1.0)
+const TICK_COLOR: Color = Color(0.0, 0.0, 0.0, 0.9)
+const ICE_HEIGHT: float = 7.0
 const CROWN_COLOR: Color = Color(1.0, 0.82, 0.3)
 const BACK_COLOR: Color = Color(0.06, 0.06, 0.09, 0.9)
 const OUTLINE_COLOR: Color = Color(0.0, 0.0, 0.0, 0.95)
@@ -28,6 +31,9 @@ const POP_SCALE: float = 1.2
 var enemy: Enemy
 var _hp: int = -1
 var _preview_hp: int = -1
+var _shield: int = -1
+var _preview_shield: int = -1
+var _defence: int = -1
 var _pop: float = 1.0:
 	set(value):
 		_pop = value
@@ -44,13 +50,19 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if not is_instance_valid(enemy) or (enemy.hp == _hp and enemy.preview_hp == _preview_hp):
+	if not is_instance_valid(enemy):
+		return
+	var preview_shield := maxi(enemy.preview_shield, 0)
+	if enemy.hp == _hp and enemy.preview_hp == _preview_hp and enemy.shield == _shield and preview_shield == _preview_shield and enemy.data.defence == _defence:
 		return
 	if _hp != -1 and enemy.hp != _hp:
 		_pop = POP_SCALE
 		create_tween().tween_property(self, "_pop", 1.0, Anim.t(0.3)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_hp = enemy.hp
 	_preview_hp = maxi(enemy.preview_hp, 0)
+	_shield = enemy.shield
+	_preview_shield = preview_shield
+	_defence = enemy.data.defence
 	queue_redraw()
 
 
@@ -74,6 +86,23 @@ func _draw() -> void:
 		_rounded_rect(Rect2(fill_start - BAR_HEIGHT, bar.position.y, current + BAR_HEIGHT, BAR_HEIGHT), PLANNED_COLOR)
 	if planned > 0.0:
 		_rounded_rect(Rect2(fill_start - BAR_HEIGHT, bar.position.y, planned + BAR_HEIGHT, BAR_HEIGHT), FILL_COLOR)
+
+	# Segment dividers
+	for k in range(1, data.segments):
+		var x := fill_start + fill_length * k / data.segments
+		draw_line(Vector2(x, bar.position.y), Vector2(x, bar.end.y), TICK_COLOR, 2.0)
+
+	# Ice shield: a thin bar riding on top of the health bar
+	if data.shield > 0:
+		var ice := Rect2(fill_start, bar.position.y - ICE_HEIGHT - 2.0, fill_length, ICE_HEIGHT)
+		_rounded_rect(ice.grow(2.0), OUTLINE_COLOR)
+		_rounded_rect(ice, BACK_COLOR)
+		var ice_now := ice.size.x * clampf(float(_shield) / data.shield, 0.0, 1.0)
+		var ice_planned := ice.size.x * clampf(float(_preview_shield) / data.shield, 0.0, 1.0)
+		if ice_now > ice_planned:
+			_rounded_rect(Rect2(ice.position, Vector2(ice_now, ICE_HEIGHT)), PLANNED_COLOR)
+		if ice_planned > 0.0:
+			_rounded_rect(Rect2(ice.position, Vector2(ice_planned, ICE_HEIGHT)), ICE_COLOR)
 
 	# Defence
 	_outlined_icon(SHIELD, shield, DEFENCE_COLOR)

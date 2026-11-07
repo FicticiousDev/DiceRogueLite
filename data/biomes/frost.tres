@@ -12,4 +12,5 @@ color = Color(0.55, 0.82, 1, 1)
 terrain_colors = Array[Color]([Color(0.6, 0.68, 0.76, 1), Color(0.5, 0.57, 0.67, 1), Color(0.42, 0.47, 0.6, 1), Color(0.3, 0.52, 0.72, 1), Color(0.44, 0.48, 0.56, 1)])
 enemy_ids = Array[StringName]([&"sentinel", &"caster", &"howler"])
 boss_id = &"colossus"
+boss_level = &"boss_frost"
 enemy_count = Vector2i(5, 6)

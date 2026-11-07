@@ -6,7 +6,7 @@ extends Node3D
 
 signal intro_finished
 
-enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT, LOOT, SHOP, BANK }
+enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT, LOOT, SHOP, BANK, BOSS_POINT }
 
 const HEX_TILE_SCENE: PackedScene = preload("res://scenes/board/hex_tile.tscn")
 const OBSTACLE_SCENE: PackedScene = preload("res://scenes/pieces/obstacle.tscn")
@@ -68,6 +68,9 @@ func _build() -> void:
 			_top_heights.append(tile.top_height())
 	_top_heights.sort()
 	_top_heights.reverse()
+
+	for cell in get_marker_cells(Marker.BOSS_POINT):
+		tiles[Hex.id(cell)].show_marked()
 
 	var starts := get_marker_cells(Marker.PLAYER_START)
 	player_start = starts[0] if starts.size() > 0 else layout.get_used_cells()[0]
@@ -137,6 +140,14 @@ func spawn_enemy(data: EnemyData, cell: Vector2i) -> Enemy:
 	enemy.setup(data)
 	add_piece(enemy, cell)
 	return enemy
+
+
+## A minion of [boss], popping in on [tile_id].
+func spawn_minion(boss: Enemy, tile_id: int) -> Enemy:
+	var minion := spawn_enemy(boss.data.minion, Hex.coords(tile_id))
+	minion.master = boss
+	minion.play_intro()
+	return minion
 
 
 ## A chest with [gold] and, if they aren't empty, a die and / or an item.
@@ -283,6 +294,21 @@ func get_enemies() -> Array[Enemy]:
 
 func get_piece(tile_id: int) -> BoardPiece:
 	return tiles[tile_id].piece if tiles.has(tile_id) else null
+
+
+## [tile_id] if it is walkable with nothing on it, else the nearest tile that is (breadth first), or -1 if there is none.
+func nearest_free(tile_id: int) -> int:
+	var seen: Dictionary[int, bool] = { tile_id: true }
+	var frontier: Array[int] = [tile_id]
+	while frontier.size() > 0:
+		var current: int = frontier.pop_front()
+		if is_walkable(current) and get_piece(current) == null:
+			return current
+		for next in get_neighbours(current):
+			if not seen.has(next):
+				seen[next] = true
+				frontier.append(next)
+	return -1
 
 
 ## Updates pathfinding after a tile's occupancy changed. Called by BoardPiece.
@@ -513,6 +539,11 @@ func has_line_of_sight(from_id: int, to_id: int) -> bool:
 		if clear:
 			return true
 	return false
+
+
+## True if the tile is a wall or has a piece that blocks line of sight.
+func blocks_sight(tile_id: int) -> bool:
+	return _blocks_sight(tile_id)
 
 
 func _blocks_sight(tile_id: int) -> bool:

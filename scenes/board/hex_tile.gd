@@ -12,6 +12,7 @@ const HIGHLIGHT_COLORS: Dictionary[Highlight, Color] = {
 	Highlight.TARGET: Color(1.0, 0.55, 0.1, 0.6),
 }
 const SELECTED_COLOR: Color = Color(1.0, 1.0, 1.0, 0.45)
+const MARK_COLOR: Color = Color(0.7, 0.35, 1.0)
 ## Body radius as a fraction of the cell radius, leaving a small gap between tiles
 const BODY_SCALE: float = 0.95
 
@@ -106,6 +107,28 @@ func play_intro(delay: float = 0.0) -> void:
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(self, "scale", Vector3.ONE, Anim.t(intro_duration)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "position", end_pos, Anim.t(intro_duration * 0.6)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## Marks the tile with a glowing ring (a boss's special tile).
+func show_marked() -> void:
+	var ring := MeshInstance3D.new()
+	var mesh := TorusMesh.new()
+	mesh.inner_radius = radius * 0.5
+	mesh.outer_radius = radius * 0.68
+	mesh.rings = 24
+	mesh.ring_segments = 6
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = MARK_COLOR
+	mesh.material = material
+	ring.mesh = mesh
+	ring.scale = Vector3(1.0, 0.05, 1.0)
+	ring.position.y = top_height() + 0.02
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(ring)
+	var pulse := ring.create_tween().set_loops()
+	pulse.tween_property(material, "albedo_color", MARK_COLOR.lightened(0.45), Anim.t(0.9)).set_trans(Tween.TRANS_SINE)
+	pulse.tween_property(material, "albedo_color", MARK_COLOR, Anim.t(0.9)).set_trans(Tween.TRANS_SINE)
 
 
 ## Appears in place with no animation.

@@ -15,7 +15,9 @@ extends Resource
 @export var terrain_colors: Array[Color] = []
 @export var enemy_ids: Array[StringName] = []
 @export var boss_id: StringName
-## Enemies on a normal level (min, max); boss levels have the boss plus one fewer, challenge levels the max + 2
+## The boss's level (LevelData id): fixed, never picked at random
+@export var boss_level: StringName
+## Enemies on a normal level (min, max); boss levels have only the boss (and its minions), challenge levels the max + 2
 @export var enemy_count: Vector2i = Vector2i(3, 4)
 
 

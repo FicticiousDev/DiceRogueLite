@@ -42,6 +42,8 @@ var penetrate: int = 0
 var first_attack: bool = false
 ## Names of the abilities that changed this attack, for the turn plan
 var notes: PackedStringArray = []
+## What kind of attack it is when it isn't a plain swing (a charge, flames), for the turn plan
+var source_note: String = ""
 
 
 ## [base] is a single part (an enemy's roll); the player's attacks replace it with one part per die ([method add_part]).

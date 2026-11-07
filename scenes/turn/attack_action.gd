@@ -39,17 +39,19 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	state.attacks += 1
 	damage = _ctx.damage()
 	_notes.append_array(_ctx.notes)
-	state.enemy_hp[enemy] -= damage
+	state.hurt(enemy, damage)
 	for tile_id in _ctx.aoe_tiles:
 		var other := turn.board.get_piece(tile_id) as Enemy
 		if other and state.is_alive(other):
 			var splash := _ctx.split(other, other.data.defence).damage()
-			state.enemy_hp[other] -= splash
+			state.hurt(other, splash)
 			_notes.append("%s %s" % [other.data.display_name, "killed" if state.enemy_hp[other] <= 0 else "-%d" % splash])
 	if state.enemy_hp[enemy] <= 0:
 		_notes.append("Kills it (+%d gold)" % TurnController.kill_gold(enemy.data))
 	else:
-		if _ctx.stun and not state.stunned.has(enemy):
+		if _ctx.stun and enemy.data.stun_immune:
+			_notes.append("Immune to stun")
+		elif _ctx.stun and not state.stunned.has(enemy):
 			state.stunned.append(enemy)
 			_notes.append("Stuns it")
 		if _ctx.poison and not state.poisoned.has(enemy):
@@ -71,8 +73,7 @@ func _add_strike_note(state: TurnState, turn: TurnController, verb: String) -> v
 	if state.stunned.has(enemy):
 		_notes.append("Stunned: no %s" % ("first strike" if verb == "Strikes first" else "retaliation"))
 		return
-	if not state.retaliated.has(enemy):
-		state.retaliated.append(enemy)
+	state.retaliated.append(enemy)
 	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack, 0)
 	turn.apply_incoming(strike)
 	var note := "%s %d" % [verb, enemy.data.attack]

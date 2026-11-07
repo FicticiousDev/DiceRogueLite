@@ -279,11 +279,10 @@ func _populate(index: int) -> void:
 	# is the boss plus one fewer, a challenge level uses every enemy point (the range's top + 2)
 	var enemy_cells := _shuffled(board.get_marker_cells(Board.Marker.ENEMY), rng)
 	var count := rng.randi_range(biome.enemy_count.x, biome.enemy_count.y)
-	if level.type == LevelData.Type.BOSS and enemy_cells.size() > 0:
-		# The boss takes the enemy point farthest from the start
-		enemy_cells.sort_custom(func(a: Vector2i, b: Vector2i): return Hex.distance(a, board.player_start) > Hex.distance(b, board.player_start))
-		board.spawn_enemy(Database.get_content("enemies", biome.boss_id), enemy_cells.pop_front())
-		count -= 1
+	if level.type == LevelData.Type.BOSS:
+		_spawn_boss(biome.boss_id, enemy_cells)
+		# Nothing else lives on a boss level
+		enemy_cells.clear()
 	if level.type == LevelData.Type.CHALLENGE:
 		count = enemy_cells.size()
 	for cell in enemy_cells.slice(0, count):
@@ -324,6 +323,19 @@ func _populate(index: int) -> void:
 		var cells := _mystery_cells(Hex.id(board.player_start))
 		if cells.size() > 0:
 			board.spawn_mystery(cells[mystery_rng.randi() % cells.size()])
+
+
+## The biome's boss on the enemy point farthest from the start, with its starting minions on the next points.
+func _spawn_boss(boss_id: StringName, cells: Array[Vector2i]) -> void:
+	if cells.is_empty():
+		return
+	cells.sort_custom(func(a: Vector2i, b: Vector2i): return Hex.distance(a, board.player_start) > Hex.distance(b, board.player_start))
+	var data: EnemyData = Database.get_content("enemies", boss_id)
+	var boss := board.spawn_enemy(data, cells.pop_front())
+	for cell in cells.slice(0, data.starting_minions):
+		board.spawn_enemy(data.minion, cell).master = boss
+	if data.behaviour:
+		data.behaviour.setup(boss, board)
 
 
 ## Where a Mystery piece can go: free tiles the player can walk to, on the board's edge, at least half the board's
@@ -429,8 +441,8 @@ func _unlock() -> void:
 
 ## Rewards for clearing the current level, all fully random (replaying a level can give different ones):
 ## - normal levels: [member die_award_chance] of a die, rarity from the biome skewed low (DiceLoot)
-## - bosses: always a die (as above), and [member boss_item_chance] of an item (EquipmentLoot, skewed to the biome's
-##   rarity). The boss bonus (_boss_bonus) comes first, so the die has a free slot
+## - bosses: always a die of the biome's top rarity (as a challenge gives), and [member boss_item_chance] of an item at
+##   the biome's rarity or higher. The boss bonus (_boss_bonus) comes first, so the die has a free slot
 ## - a challenge beaten within its turn limit: always a reward - an item at the biome's rarity or higher
 ##   ([member challenge_item_chance]) or else a die of the biome's top rarity. Over the limit, nothing
 ## - shops: nothing
@@ -456,11 +468,11 @@ func _level_award() -> void:
 		return
 	var boss := level.type == LevelData.Type.BOSS
 	if boss or rng.randf() < die_award_chance:
-		var die := DiceLoot.roll(rng, difficulty)
+		var die := DiceLoot.roll(rng, difficulty, boss)
 		if die:
 			await _award.present(die, "Boss reward" if boss else "Level clear reward", SaveManager.run_data.max_dice)
 	if boss and rng.randf() < boss_item_chance:
-		var drop := EquipmentLoot.roll(rng, difficulty)
+		var drop := EquipmentLoot.roll(rng, difficulty, true)
 		if drop:
 			await _item_award.present(drop, "Boss reward")
 
@@ -637,6 +649,8 @@ func _boss_bonus() -> void:
 	run.max_dice += 1
 	player.poisoned = false
 	player.stunned = false
+	player.frozen_next = false
+	player.burn = 0
 	player.popup("+1 MAX HP  ·  +1 DIE SLOT", Color(0.5, 1.0, 0.4))
 	await get_tree().create_timer(Anim.t(0.8)).timeout
 
@@ -726,6 +740,9 @@ func _on_debug_command(id: DebugMenu.Command) -> void:
 		DebugMenu.Command.SHOP_HERE:
 			if _can_debug(true):
 				_debug_shop()
+		DebugMenu.Command.BOSS:
+			if _can_debug(true):
+				_debug_boss()
 		DebugMenu.Command.NEXT_SHOP:
 			if _can_force_next():
 				_debug_next_shop(LevelData.Type.SHOP)
@@ -766,6 +783,27 @@ func _debug_shop() -> void:
 	node.type = LevelData.Type.SHOP_BANK
 	run.gold += 100
 	load_level()
+
+
+## Turns the current level into a biome's boss level - the next biome's each press, in run order, starting with the
+## current biome's - for good in this run's map and its checkpoint, and restarts it at full health. The level's exits
+## may not match the boss level's, so it's only for trying a fight out.
+func _debug_boss() -> void:
+	var run := SaveManager.run_data
+	var index := RunMap.current_index(run)
+	var biomes := Database.get_all("biomes")
+	biomes.sort_custom(func(a: BiomeData, b: BiomeData): return a.order < b.order)
+	var at := biomes.find_custom(func(b: BiomeData): return b.id == RunMap.biome(run, index).id)
+	if RunMap.level(run, index).type == LevelData.Type.BOSS:
+		at += 1
+	var biome: BiomeData = biomes[at % biomes.size()]
+	for data: RunData in [run, SaveManager.run_checkpoint]:
+		if data:
+			RunMap.node(data, index).biome = String(biome.id)
+			RunMap.node(data, index).level = String(biome.boss_level)
+	run.health = run.max_health
+	load_level()
+	player.popup("Boss: %s" % biome.display_name, Color(1.0, 0.45, 0.85))
 
 
 func _can_force_next() -> bool:
@@ -818,6 +856,7 @@ func _update_debug_menu() -> void:
 	_debug.set_enabled(DebugMenu.Command.SHOWCASE, plan)
 	_debug.set_enabled(DebugMenu.Command.RESTART, plan_or_clear)
 	_debug.set_enabled(DebugMenu.Command.SHOP_HERE, plan_or_clear)
+	_debug.set_enabled(DebugMenu.Command.BOSS, plan_or_clear)
 	_debug.set_enabled(DebugMenu.Command.NEXT_SHOP, next)
 	_debug.set_enabled(DebugMenu.Command.NEXT_SHOP_BANK, next)
 	_debug.set_enabled(DebugMenu.Command.MYSTERY, plan)
