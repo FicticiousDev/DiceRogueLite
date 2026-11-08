@@ -16,9 +16,14 @@ extends CanvasLayer
 
 const DIE_SCENE: PackedScene = preload("res://scenes/dice/die_3d.tscn")
 const ENVIRONMENT: Environment = preload("res://assets/default_environment.tres")
-const ENGINE_LOGO: Texture2D = preload("res://assets/splash/engine.png")
-const STUDIO_LOGO: Texture2D = preload("res://assets/splash/studio.png")
-const GAME_NAME: Texture2D = preload("res://assets/splash/game.png")
+## Prebuilt emboss art (assets/splash/art): each logo's colours with its shape in alpha, and its smoothed height map. Made
+## offline from engine.png, studio.png and game.png, trimmed to fill ART_FILL of the square
+const ENGINE_INK: Texture2D = preload("res://assets/splash/art/engine_ink.png")
+const ENGINE_HEIGHT: Texture2D = preload("res://assets/splash/art/engine_height.png")
+const STUDIO_INK: Texture2D = preload("res://assets/splash/art/studio_ink.png")
+const STUDIO_HEIGHT: Texture2D = preload("res://assets/splash/art/studio_height.png")
+const GAME_INK: Texture2D = preload("res://assets/splash/art/game_ink.png")
+const GAME_HEIGHT: Texture2D = preload("res://assets/splash/art/game_height.png")
 
 ## Die look: a plain die, so the embossing is what you see
 const SAMPLE_DIE: StringName = &"all_rounder"
@@ -31,19 +36,10 @@ const FACE_GAME: int = 0
 const FACE_ENGINE: int = 1
 const FACE_STUDIO: int = 2
 
-## Emboss textures (4x the pixels of the in-game faces, so logos are sharp even when the die fills the screen)
-const ART_SIZE: int = 1024
-## Share of the face the logo's longest side fills
+## Share of the face the logo's longest side fills (as baked into the art)
 const ART_FILL: float = 0.94
-## Relief strength (scaled with ART_SIZE) and bevel softness (the height map is blurred by shrinking it by this much)
-const BUMP_SCALE: float = 12.0
-const BLUR_DIVISOR: int = 5
-## Logos on black have no alpha: brightness above LUMA_FLOOR becomes the shape, fully solid LUMA_GAIN steps above it
-const LUMA_FLOOR: float = 0.03
-const LUMA_GAIN: float = 16.0
-## The logo's inside is found on a grid this size (dark parts inside the logo, like outlines, stay solid)
-const MASK_SIZE: int = 256
-const SCAN_SIZE: int = 128
+## Relief strength for a 1024 px height map (scaled up with bigger ones)
+const BUMP_SCALE: float = 7.0
 
 const FLOOR_Y: float = -0.5
 const CAMERA_FOV: float = 35.0
@@ -135,7 +131,7 @@ func play() -> void:
 	if SaveManager.settings_data.skip_splash or has_played:
 		return
 	has_played = true
-	var art := await _build_art()
+	var art := _build_art()
 	if not _build_stage(art):
 		return
 	_playing = true
@@ -449,21 +445,24 @@ static func final_logo_rect(view_size: Vector2, used: Rect2i) -> Rect2:
 # ===========================================================================================================================================
 
 
-## Builds [ink texture, normal texture] for the engine logo, studio logo and game name, in that order. The images are
-## worked out on worker threads.
+## Builds [ink texture, normal texture] for the engine logo, studio logo and game name, in that order.
 func _build_art() -> Array:
-	var sources: Array[Image] = [_readable(ENGINE_LOGO), _readable(STUDIO_LOGO), _readable(GAME_NAME)]
-	# Logos on black are cut out by brightness; the game name already has an alpha channel
-	var has_alpha: Array[bool] = [false, false, true]
-	var images: Array = [null, null, null]
-	var task := WorkerThreadPool.add_group_task(func(i: int): images[i] = _emboss_images(sources[i], has_alpha[i]), 3)
-	while not WorkerThreadPool.is_group_task_completed(task):
-		await get_tree().process_frame
-	WorkerThreadPool.wait_for_group_task_completion(task)
-	var art: Array = []
-	for pair: Array in images:
-		art.append([ImageTexture.create_from_image(pair[0]), ImageTexture.create_from_image(pair[1])])
-	return art
+	return [_emboss(ENGINE_INK, ENGINE_HEIGHT), _emboss(STUDIO_INK, STUDIO_HEIGHT), _emboss(GAME_INK, GAME_HEIGHT)]
+
+
+## [ink, normal map] textures from the prebuilt ink and height images.
+static func _emboss(ink: Texture2D, height_map: Texture2D) -> Array:
+	var ink_image := _readable(ink)
+	ink_image.generate_mipmaps()
+	var height := _readable(height_map)
+	var size := height.get_width()
+	# Heights as floats; averaging down and bilinear back up smooths out the 8-bit steps in the stored map
+	height.convert(Image.FORMAT_RF)
+	height.resize(size / 2, size / 2, Image.INTERPOLATE_BILINEAR)
+	height.resize(size, size, Image.INTERPOLATE_BILINEAR)
+	height.bump_map_to_normal_map(BUMP_SCALE * size / 1024.0)
+	height.generate_mipmaps()
+	return [ImageTexture.create_from_image(ink_image), ImageTexture.create_from_image(height)]
 
 
 static func _readable(texture: Texture2D) -> Image:
@@ -472,106 +471,3 @@ static func _readable(texture: Texture2D) -> Image:
 		image.decompress()
 	image.convert(Image.FORMAT_RGBA8)
 	return image
-
-
-## [ink image (the logo's colours, alpha = its shape), normal map with the logo raised]. Thread safe.
-static func _emboss_images(source: Image, has_alpha: bool) -> Array:
-	var logo := _fit_logo(source, has_alpha)
-	var pixels := logo.get_data()
-	var heights := PackedByteArray()
-	heights.resize(ART_SIZE * ART_SIZE)
-	for i in heights.size():
-		heights[i] = pixels[i * 4 + 3]
-	var height := Image.create_from_data(ART_SIZE, ART_SIZE, false, Image.FORMAT_L8, heights)
-	height.convert(Image.FORMAT_RGBA8)
-	# Blurring the height map bevels the edges
-	var soft := ART_SIZE / BLUR_DIVISOR
-	# Shrinking and cubic expanding twice gives smooth slopes; one bilinear pass leaves visible creases and steps in the relief
-	height.resize(soft, soft, Image.INTERPOLATE_TRILINEAR)
-	height.resize(soft * 2, soft * 2, Image.INTERPOLATE_CUBIC)
-	height.resize(soft, soft, Image.INTERPOLATE_TRILINEAR)
-	height.resize(ART_SIZE, ART_SIZE, Image.INTERPOLATE_CUBIC)
-	height.bump_map_to_normal_map(BUMP_SCALE)
-	logo.generate_mipmaps()
-	height.generate_mipmaps()
-	return [logo, height]
-
-
-## The logo trimmed and scaled to fill a square canvas, with its shape in the alpha channel.
-static func _fit_logo(source: Image, has_alpha: bool) -> Image:
-	var bounds := _logo_bounds(source, has_alpha)
-	var region := source.get_region(bounds)
-	var factor := ART_SIZE * ART_FILL / maxi(bounds.size.x, bounds.size.y)
-	region.resize(maxi(roundi(bounds.size.x * factor), 1), maxi(roundi(bounds.size.y * factor), 1), Image.INTERPOLATE_LANCZOS)
-	var canvas := Image.create(ART_SIZE, ART_SIZE, false, Image.FORMAT_RGBA8)
-	canvas.fill(Color(1, 1, 1, 0) if has_alpha else Color.BLACK)
-	canvas.blit_rect(region, Rect2i(Vector2i.ZERO, region.get_size()), (Vector2i(ART_SIZE, ART_SIZE) - region.get_size()) / 2)
-	if not has_alpha:
-		var data := canvas.get_data()
-		var inside := _inside_mask(canvas)
-		for i in range(0, data.size(), 4):
-			var shape := clampf((_luminance(data, i) - LUMA_FLOOR) * LUMA_GAIN, 0.0, 1.0)
-			data[i + 3] = int(maxf(shape, inside[i / 4] / 255.0) * 255.0)
-		canvas.set_data(ART_SIZE, ART_SIZE, false, Image.FORMAT_RGBA8, data)
-	return canvas
-
-
-## Everything the black background doesn't reach from the picture's edge, as an ART_SIZE x ART_SIZE byte mask (255 inside,
-## soft edge). Dark outlines and shadows inside the logo count as inside, so they stay solid instead of turning see-through.
-static func _inside_mask(canvas: Image) -> PackedByteArray:
-	var small: Image = canvas.duplicate()
-	small.resize(MASK_SIZE, MASK_SIZE, Image.INTERPOLATE_BILINEAR)
-	var data := small.get_data()
-	var mask := PackedByteArray()
-	mask.resize(MASK_SIZE * MASK_SIZE)
-	mask.fill(255)
-	var stack := PackedInt32Array()
-	for i in MASK_SIZE:
-		stack.append(i)
-		stack.append((MASK_SIZE - 1) * MASK_SIZE + i)
-		stack.append(i * MASK_SIZE)
-		stack.append(i * MASK_SIZE + MASK_SIZE - 1)
-	while not stack.is_empty():
-		var cell: int = stack[stack.size() - 1]
-		stack.resize(stack.size() - 1)
-		if mask[cell] == 0 or _luminance(data, cell * 4) > LUMA_FLOOR * 0.5:
-			continue
-		mask[cell] = 0
-		var cx := cell % MASK_SIZE
-		if cx > 0:
-			stack.append(cell - 1)
-		if cx < MASK_SIZE - 1:
-			stack.append(cell + 1)
-		if cell >= MASK_SIZE:
-			stack.append(cell - MASK_SIZE)
-		if cell < MASK_SIZE * (MASK_SIZE - 1):
-			stack.append(cell + MASK_SIZE)
-	var image := Image.create_from_data(MASK_SIZE, MASK_SIZE, false, Image.FORMAT_L8, mask)
-	image.resize(ART_SIZE, ART_SIZE, Image.INTERPOLATE_BILINEAR)
-	return image.get_data()
-
-
-## Pixel rectangle the logo occupies.
-static func _logo_bounds(source: Image, has_alpha: bool) -> Rect2i:
-	var whole := Rect2i(Vector2i.ZERO, source.get_size())
-	if has_alpha:
-		var used := source.get_used_rect()
-		return used if used.has_area() else whole
-	var small: Image = source.duplicate()
-	small.resize(SCAN_SIZE, SCAN_SIZE, Image.INTERPOLATE_BILINEAR)
-	var data := small.get_data()
-	var low := Vector2i(SCAN_SIZE, SCAN_SIZE)
-	var high := Vector2i.ZERO
-	for y in SCAN_SIZE:
-		for x in SCAN_SIZE:
-			if _luminance(data, (y * SCAN_SIZE + x) * 4) > LUMA_FLOOR:
-				low = low.min(Vector2i(x, y))
-				high = high.max(Vector2i(x, y))
-	if high.x < low.x:
-		return whole
-	var cell := Vector2i(source.get_width() / SCAN_SIZE, source.get_height() / SCAN_SIZE)
-	return Rect2i(low * cell, (high - low + Vector2i.ONE) * cell).grow(maxi(cell.x, cell.y)).intersection(whole)
-
-
-static func _luminance(data: PackedByteArray, offset: int) -> float:
-	return (data[offset] * 0.299 + data[offset + 1] * 0.587 + data[offset + 2] * 0.114) / 255.0

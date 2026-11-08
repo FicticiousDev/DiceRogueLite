@@ -66,10 +66,13 @@ func _layout() -> void:
 	if not used.has_area():
 		used = Rect2i(Vector2i.ZERO, image.get_size())
 	var rect := SplashScreen.final_logo_rect(view, used)
-	var scale := rect.size.x / used.size.x
+	# Scaled to exactly the size it is shown at (the source is much larger), so it stays crisp instead of aliasing
+	var shown := image.get_region(used)
+	shown.resize(maxi(roundi(rect.size.x), 1), maxi(roundi(rect.size.y), 1), Image.INTERPOLATE_LANCZOS)
+	game_name.texture = ImageTexture.create_from_image(shown)
 	game_name.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	game_name.size = Vector2(image.get_size()) * scale
-	game_name.position = rect.get_center() - (Vector2(used.position) + Vector2(used.size) * 0.5) * scale
+	game_name.size = Vector2(shown.get_size())
+	game_name.position = rect.position
 	status.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	status.size = Vector2(800.0, 60.0)
 	status.position = Vector2(view.x * 0.5 - 400.0, rect.end.y + view.y * 0.06)
