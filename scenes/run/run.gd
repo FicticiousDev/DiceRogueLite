@@ -21,6 +21,10 @@ const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
 ## Screen fraction kept clear for the turn plan panel
 const PANEL_MARGIN: float = 0.22
 const EDGE_MARGIN: float = 0.04
+## A level has at most this share of ranged enemies (rounded up), and each ranged type is this much less likely to be
+## drawn than a melee one
+const MAX_RANGED_SHARE: float = 0.25
+const RANGED_WEIGHT: float = 0.5
 const LOOT_SHARE: float = 0.2
 const LOOT_SHARE_PER_DEPTH: float = 0.04
 const CARRY_DURATION: float = 0.9
@@ -68,6 +72,7 @@ var _enemy_details: EnemyDetails
 var _award: DieAward
 var _item_award: EquipmentAward
 var _unlock_reveal: UnlockReveal
+var _unlock_toast: UnlockToast
 var _attack_preview: AttackPreview
 var _pool_view: DicePoolView
 ## Explains the hovered die's face after a short hover
@@ -117,6 +122,8 @@ func _ready() -> void:
 	add_child(_item_award)
 	_unlock_reveal = UnlockReveal.new()
 	add_child(_unlock_reveal)
+	_unlock_toast = UnlockToast.new()
+	add_child(_unlock_toast)
 	_attack_preview = AttackPreview.new()
 	hud.add_child(_attack_preview)
 	hud.move_child(_attack_preview, 0)
@@ -285,8 +292,15 @@ func _populate(index: int) -> void:
 		enemy_cells.clear()
 	if level.type == LevelData.Type.CHALLENGE:
 		count = enemy_cells.size()
-	for cell in enemy_cells.slice(0, count):
-		board.spawn_enemy(Database.get_content("enemies", biome.enemy_ids[rng.randi() % biome.enemy_ids.size()]), cell)
+	var chosen := _enemy_cells_for(enemy_cells, count)
+	var nearest := _nearest_to_start(chosen)
+	var ranged_left := ceili(chosen.size() * MAX_RANGED_SHARE)
+	for cell in chosen:
+		# The enemy nearest the start is always a melee one: it walks up to the player rather than shooting from afar
+		var data := _roll_enemy(biome, rng, ranged_left > 0 and cell != nearest)
+		if data.attack_range > 1:
+			ranged_left -= 1
+		board.spawn_enemy(data, cell)
 
 	var loot_cells := _shuffled(board.get_marker_cells(Board.Marker.LOOT), rng)
 	# Chest dice are fully random each time the level is played, and kept off the level's seeded generator
@@ -323,6 +337,50 @@ func _populate(index: int) -> void:
 		var cells := _mystery_cells(Hex.id(board.player_start))
 		if cells.size() > 0:
 			board.spawn_mystery(cells[mystery_rng.randi() % cells.size()])
+
+
+## The first [count] of the shuffled enemy [cells], with the point nearest the player's start swapped in if the draw
+## missed it, so there is always a fight within reach on the first turn.
+func _enemy_cells_for(cells: Array[Vector2i], count: int) -> Array[Vector2i]:
+	var chosen: Array[Vector2i] = []
+	chosen.assign(cells.slice(0, count))
+	if chosen.is_empty() or chosen.size() == cells.size():
+		return chosen
+	var nearest := _nearest_to_start(cells)
+	if not chosen.has(nearest):
+		chosen[chosen.size() - 1] = nearest
+	return chosen
+
+
+## The cell in [cells] closest to the player's start (the first of them on a tie).
+func _nearest_to_start(cells: Array[Vector2i]) -> Vector2i:
+	var nearest := cells[0] if cells.size() > 0 else board.player_start
+	for cell in cells:
+		if Hex.distance(cell, board.player_start) < Hex.distance(nearest, board.player_start):
+			nearest = cell
+	return nearest
+
+
+## One of the biome's regular enemies. Ranged types are [constant RANGED_WEIGHT] as likely as melee ones, and left out
+## altogether if [ranged_allowed] is false.
+func _roll_enemy(biome: BiomeData, rng: RandomNumberGenerator, ranged_allowed: bool) -> EnemyData:
+	var pool: Array[EnemyData] = []
+	var weights: Array[float] = []
+	var total := 0.0
+	for id in biome.enemy_ids:
+		var data: EnemyData = Database.get_content("enemies", id)
+		var ranged := data.attack_range > 1
+		if ranged and not ranged_allowed:
+			continue
+		pool.append(data)
+		weights.append(RANGED_WEIGHT if ranged else 1.0)
+		total += weights[-1]
+	var roll := rng.randf() * total
+	for i in pool.size():
+		roll -= weights[i]
+		if roll < 0.0:
+			return pool[i]
+	return pool[-1]
 
 
 ## The biome's boss on the enemy point farthest from the start, with its starting minions on the next points.
@@ -440,11 +498,11 @@ func _unlock() -> void:
 
 
 ## Rewards for clearing the current level, all fully random (replaying a level can give different ones):
-## - normal levels: [member die_award_chance] of a die, rarity from the biome skewed low (DiceLoot)
-## - bosses: always a die of the biome's top rarity (as a challenge gives), and [member boss_item_chance] of an item at
+## - normal levels: [member die_award_chance] of a die, rarity by the biome (DiceLoot)
+## - bosses: always a die, from the better rarity table (as a challenge gives), and [member boss_item_chance] of an item at
 ##   the biome's rarity or higher. The boss bonus (_boss_bonus) comes first, so the die has a free slot
 ## - a challenge beaten within its turn limit: always a reward - an item at the biome's rarity or higher
-##   ([member challenge_item_chance]) or else a die of the biome's top rarity. Over the limit, nothing
+##   ([member challenge_item_chance]) or else a die from the better rarity table. Over the limit, nothing
 ## - shops: nothing
 func _level_award() -> void:
 	var run := SaveManager.run_data
@@ -592,6 +650,20 @@ func _process(delta: float) -> void:
 		_grid_overlay.show_pick(turn.hovered_tile, board.last_pick_point)
 	_update_tile_info()
 	_update_debug_menu()
+	_check_challenges()
+
+
+## Unlocks (and announces) the reward of any challenge the run in progress has just completed. Saved straight away: an
+## unlock is for good, even if the level is later resumed from its checkpoint.
+func _check_challenges() -> void:
+	var run := SaveManager.run_data
+	if not run.progress_changed or _ended:
+		return
+	run.progress_changed = false
+	var earned := SaveManager.progression_data.complete_challenges(run)
+	if earned.size() > 0:
+		SaveManager.save_data()
+		_unlock_toast.announce(earned)
 
 
 ## True while a screen over the board takes the input.
@@ -663,9 +735,13 @@ func _end_run(outcome: ProgressionData.Outcome) -> void:
 	if outcome == ProgressionData.Outcome.VICTORY:
 		await get_tree().create_timer(Anim.t(VICTORY_DELAY)).timeout
 	var finished := SaveManager.end_run(outcome)
+	# Challenges only the run's end can complete (winning a run, say)
+	var earned := SaveManager.progression_data.complete_challenges()
+	if earned.size() > 0:
+		SaveManager.save_data()
 	hud.visible = false
 	_challenge.visible = false
-	game_over.show_screen(finished, outcome)
+	game_over.show_screen(finished, outcome, earned)
 
 
 func _on_exit_pressed() -> void:

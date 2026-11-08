@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DieDesign" format=3]
+
+[ext_resource type="Mesh" path="res://assets/dice/designs/bog.obj" id="1_mesh"]
+[ext_resource type="Script" path="res://resources/dice/die_design.gd" id="2_design"]
+
+[resource]
+script = ExtResource("2_design")
+id = &"bog"
+display_name = "Bog"
+mesh = ExtResource("1_mesh")
+face_size = 0.74
+starts_unlocked = false

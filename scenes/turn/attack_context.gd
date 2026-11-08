@@ -40,6 +40,12 @@ var poison: bool = false
 var penetrate: int = 0
 ## The player's first attack of the turn (Quick Strike crits it)
 var first_attack: bool = false
+## Sets what it hits on fire: half the damage dealt to each target again at the start of the next round
+var fire: bool = false
+## Tiles between attacker and target (the player's attacks, for range bonuses)
+var distance: int = 0
+## Flat damage added after the parts and their multipliers (crits included), before defence
+var bonus: int = 0
 ## Names of the abilities that changed this attack, for the turn plan
 var notes: PackedStringArray = []
 ## What kind of attack it is when it isn't a plain swing (a charge, flames), for the turn plan
@@ -83,7 +89,17 @@ func raw() -> int:
 	var total := 0
 	for i in parts.size():
 		total += parts[i] * part_multipliers[i]
-	return total * multiplier
+	return total * multiplier + bonus
+
+
+## Armour piercing: ignores some or all of the target's defence. An ice shield takes double from it.
+func pierces() -> bool:
+	return ignore_defence or penetrate > 0
+
+
+## How much of an ice shield each point of damage takes (Enemy.take_damage).
+func shield_multiplier() -> int:
+	return 2 if pierces() else 1
 
 
 func damage() -> int:
@@ -117,6 +133,9 @@ func split(other: BoardPiece, other_defence: int) -> AttackContext:
 	ctx.base_damage = base_damage
 	ctx.crit = crit
 	ctx.multiplier = multiplier
+	ctx.bonus = bonus
+	ctx.distance = distance
+	ctx.fire = fire
 	ctx.insta_kill = insta_kill
 	ctx.ignore_defence = ignore_defence
 	if insta_kill and other is Enemy and other.data.is_boss:
@@ -133,12 +152,13 @@ static func value_text(value: int) -> String:
 	return "ALL" if value >= BLOCK_ALL else str(value)
 
 
-## An enemy's attack: its fixed damage, with random crit/miss chances.
-static func roll_enemy(enemy: Enemy, player: BoardPiece, assigned_defence: int = 0) -> AttackContext:
+## An enemy's attack: its fixed damage, with random crit/miss chances ([miss_scale] multiplies the miss chance).
+static func roll_enemy(enemy: Enemy, player: BoardPiece, assigned_defence: int = 0, miss_scale: float = 1.0) -> AttackContext:
 	var data := enemy.data
 	var ctx := AttackContext.new(enemy, player, data.attack, assigned_defence)
 	var roll := randf()
-	ctx.miss = roll < data.miss_chance
-	if not ctx.miss and roll < data.miss_chance + data.crit_chance:
+	var miss_chance := data.miss_chance * miss_scale
+	ctx.miss = roll < miss_chance
+	if not ctx.miss and roll < miss_chance + data.crit_chance:
 		ctx.crit_part(0)
 	return ctx

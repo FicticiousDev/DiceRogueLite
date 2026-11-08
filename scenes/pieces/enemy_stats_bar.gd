@@ -2,18 +2,20 @@ class_name EnemyStatsBar
 extends Node3D
 
 ## An enemy's on-board stats. Lives under the cut-out so it moves and turns about Y with it:
-## - [EnemyHealthBar] (health, defence, boss crown) on the piece's top edge, just in front of it so it draws over the
+## - [EnemyHealthBar] (health, defence bar, retaliation sword, boss crown) on the piece's top edge, just in front of it so it draws over the
 ##   frame, with the [EnemyInfo] row of chips above it; both tilt back together about the bar's base towards the camera
-## - status badges (stunned, poisoned) stacked down the piece's top-right corner, faded while only planned
+## - status badges (stunned, poisoned, on fire) stacked down the piece's top-right corner, faded while only planned
 ## Viewports are drawn at roughly twice screen density at the usual camera distance; much more and the textures
 ## alias when shrunk (they have no mipmaps).
 
 const INFO_SCENE: PackedScene = preload("res://scenes/ui/enemy_info/enemy_info.tscn")
 const STUN: Texture2D = preload("res://assets/ui/icons/stun.png")
 const POISON: Texture2D = preload("res://assets/ui/icons/poison.png")
+const FIRE: Texture2D = preload("res://assets/ui/icons/fire.png")
 const DISC: Texture2D = preload("res://assets/ui/disc.png")
 const STUN_COLOR: Color = Color(1.0, 0.75, 0.3)
 const POISON_COLOR: Color = Color(0.55, 1.0, 0.45)
+const FIRE_COLOR: Color = Color(1.0, 0.55, 0.2)
 const HEALTH_PIXEL_SIZE: float = 0.0065
 ## Health bar width relative to the piece's
 const HEALTH_WIDTH_SCALE: float = 1.38
@@ -36,6 +38,7 @@ var _info_viewport: SubViewport
 var _chips_sprite: Sprite3D
 var _stun: Sprite3D
 var _poison: Sprite3D
+var _fire: Sprite3D
 
 
 func setup(enemy: Enemy) -> void:
@@ -56,6 +59,7 @@ func setup(enemy: Enemy) -> void:
 
 	_stun = _badge(STUN, STUN_COLOR)
 	_poison = _badge(POISON, POISON_COLOR)
+	_fire = _badge(FIRE, FIRE_COLOR)
 
 
 func _process(_delta: float) -> void:
@@ -70,7 +74,7 @@ func _process(_delta: float) -> void:
 ## Sizes the viewports to their contents and stacks the chips on the health bar.
 func _fit() -> void:
 	var cutout := _enemy.cutout
-	var health_size := Vector2i(ceili(cutout.width() * HEALTH_WIDTH_SCALE / HEALTH_PIXEL_SIZE), int(EnemyHealthBar.height(_enemy.data.is_boss)))
+	var health_size := Vector2i(ceili(cutout.width() * HEALTH_WIDTH_SCALE / HEALTH_PIXEL_SIZE), int(EnemyHealthBar.height(_enemy.data)))
 	var info_size := Vector2i(_info.get_combined_minimum_size().ceil())
 	if health_size == _health_viewport.size and info_size == _info_viewport.size:
 		return
@@ -91,7 +95,7 @@ func _fit() -> void:
 func _update_badges() -> void:
 	var cutout := _enemy.cutout
 	var corner := Vector3(cutout.width() / 2.0 - BADGE_SIZE / 2.0, cutout.height - BADGE_SIZE / 2.0, cutout.thickness / 2.0 + 0.015)
-	for entry: Array in [[_stun, _enemy.stunned, _enemy.preview_stunned], [_poison, _enemy.poisoned, _enemy.preview_poisoned]]:
+	for entry: Array in [[_stun, _enemy.stunned, _enemy.preview_stunned], [_poison, _enemy.poisoned, _enemy.preview_poisoned], [_fire, _enemy.burn > 0, _enemy.preview_burning]]:
 		var badge: Sprite3D = entry[0]
 		badge.visible = entry[1] or entry[2]
 		if badge.visible:

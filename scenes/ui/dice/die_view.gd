@@ -28,6 +28,10 @@ var die: Die3D
 var inspect_on_click: bool = true
 ## Turns slowly until the player first drags it
 var idle_spin: bool = true
+## Look overrides (set before it enters the tree); the player's design and finishes if not set
+var design: DieDesign
+var finish: DieFinish
+var trim_finish: DieFinish
 
 var _viewport: SubViewport
 var _pressed: bool = false
@@ -83,11 +87,14 @@ func _ready() -> void:
 	fill.light_energy = 0.3
 	_viewport.add_child(fill)
 
-	var design: DieDesign = Database.get_content("die_designs", SaveManager.progression_data.die_design)
+	if design == null:
+		design = Database.get_content("die_designs", SaveManager.progression_data.die_design)
 	if design == null:
 		design = Database.get_all("die_designs")[0]
 	die = DIE_SCENE.instantiate()
 	die.setup(-1, die_type, design)
+	die.finish = finish
+	die.trim_finish = trim_finish
 	die.freeze = true
 	die.collision_layer = 0
 	die.collision_mask = 0

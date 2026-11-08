@@ -10,5 +10,3 @@ id = &"sharp"
 display_name = "Sharp"
 mesh = SubResource("BoxMesh_nqw0x")
 face_size = 0.86
-roughness = 0.25
-metallic = 0.3

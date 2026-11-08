@@ -1,30 +1,29 @@
 [gd_resource type="Resource" script_class="CharacterData" format=3]
 
-[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_d3m2m"]
-[ext_resource type="Script" path="res://resources/abilities/double_attack_ability.gd" id="2_gvekq"]
-[ext_resource type="Script" path="res://resources/abilities/strike_first_ability.gd" id="3_smxcl"]
-[ext_resource type="Script" path="res://resources/character_data.gd" id="4_kx1wc"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="5_xyueg"]
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
+[ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
+[ext_resource type="Script" path="res://resources/abilities/double_attack_ability.gd" id="3_double_attack_ability"]
+[ext_resource type="Script" path="res://resources/abilities/strike_first_ability.gd" id="4_strike_first_ability"]
 
-[sub_resource type="Resource" id="Resource_d3m2m"]
-script = ExtResource("3_smxcl")
+[sub_resource type="Resource" id="Ability_passive"]
+script = ExtResource("4_strike_first_ability")
 id = &"quick_strike"
 display_name = "Quick Strike"
 description = "Passive: you always strike first, even against enemies that strike first, and your first attack each turn is a crit."
 
-[sub_resource type="Resource" id="Resource_gvekq"]
-script = ExtResource("2_gvekq")
+[sub_resource type="Resource" id="Ability_active"]
+script = ExtResource("3_double_attack_ability")
 id = &"ambush"
 display_name = "Ambush"
-description = "Once per level: double the highest die of one attack (stacks with a crit)."
+description = "Every 3 turns: double the highest die of one attack (stacks with a crit)."
 active = true
-uses_per_level = 1
+cooldown = 3
 
 [resource]
-script = ExtResource("4_kx1wc")
+script = ExtResource("2_character")
 id = &"assassin"
 order = 1
 display_name = "Assassin"
 tint = Color(0.6, 1, 0.6, 1)
-abilities = Array[ExtResource("1_d3m2m")]([SubResource("Resource_d3m2m"), SubResource("Resource_gvekq")])
+abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"viper", &"viper"])

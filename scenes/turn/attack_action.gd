@@ -35,20 +35,28 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	for ability in actives:
 		if not spent.has(ability):
 			_notes.append("No %s uses left" % ability.display_name)
-	_ctx = turn.player_attack_context(enemy, dice, spent, state.attacks == 0)
+	_ctx = turn.player_attack_context(enemy, dice, spent, state.attacks == 0, state.player_tile, state.boosts)
 	state.attacks += 1
+	# A crit boost goes on the first attack after it
+	state.boosts.erase(&"crit")
 	damage = _ctx.damage()
 	_notes.append_array(_ctx.notes)
-	state.hurt(enemy, damage)
+	state.hurt(enemy, damage, _ctx.shield_multiplier())
 	for tile_id in _ctx.aoe_tiles:
 		var other := turn.board.get_piece(tile_id) as Enemy
 		if other and state.is_alive(other):
-			var splash := _ctx.split(other, other.data.defence).damage()
-			state.hurt(other, splash)
+			var splash := _ctx.split(other, 0).damage()
+			state.hurt(other, splash, _ctx.shield_multiplier())
 			_notes.append("%s %s" % [other.data.display_name, "killed" if state.enemy_hp[other] <= 0 else "-%d" % splash])
+			if _ctx.fire and state.is_alive(other) and splash / 2 > 0 and not state.burning.has(other):
+				state.burning.append(other)
 	if state.enemy_hp[enemy] <= 0:
 		_notes.append("Kills it (+%d gold)" % TurnController.kill_gold(enemy.data))
 	else:
+		if _ctx.fire and damage / 2 > 0:
+			if not state.burning.has(enemy):
+				state.burning.append(enemy)
+			_notes.append("Sets it on fire (%d next round)" % (damage / 2))
 		if _ctx.stun and enemy.data.stun_immune:
 			_notes.append("Immune to stun")
 		elif _ctx.stun and not state.stunned.has(enemy):
@@ -70,8 +78,12 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 func _add_strike_note(state: TurnState, turn: TurnController, verb: String) -> void:
 	if not enemy.can_hit(state.player_tile):
 		return
+	var noun := "first strike" if verb == "Strikes first" else "retaliation"
 	if state.stunned.has(enemy):
-		_notes.append("Stunned: no %s" % ("first strike" if verb == "Strikes first" else "retaliation"))
+		_notes.append("Stunned: no %s" % noun)
+		return
+	if not turn.can_retaliate(enemy):
+		_notes.append("Already attacked: no %s" % noun)
 		return
 	state.retaliated.append(enemy)
 	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack, 0)

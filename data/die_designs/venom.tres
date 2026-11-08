@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DieDesign" format=3]
+
+[ext_resource type="Mesh" path="res://assets/dice/designs/venom.obj" id="1_mesh"]
+[ext_resource type="Script" path="res://resources/dice/die_design.gd" id="2_design"]
+
+[resource]
+script = ExtResource("2_design")
+id = &"venom"
+display_name = "Venom"
+mesh = ExtResource("1_mesh")
+face_size = 0.55
+face_offset = 0.485
+starts_unlocked = false

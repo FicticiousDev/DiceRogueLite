@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UnlockChallenge" format=3]
+
+[ext_resource type="Script" path="res://resources/unlock_challenge.gd" id="1_challenge"]
+
+[resource]
+script = ExtResource("1_challenge")
+id = &"unlock_sniper"
+description = "Kill 100 ranged enemies."
+reward_id = &"sniper"
+stat = &"ranged_kill"
+target = 100

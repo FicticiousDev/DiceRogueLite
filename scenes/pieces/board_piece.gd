@@ -22,8 +22,8 @@ var tile_id: int = -1
 ## their turns (a heal cures it instead of restoring health)
 var stunned: bool = false
 var poisoned: bool = false
-## Player only. Frozen: this turn's movement is halved (rounded up), set at the start of the turn after a freezing hit
-## ([member frozen_next]). Burn: damage still to take at the start of the next turn from hits that set the piece on fire
+## Player only: frozen - this turn's movement is halved (rounded up), set at the start of the turn after a freezing hit
+## ([member frozen_next]). Burn: damage still to take at the start of the next round from hits that set the piece on fire
 var frozen: bool = false
 var frozen_next: bool = false
 var burn: int = 0
@@ -60,6 +60,17 @@ func teleport_to(target_id: int) -> void:
 	visible = true
 	tween = create_tween()
 	tween.tween_property(body, "scale", Vector3(x, 1.0, 1.0), Anim.t(0.3)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	await tween.finished
+	_land()
+	moved.emit(from_id, target_id)
+
+
+## Shoved sideways onto [target_id] (knockback): a quick slide with a bump on arrival. Awaitable.
+func shove_to(target_id: int) -> void:
+	var from_id := tile_id
+	_set_tile(target_id)
+	var tween := create_tween()
+	tween.tween_property(self, "position", board.cell_top_local(Hex.coords(target_id)), Anim.t(0.16)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	_land()
 	moved.emit(from_id, target_id)

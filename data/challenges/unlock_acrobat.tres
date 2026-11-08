@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UnlockChallenge" format=3]
+
+[ext_resource type="Script" path="res://resources/unlock_challenge.gd" id="1_challenge"]
+
+[resource]
+script = ExtResource("1_challenge")
+id = &"unlock_acrobat"
+description = "Dodge an attack from every boss."
+reward_id = &"acrobat"
+stat = &"dodged_boss"
+subjects = Array[StringName]([&"warlord", &"overseer", &"brood_mother", &"colossus", &"tyrant", &"overlord"])
+mode = 1

@@ -22,4 +22,4 @@ stun_immune = true
 size = 1.6
 behaviour = SubResource("Resource_behaviour")
 minion = ExtResource("3")
-description = "Never walks: charges up to 5 tiles in a straight line towards you, ending at a wall\nEvery piece in the way takes an attack\nAt half health calls 6 Dust Raiders, one on each side of the arena"
+description = "Never walks: charges up to 5 tiles in a straight line towards you, ending at a wall\nEvery piece in the way takes an attack and is knocked aside\nAt half health calls 6 Dust Raiders, one on each side of the arena"

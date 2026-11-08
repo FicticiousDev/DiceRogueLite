@@ -51,8 +51,8 @@ func _build() -> void:
 	add_child(_attack)
 	add_child(_chip(MOVE, Symbol.INK[Symbol.Type.MOVE].lightened(0.4), str(data.move)))
 	# Range only matters beyond melee
-	if data.attack_range > 1:
-		add_child(_chip(BOW, Color(0.95, 0.85, 0.6), str(data.attack_range)))
+	if enemy.reach() > 1:
+		add_child(_chip(BOW, Color(0.95, 0.85, 0.6), str(enemy.reach())))
 	if data.attacks_first:
 		add_child(_chip(LIGHTNING, PLANNED_COLOR, ""))
 

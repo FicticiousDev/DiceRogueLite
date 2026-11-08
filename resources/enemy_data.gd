@@ -14,6 +14,8 @@ extends Resource
 @export_range(0.0, 1.0) var crit_chance: float = 0.05
 @export_range(0.0, 1.0) var miss_chance: float = 0.05
 @export var attack_range: int = 1
+## Defence: a bar of this many segments that soaks damage before the ice shield and health (armour piercing bypasses
+## it), and recovers one segment at the end of each round
 @export var defence: int = 0
 ## Strikes before the player's attack when retaliating
 @export var attacks_first: bool = false

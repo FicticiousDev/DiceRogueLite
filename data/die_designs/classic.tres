@@ -9,4 +9,3 @@ id = &"classic"
 display_name = "Classic"
 mesh = ExtResource("1_5w6s1")
 face_size = 0.74
-roughness = 0.4

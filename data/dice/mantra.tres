@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="DieType" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_face.gd" id="1_face"]
+[ext_resource type="Script" path="res://resources/dice/face_symbol.gd" id="2_symbol"]
+[ext_resource type="Script" path="res://resources/dice/die_type.gd" id="3_type"]
+
+[sub_resource type="Resource" id="Symbol_0_0"]
+script = ExtResource("2_symbol")
+count = 2
+
+[sub_resource type="Resource" id="Face_0"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_0_0")])
+
+[sub_resource type="Resource" id="Symbol_1_0"]
+script = ExtResource("2_symbol")
+
+[sub_resource type="Resource" id="Symbol_1_1"]
+script = ExtResource("2_symbol")
+symbol = 8
+
+[sub_resource type="Resource" id="Face_1"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_1_0"), SubResource("Symbol_1_1")])
+
+[sub_resource type="Resource" id="Symbol_2_0"]
+script = ExtResource("2_symbol")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Face_2"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_2_0")])
+
+[sub_resource type="Resource" id="Symbol_3_0"]
+script = ExtResource("2_symbol")
+symbol = 1
+count = 2
+
+[sub_resource type="Resource" id="Face_3"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_3_0")])
+
+[sub_resource type="Resource" id="Symbol_4_0"]
+script = ExtResource("2_symbol")
+symbol = 5
+
+[sub_resource type="Resource" id="Face_4"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_4_0")])
+
+[sub_resource type="Resource" id="Symbol_5_0"]
+script = ExtResource("2_symbol")
+symbol = 2
+count = 2
+
+[sub_resource type="Resource" id="Face_5"]
+script = ExtResource("1_face")
+symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_5_0")])
+
+[resource]
+script = ExtResource("3_type")
+id = &"mantra"
+display_name = "Mantra Die"
+rarity = 1
+faces = Array[ExtResource("1_face")]([SubResource("Face_0"), SubResource("Face_1"), SubResource("Face_2"), SubResource("Face_3"), SubResource("Face_4"), SubResource("Face_5")])

@@ -40,7 +40,7 @@ static func symbol(type: Symbol.Type, count: int, face: DieFace) -> String:
 		Symbol.Type.POISON:
 			return "Poison: the target takes 1 damage at the start of each enemy turn until it dies."
 		Symbol.Type.PENETRATE:
-			return "Pierce %d: ignores %d of the target's defence." % [count, count]
+			return "Pierce %d: ignores %d of the target's defence, and deals double damage to an ice shield." % [count, count]
 		Symbol.Type.RANGE:
 			return "Range +%d: this attack reaches %d tiles further. Combined with a die without range, the range is lost." % [count, count]
 	return ""

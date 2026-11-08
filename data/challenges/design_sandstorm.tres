@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UnlockChallenge" format=3]
+
+[ext_resource type="Script" path="res://resources/unlock_challenge.gd" id="1_challenge"]
+
+[resource]
+script = ExtResource("1_challenge")
+id = &"design_sandstorm"
+description = "Defeat the Overseer (Badlands boss) 10 times."
+reward = 1
+reward_id = &"sandstorm"
+stat = &"boss_defeated"
+subjects = Array[StringName]([&"overseer"])
+target = 10

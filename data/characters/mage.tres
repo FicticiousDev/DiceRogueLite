@@ -1,31 +1,30 @@
 [gd_resource type="Resource" script_class="CharacterData" format=3]
 
-[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_xh7cf"]
-[ext_resource type="Script" path="res://resources/abilities/area_attack_ability.gd" id="2_5n6ce"]
-[ext_resource type="Script" path="res://resources/abilities/ignore_defence_ability.gd" id="2_snl83"]
-[ext_resource type="Script" path="res://resources/character_data.gd" id="3_snl83"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="4_kx2kg"]
+[ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
+[ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
+[ext_resource type="Script" path="res://resources/abilities/area_attack_ability.gd" id="3_area_attack_ability"]
+[ext_resource type="Script" path="res://resources/abilities/ignore_defence_ability.gd" id="4_ignore_defence_ability"]
 
-[sub_resource type="Resource" id="Resource_kx2kg"]
-script = ExtResource("2_snl83")
+[sub_resource type="Resource" id="Ability_passive"]
+script = ExtResource("4_ignore_defence_ability")
 id = &"arcane"
 display_name = "Arcane"
-description = "Twice per level: an attack ignores enemy defence."
-active = true
-uses_per_level = 2
+description = "Passive: your attacks ignore enemy defence."
 
-[sub_resource type="Resource" id="Resource_dtkdx"]
-script = ExtResource("2_5n6ce")
+[sub_resource type="Resource" id="Ability_active"]
+script = ExtResource("3_area_attack_ability")
 id = &"blast"
 display_name = "Blast"
-description = "Passive: your attacks also hit every tile next to the target for the same damage."
+description = "Every 3 turns: an attack also hits every tile next to the target for the same damage."
+active = true
+cooldown = 3
 
 [resource]
-script = ExtResource("3_snl83")
+script = ExtResource("2_character")
 id = &"mage"
 order = 2
 display_name = "Mage"
 tint = Color(1, 0.7, 1, 1)
 attack_range = 3
-abilities = Array[ExtResource("1_xh7cf")]([SubResource("Resource_dtkdx"), SubResource("Resource_kx2kg")])
+abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"phase", &"phase"])

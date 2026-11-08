@@ -260,6 +260,14 @@ func _arrange_row(results: Array[DieResult]) -> void:
 		await last.finished
 
 
+## Screen position of the right-most die in the row, or (-1, -1) if the row is empty.
+func row_end_screen() -> Vector2:
+	# The slot layout divides by the row's width, so it can't be built before the first roll
+	if _row_order.is_empty():
+		return Vector2(-1.0, -1.0)
+	return camera.unproject_position(_row_targets().back().origin)
+
+
 ## Slides the row dice to their slots again, e.g. after the layout or camera changed.
 func refresh_row() -> void:
 	if rolling or dice.is_empty():

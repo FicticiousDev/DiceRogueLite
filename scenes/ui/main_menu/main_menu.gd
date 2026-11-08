@@ -1,16 +1,21 @@
 extends Node3D
 
-## Main menu with a placeholder 3D backdrop.
+## Main menu with a placeholder 3D backdrop. DICE opens the dice designer (DiceDesigner).
 
 const RUN_SCENE: String = "res://scenes/run/run.tscn"
 
 @onready var new_run_button: Button = %NewRunButton
 @onready var continue_button: Button = %ContinueButton
 @onready var settings_button: Button = %SettingsButton
+@onready var dice_button: Button = %DiceButton
 @onready var quit_button: Button = %QuitButton
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
 @onready var hex: MeshInstance3D = $Hex
 @onready var piece: Sprite3D = $Hex/Piece
+@onready var splash: SplashScreen = $SplashScreen
+@onready var loading_screen: LoadingScreen = $LoadingScreen
+
+var _designer: DiceDesigner
 
 
 func _ready() -> void:
@@ -19,7 +24,14 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit_pressed)
 	continue_button.pressed.connect(_on_continue_pressed)
 	continue_button.disabled = not SaveManager.has_run()
+	_designer = DiceDesigner.new()
+	add_child(_designer)
+	dice_button.pressed.connect(_designer.open)
+	# Challenges a run ended from here (abandoned) may have completed
+	if SaveManager.progression_data.complete_challenges().size() > 0:
+		SaveManager.save_data()
 	_bob_piece()
+	_run_startup()
 
 
 func _process(delta: float) -> void:
@@ -51,3 +63,9 @@ func _bob_piece() -> void:
 	var tween := create_tween().set_loops()
 	tween.tween_property(piece, "position:y", piece.position.y + 0.12, 0.6).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(piece, "position:y", piece.position.y, 0.6).set_trans(Tween.TRANS_SINE)
+
+
+## Launch sequence: splash (if not skipped), then the loading screen, which always runs once per launch.
+func _run_startup() -> void:
+	await splash.play()
+	await loading_screen.run(splash)

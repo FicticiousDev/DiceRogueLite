@@ -27,6 +27,7 @@ func apply_form(boss: Enemy, index: int) -> void:
 	boss.form = index
 	for stat in FORMS[index]:
 		boss.data.set(stat, FORMS[index][stat])
+	boss.set_defence(boss.data.defence)
 	boss.stats_changed.emit()
 
 

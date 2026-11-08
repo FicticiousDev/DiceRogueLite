@@ -21,8 +21,8 @@ func _ready() -> void:
 	menu_button.pressed.connect(_on_menu_pressed)
 
 
-## Shows the summary of [run], which ended with [outcome].
-func show_screen(run: RunData, outcome: ProgressionData.Outcome) -> void:
+## Shows the summary of [run], which ended with [outcome]. [unlocked]: challenges the run's end completed.
+func show_screen(run: RunData, outcome: ProgressionData.Outcome, unlocked: Array[UnlockChallenge] = []) -> void:
 	var won := outcome == ProgressionData.Outcome.VICTORY
 	title.text = "RUN COMPLETE" if won else "DEFEATED"
 	title.add_theme_color_override("font_color", VICTORY_COLOR if won else DEFEAT_COLOR)
@@ -55,6 +55,8 @@ func show_screen(run: RunData, outcome: ProgressionData.Outcome) -> void:
 		stats.add_child(row)
 	var progression := SaveManager.progression_data
 	lifetime.text = "All runs: %d played  ·  %d won  ·  %d lost" % [progression.runs, progression.victories, progression.deaths]
+	if unlocked.size() > 0:
+		lifetime.text += "\nUnlocked: " + ", ".join(unlocked.map(func(c: UnlockChallenge): return c.reward_name()))
 
 	visible = true
 	panel.pivot_offset = panel.size / 2.0

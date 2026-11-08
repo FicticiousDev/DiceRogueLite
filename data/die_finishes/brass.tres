@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DieFinish" format=3]
+
+[ext_resource type="Script" path="res://resources/dice/die_finish.gd" id="1_finish"]
+
+[resource]
+script = ExtResource("1_finish")
+id = &"brass"
+display_name = "Brass"
+pattern = 1
+base_color = Color(0.85, 0.65, 0.3, 1)
+tint = 0.7
+detail_color = Color(0.2, 0.2, 0.2, 1)
+roughness = 0.3
+metallic = 0.95

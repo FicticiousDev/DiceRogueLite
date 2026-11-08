@@ -84,12 +84,8 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 		_rows.add_child(outcome)
 		outcome.add_child(_text("vs %s:" % target.data.display_name, 20, Color(0.85, 0.85, 0.9)))
 		if not ctx.insta_kill:
-			if ctx.ignore_defence:
-				outcome.add_child(_text("ignores defence", 20, Color(0.6, 0.8, 1.0)))
-			elif ctx.defence > 0:
-				var blocked := maxi(ctx.defence - ctx.penetrate, 0)
-				outcome.add_child(_icon(SHIELD, Color(0.45, 0.7, 1.0), 24))
-				outcome.add_child(_text("−%d%s" % [blocked, "  (pierce %d)" % ctx.penetrate if ctx.penetrate > 0 else ""], 20, Color(0.6, 0.8, 1.0)))
+			if ctx.pierces() and target.data.defence > 0:
+				outcome.add_child(_text("bypasses defence", 20, Color(0.6, 0.8, 1.0)))
 		var damage := ctx.damage()
 		outcome.add_child(_text("→  %s damage" % ("all" if ctx.insta_kill else str(damage)), 22, Color(1, 0.5, 0.4)))
 		outcome.add_child(_icon(HEART, Color(1, 0.35, 0.35), 24))

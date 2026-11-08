@@ -38,6 +38,12 @@ class_name RunData
 @export var dice_obtained: int = 0
 ## Items equipped from loot (replacements included)
 @export var items_obtained: int = 0
+## Counts kept for unlock challenges (UnlockChallenge.stat), by name: "stun", "ranged_kill", "boss_defeated:<boss id>"...
+## Added to ProgressionData.counters when the run ends
+@export var counters: Dictionary = {}
+
+## Set whenever a count or stat a challenge may use changes, so the run can check for completed challenges
+var progress_changed: bool = false
 
 ## TODO - track effects and upgraded dice
 
@@ -83,10 +89,17 @@ func equip(item: EquipmentData, index: int) -> void:
 	health = clampi(health + maxi(item.max_hp, 0), 1, max_health)
 
 
+## Adds [amount] to the counter [key] (see [member counters]).
+func count(key: StringName, amount: int = 1) -> void:
+	counters[String(key)] = int(counters.get(String(key), 0)) + amount
+	progress_changed = true
+
+
 ## Adds [amount] gold, counting it as earned.
 func add_gold(amount: int) -> void:
 	gold += amount
 	gold_earned += amount
+	progress_changed = true
 
 
 ## Takes [amount] gold, counting it as spent (shops).

@@ -1,7 +1,7 @@
 class_name TopBar
 extends PanelContainer
 
-## Status bar along the top: character and ability charges, HP, gold, banked gold (greyed while the bank is empty)
+## Status bar along the top: character and its abilities (actives: ready, or turns to wait), HP, gold, banked gold (greyed while the bank is empty)
 ## equipped items (hover for what they do; actives show their uses left) and the dice pool - the pool's rarest die,
 ## turning, with the pool size; clicking it opens the pool viewer.
 
@@ -153,13 +153,13 @@ func _update_pool() -> void:
 	_pool_box.add_child(_pool_label)
 
 
-## Character name, then each ability; the active shows its uses left this level (as planned while planning).
+## Character name, then each ability; the active shows whether it's ready, or how long until it is (as planned while
+## planning).
 func _update_abilities() -> void:
 	if turn == null or turn.player == null or turn.player.character == null:
 		return
 	var character := turn.player.character
 	_character.text = character.display_name
-	var uses := turn.uses_preview()
 	for ability in character.abilities:
 		if not _abilities.has(ability.id):
 			var label := Label.new()
@@ -172,9 +172,8 @@ func _update_abilities() -> void:
 			_abilities[ability.id] = label
 		var label := _abilities[ability.id]
 		if ability.active:
-			var left: int = uses.get(ability.id, 0)
-			label.text = "%s %d/%d" % [ability.display_name, left, ability.uses_per_level]
-			label.modulate.a = 1.0 if left > 0 else 0.35
+			label.text = "%s %s" % [ability.display_name, turn.active_status(ability).to_lower()]
+			label.modulate.a = 1.0 if turn.uses_preview().get(ability.id, 0) > 0 else 0.35
 		else:
 			label.text = ability.display_name
 

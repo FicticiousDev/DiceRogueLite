@@ -3,7 +3,9 @@ extends RigidBody3D
 
 ## A physical die. Collision is always a cube of side [size]; the visible body comes from a swappable DieDesign
 ## (authored at unit size) and the six faces are quads on the design's flat face areas, textured with the
-## DieType's carved symbols. Physics bodies can't be scaled, so animate [visual] for squash/pop effects.
+## DieType's carved symbols. The body and faces wear the player's finish, a design's trim its trim finish (DieFinish),
+## unless [member finish] / [member trim_finish] are set. Physics bodies can't be scaled, so animate [visual] for
+## squash/pop effects.
 
 enum State { IDLE, SELECTED, USED, DISABLED }
 
@@ -13,10 +15,15 @@ const FACE_NORMALS: Array[Vector3] = [Vector3.UP, Vector3.RIGHT, Vector3.BACK, V
 const FACE_UPS: Array[Vector3] = [Vector3.FORWARD, Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP, Vector3.BACK]
 const BODY_SHADER: Shader = preload("res://shaders/die_body.gdshader")
 const FACE_SHADER: Shader = preload("res://shaders/die_face.gdshader")
+## See-through finishes (DieFinish.is_transparent)
+const BODY_GLASS_SHADER: Shader = preload("res://shaders/die_body_glass.gdshader")
+const FACE_GLASS_SHADER: Shader = preload("res://shaders/die_face_glass.gdshader")
 ## Minimum dot between the top face and up to count as lying flat
 const FLAT_THRESHOLD: float = 0.97
 ## Render layer for dice and the tray, lit only by the tray's own light
 const DICE_LAYER: int = 2
+## Darkens a trim finish so it reads apart from the body
+const TRIM_SHADE: float = 0.8
 
 @onready var visual: Node3D = $Visual
 @onready var body: MeshInstance3D = $Visual/Body
@@ -28,6 +35,9 @@ var die_type: DieType
 var design: DieDesign
 ## Side length in world units
 var size: float = 1.0
+## Finishes for the body and faces, and for a design's trim; the player's if not set before it enters the tree
+var finish: DieFinish
+var trim_finish: DieFinish
 var state: State = State.IDLE
 var _materials: Array[ShaderMaterial] = []
 var _face_materials: Array[ShaderMaterial] = []
@@ -49,15 +59,21 @@ func _ready() -> void:
 	collision.shape = shape
 	visual.scale = Vector3.ONE * size
 
+	if finish == null:
+		finish = player_finish(false)
+	if trim_finish == null:
+		trim_finish = player_finish(true)
 	body.mesh = design.mesh
-	body.material_override = _material(BODY_SHADER, color)
+	# The first surface is the body; any other is the design's trim
+	for i in design.mesh.get_surface_count():
+		body.set_surface_override_material(i, _material(BODY_SHADER, color, finish if i == 0 else trim_finish, 1.0 if i == 0 else TRIM_SHADE))
 	body.layers = DICE_LAYER
 
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE * design.face_size
 	for i in 6:
 		var textures := DieFaceTextures.get_textures(die_type.faces[i])
-		var material := _material(FACE_SHADER, color)
+		var material := _material(FACE_SHADER, color, finish)
 		material.set_shader_parameter("ink_texture", textures[0])
 		material.set_shader_parameter("normal_texture", textures[1])
 		_face_materials.append(material)
@@ -69,6 +85,8 @@ func _ready() -> void:
 		var normal := FACE_NORMALS[i]
 		var up := FACE_UPS[i]
 		face.transform = Transform3D(Basis(up.cross(normal), up, normal), normal * (design.face_offset + 0.002))
+		# The finish's pattern is laid out in die space, so the face carries on the body's
+		material.set_shader_parameter("pattern_transform", face.transform)
 		faces_root.add_child(face)
 
 
@@ -103,6 +121,16 @@ func set_face_display(face_index: int, face: DieFace) -> void:
 	_face_materials[face_index].set_shader_parameter("ink_texture", textures[0])
 	_face_materials[face_index].set_shader_parameter("normal_texture", textures[1])
 	pop()
+
+
+## Replaces a face's artwork with custom textures: [ink] (colour, alpha = shape) and [normal] (relief). [recess] is how dark
+## the shape is against the face (1: not darkened), e.g. for embossed logos.
+func set_face_art(face_index: int, ink: Texture2D, normal: Texture2D, recess: float = 0.45, ink_strength: float = 0.7) -> void:
+	var material := _face_materials[face_index]
+	material.set_shader_parameter("ink_texture", ink)
+	material.set_shader_parameter("normal_texture", normal)
+	material.set_shader_parameter("recess_shade", recess)
+	material.set_shader_parameter("ink_strength", ink_strength)
 
 
 ## Raises the visual by [offset] (world space) relative to the body, e.g. towards the top of the screen.
@@ -157,12 +185,24 @@ func _face_towards(direction: Vector3) -> int:
 	return best
 
 
-func _material(shader: Shader, color: Color) -> ShaderMaterial:
+## The player's chosen finish (the trim's if [trim]), or a default if it's missing.
+static func player_finish(trim: bool) -> DieFinish:
+	var progression := SaveManager.progression_data
+	var found: DieFinish = Database.get_content("die_finishes", progression.die_trim_finish if trim else progression.die_finish)
+	if found == null:
+		found = Database.get_content("die_finishes", &"brass" if trim else &"plastic")
+	return found
+
+
+func _material(shader: Shader, color: Color, look: DieFinish, shade: float = 1.0) -> ShaderMaterial:
+	if look and look.is_transparent():
+		shader = BODY_GLASS_SHADER if shader == BODY_SHADER else FACE_GLASS_SHADER
 	var material := ShaderMaterial.new()
 	material.shader = shader
 	material.set_shader_parameter("body_color", color)
-	material.set_shader_parameter("roughness", design.roughness)
-	material.set_shader_parameter("metallic", design.metallic)
+	if look:
+		look.apply(material)
+	material.set_shader_parameter("trim_shade", shade)
 	if Rarity.GLOW.has(die_type.rarity):
 		material.set_shader_parameter("glow", 1.0)
 		material.set_shader_parameter("glow_facing", Rarity.GLOW[die_type.rarity][0])

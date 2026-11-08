@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="UnlockChallenge" format=3]
+
+[ext_resource type="Script" path="res://resources/unlock_challenge.gd" id="1_challenge"]
+
+[resource]
+script = ExtResource("1_challenge")
+id = &"unlock_monk"
+description = "Win a run without taking any damage from a boss."
+reward_id = &"monk"
+stat = &"flawless_victory"

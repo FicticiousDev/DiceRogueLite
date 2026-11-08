@@ -44,10 +44,33 @@ theme_override_font_sizes/font_size = 20
 text = "Every character starts with a Movement, a Defence and an Attack die plus their own unique die, shown on their card."
 horizontal_alignment = 1
 
-[node name="Rows" type="VBoxContainer" parent="Center/Content"]
-unique_name_in_owner = true
+[node name="Carousel" type="HBoxContainer" parent="Center/Content"]
 layout_mode = 2
-theme_override_constants/separation = 24
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="LeftArrow" type="Button" parent="Center/Content/Carousel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 120)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_font_sizes/font_size = 40
+text = "<"
+
+[node name="Strip" type="Control" parent="Center/Content/Carousel"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+
+[node name="RightArrow" type="Button" parent="Center/Content/Carousel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 120)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_font_sizes/font_size = 40
+text = ">"
 
 [node name="BackButton" type="Button" parent="."]
 unique_name_in_owner = true

@@ -30,6 +30,7 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 func resolve(turn: TurnController) -> void:
 	if teleport:
 		await turn.player.teleport_to(target)
+		SaveManager.run_data.count(&"teleport")
 	else:
 		await turn.player.move_along(path)
 
