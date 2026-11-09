@@ -70,6 +70,46 @@ func _ready() -> void:
 	_finishes = _row(column, "FINISH")
 	_trims = _row(column, "TRIM FINISH")
 	_trim_section = _trims.get_parent().get_parent()
+	InputMode.register_menu(self, _entry)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Pick", "Close"))
+
+
+## The first design card.
+func _entry() -> Control:
+	var cards := _live(_designs)
+	return cards[0] if cards.size() > 0 else null
+
+
+func _live(row: Container) -> Array[Node]:
+	var cards: Array[Node] = []
+	for card in row.get_children():
+		if not card.is_queued_for_deletion():
+			cards.append(card)
+	return cards
+
+
+## Where the focus is, as [row, card] (rows: designs, finishes, trims), or empty.
+func _focus_slot() -> Array[int]:
+	var focus := get_viewport().gui_get_focus_owner()
+	var rows: Array[Container] = [_designs, _finishes, _trims]
+	for r in rows.size():
+		var index := _live(rows[r]).find(focus)
+		if index != -1:
+			return [r, index]
+	return []
+
+
+## Cards are rebuilt on every pick: puts the focus back on the same slot.
+func _restore_focus(slot: Array[int]) -> void:
+	if slot.is_empty():
+		return
+	var rows: Array[Container] = [_designs, _finishes, _trims]
+	var cards := _live(rows[slot[0]])
+	if cards.is_empty():
+		return
+	var card: Control = cards[mini(slot[1], cards.size() - 1)]
+	if card.is_visible_in_tree():
+		card.grab_focus()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -97,6 +137,7 @@ func close_designer() -> void:
 
 
 func _rebuild() -> void:
+	var slot := _focus_slot()
 	var progression := SaveManager.progression_data
 	var design := _current_design()
 	for row in [_previews, _designs, _finishes, _trims]:
@@ -145,6 +186,7 @@ func _rebuild() -> void:
 		for each in finishes:
 			_trims.add_child(_card(each.display_name, design, main, each, each == trim, true, "",
 				func(): _pick("die_trim_finish", String(each.id))))
+	_restore_focus.call_deferred(slot)
 
 
 ## Sets the progression's [property] to [id], saves and redraws.
@@ -174,6 +216,7 @@ func _row(parent: Control, title: String) -> HBoxContainer:
 	section.add_child(_label(title, 20, Color(0.8, 0.8, 0.85), HORIZONTAL_ALIGNMENT_LEFT))
 	var scroll := ScrollContainer.new()
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
 	scroll.custom_minimum_size.y = CARD_VIEW_SIZE + 64.0
 	section.add_child(scroll)
 	var row := HBoxContainer.new()
@@ -196,6 +239,16 @@ func _card(title: String, design: DieDesign, main: DieFinish, trim: DieFinish, s
 	style.set_content_margin_all(6)
 	panel.add_theme_stylebox_override("panel", style)
 	panel.tooltip_text = tip
+	# Focusable for the gamepad: a white border
+	panel.focus_mode = Control.FOCUS_ALL
+	var rest_color := style.border_color
+	var rest_width := 3 if selected else 1
+	panel.focus_entered.connect(func():
+		style.border_color = Color.WHITE
+		style.set_border_width_all(3))
+	panel.focus_exited.connect(func():
+		style.border_color = rest_color
+		style.set_border_width_all(rest_width))
 	var box := VBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(box)
@@ -211,7 +264,7 @@ func _card(title: String, design: DieDesign, main: DieFinish, trim: DieFinish, s
 	if unlocked:
 		view.clicked.connect(on_pick)
 		panel.gui_input.connect(func(event: InputEvent):
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or event.is_action_pressed("ui_accept"):
 				on_pick.call())
 	else:
 		panel.modulate = Color(0.45, 0.45, 0.5)

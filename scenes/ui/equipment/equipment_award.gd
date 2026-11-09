@@ -39,6 +39,8 @@ func _ready() -> void:
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override("separation", 10)
 	center.add_child(_content)
+	InputMode.register_menu(self)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", ""))
 
 
 func _process(delta: float) -> void:

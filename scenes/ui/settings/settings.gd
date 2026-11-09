@@ -12,6 +12,21 @@ var _tween: Tween
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	($Menu/SettingsScrollContainer as ScrollContainer).follow_focus = true
+	InputMode.register_menu(menu)
+	# Beside the panel, which fills the screen's height
+	var prompts := ButtonPrompt.bar(ButtonPrompt.standard("Select / change", "Done", true, [[[&"ui_left", &"ui_right"], "Adjust"]]), true)
+	menu.add_child(prompts)
+	prompts.anchor_left = 0.0
+	prompts.anchor_right = 0.0
+	prompts.anchor_top = 1.0
+	prompts.anchor_bottom = 1.0
+	prompts.offset_left = -32.0
+	prompts.offset_right = -32.0
+	prompts.offset_top = -32.0
+	prompts.offset_bottom = -32.0
+	prompts.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	prompts.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 
 func show_settings() -> void:

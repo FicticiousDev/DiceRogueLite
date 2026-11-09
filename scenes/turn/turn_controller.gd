@@ -674,7 +674,7 @@ func commit() -> void:
 	_replan()
 	if SaveManager.settings_data.confirm_unused_dice and _unused_non_defence() > 0:
 		var count := _unused_non_defence()
-		if not await confirm_dialog.ask("UNUSED DICE", "%d %s will be discarded.\nCommit anyway?" % [count, "die" if count == 1 else "dice"]):
+		if not await confirm_dialog.ask("UNUSED DICE", "%d %s will be discarded.\nCommit anyway?" % [count, "die" if count == 1 else "dice"], &"confirm_unused_dice"):
 			return
 	await _resolve()
 

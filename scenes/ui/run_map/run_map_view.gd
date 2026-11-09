@@ -35,17 +35,18 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 56)
 	title.position = Vector2(140, 70)
 	add_child(title)
-	var hint := Label.new()
-	hint.text = "[M] close"
-	hint.add_theme_font_size_override("font_size", 24)
-	hint.modulate.a = 0.6
-	hint.position = Vector2(140, 990)
-	add_child(hint)
+	ButtonPrompt.footer(self, [[[&"map", &"cancel"], "Close"]])
 	_graph = Control.new()
 	_graph.mouse_filter = Control.MOUSE_FILTER_PASS
 	_graph.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_graph.draw.connect(_draw_edges)
 	add_child(_graph)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("cancel"):
+		get_viewport().set_input_as_handled()
+		toggle()
 
 
 func toggle() -> void:

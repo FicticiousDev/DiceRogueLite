@@ -151,6 +151,11 @@ func _gui_input(event: InputEvent) -> void:
 			_spin = _spin.lerp(turn / delta, 0.5)
 
 
+## Clicks the die: for the gamepad, which can't click it.
+func activate() -> void:
+	_click()
+
+
 func _click() -> void:
 	clicked.emit()
 	if inspect_on_click:

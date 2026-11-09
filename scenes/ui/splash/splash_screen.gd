@@ -154,6 +154,8 @@ func _input(event: InputEvent) -> void:
 		pressed = event.pressed
 	elif event is InputEventKey:
 		pressed = event.pressed and not event.echo and (event.keycode == KEY_SPACE or event.keycode == KEY_ESCAPE)
+	elif event is InputEventJoypadButton:
+		pressed = event.pressed
 	if not pressed:
 		return
 	get_viewport().set_input_as_handled()

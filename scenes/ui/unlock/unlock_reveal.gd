@@ -48,6 +48,9 @@ func _ready() -> void:
 	_flash.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_flash)
+	# CONTINUE takes the focus itself once it is enabled
+	InputMode.register_menu(self)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Continue", "", false))
 
 
 func _process(delta: float) -> void:

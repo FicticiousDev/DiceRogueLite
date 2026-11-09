@@ -3,9 +3,10 @@ extends CanvasLayer
 
 ## Game name on black with a status line, shown once per launch after the splash. Fades in over everything (the name sits
 ## exactly over the one embossed in the splash's die, so it seems to lift off it), compiles all
-## shaders (ShaderWarmup, list in ShaderList), stays up for at least [constant MIN_DURATION], then fades out and frees
-## itself. Not part of the splash, so the skip-splash setting doesn't affect it.
-## Use: await loading_screen.run(splash)
+## shaders (ShaderWarmup, list in ShaderList) and stays up for at least [constant MIN_DURATION]. It then waits, fully
+## opaque, until the caller has the next scene loaded and showing and calls [method close], which fades it out and frees
+## it. Not part of the splash, so the skip-splash setting doesn't affect it. See scenes/boot/boot.gd.
+## Use: await loading_screen.run(splash) ... await loading_screen.close()
 
 ## Seconds the screen is fully shown, even if compiling finishes sooner
 const MIN_DURATION: float = 1.0
@@ -32,12 +33,12 @@ func _ready() -> void:
 	status.modulate.a = 0.0
 
 
-## Fades in, compiles, fades out. [behind] (e.g. the splash) is freed as soon as this screen is fully opaque.
+## Fades in and compiles, then returns with the screen still fully shown. [behind] (e.g. the splash) is freed as soon as
+## this screen is fully opaque.
 func run(behind: Node = null) -> void:
 	if has_run:
 		if behind:
 			behind.queue_free()
-		queue_free()
 		return
 	has_run = true
 	_layout()
@@ -52,6 +53,10 @@ func run(behind: Node = null) -> void:
 	var remaining := MIN_DURATION - (Time.get_ticks_msec() - shown_at) / 1000.0
 	if remaining > 0.0:
 		await get_tree().create_timer(remaining).timeout
+
+
+## Fades out and frees the screen. Call once whatever is behind it is loaded and drawn.
+func close() -> void:
 	await _fade(0.0)
 	queue_free()
 

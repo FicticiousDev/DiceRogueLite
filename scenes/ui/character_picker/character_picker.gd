@@ -55,15 +55,18 @@ func _ready() -> void:
 	back_button.pressed.connect(func(): picked.emit(&""))
 	left_arrow.pressed.connect(scroll.bind(-1))
 	right_arrow.pressed.connect(scroll.bind(1))
+	InputMode.register_menu(self, _entry, Callable(), _navigate)
+	ButtonPrompt.footer(self, [[[&"ui_left", &"ui_right"], "Browse"], [[&"ui_accept"], "Play"], [[&"cancel"], "Back"]])
 
 
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return
 	var step := 0
-	if event.is_action_pressed("ui_left", true):
+	# Keys only: a gamepad steps through _navigate
+	if event is InputEventKey and event.is_action_pressed("ui_left", true):
 		step = -1
-	elif event.is_action_pressed("ui_right", true):
+	elif event is InputEventKey and event.is_action_pressed("ui_right", true):
 		step = 1
 	elif event is InputEventMouseButton and event.pressed and _hovering_picker():
 		match event.button_index:
@@ -74,6 +77,8 @@ func _input(event: InputEvent) -> void:
 	if step != 0:
 		get_viewport().set_input_as_handled()
 		scroll(step)
+		if get_viewport().gui_get_focus_owner() != null:
+			_card_focus().grab_focus()
 
 
 ## True unless the mouse is over something drawn above the picker (the die inspector, say).
@@ -86,6 +91,39 @@ func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		picked.emit(&"")
+
+
+## The card in the middle of the full-size ones.
+func _middle_id() -> StringName:
+	return _order[clampi(_first + int(mini(SHOWN, _order.size()) / 2.0), 0, _order.size() - 1)]
+
+
+## What the gamepad focuses: the PLAY button of the middle card (selecting the card), or BACK if it is locked.
+func _card_focus() -> Control:
+	if _order.is_empty():
+		return back_button
+	var id := _middle_id()
+	var button: Button = _cards[id][1]
+	if button.disabled:
+		return back_button
+	_select(id)
+	return button
+
+
+func _entry() -> Control:
+	return _card_focus()
+
+
+## Gamepad navigation: left and right turn the carousel, up and down switch between the card and BACK.
+func _navigate(direction: Vector2) -> bool:
+	if direction.x != 0.0:
+		scroll(int(direction.x))
+		_card_focus().grab_focus()
+	elif get_viewport().gui_get_focus_owner() == back_button:
+		_card_focus().grab_focus()
+	else:
+		back_button.grab_focus()
+	return true
 
 
 func pick() -> StringName:

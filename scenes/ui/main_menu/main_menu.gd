@@ -12,8 +12,6 @@ const RUN_SCENE: String = "res://scenes/run/run.tscn"
 @onready var confirm_dialog: ConfirmDialog = $ConfirmDialog
 @onready var hex: MeshInstance3D = $Hex
 @onready var piece: Sprite3D = $Hex/Piece
-@onready var splash: SplashScreen = $SplashScreen
-@onready var loading_screen: LoadingScreen = $LoadingScreen
 
 var _designer: DiceDesigner
 
@@ -31,7 +29,8 @@ func _ready() -> void:
 	if SaveManager.progression_data.complete_challenges().size() > 0:
 		SaveManager.save_data()
 	_bob_piece()
-	_run_startup()
+	InputMode.register_menu($UI, func() -> Control: return new_run_button if continue_button.disabled else continue_button)
+	ButtonPrompt.footer($UI, ButtonPrompt.standard("Select", ""))
 
 
 func _process(delta: float) -> void:
@@ -63,9 +62,3 @@ func _bob_piece() -> void:
 	var tween := create_tween().set_loops()
 	tween.tween_property(piece, "position:y", piece.position.y + 0.12, 0.6).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(piece, "position:y", piece.position.y, 0.6).set_trans(Tween.TRANS_SINE)
-
-
-## Launch sequence: splash (if not skipped), then the loading screen, which always runs once per launch.
-func _run_startup() -> void:
-	await splash.play()
-	await loading_screen.run(splash)

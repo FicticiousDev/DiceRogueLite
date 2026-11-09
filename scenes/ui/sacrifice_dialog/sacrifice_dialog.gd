@@ -19,6 +19,16 @@ var _tween: Tween
 
 func _ready() -> void:
 	give_up_button.pressed.connect(answered.emit.bind(-1))
+	InputMode.register_menu(self, _entry)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", ""))
+
+
+## The first die's button; giving up is never the default.
+func _entry() -> Control:
+	for card in dice_list.get_children():
+		if card is DieCard and card.button and not card.is_queued_for_deletion():
+			return card.button
+	return give_up_button
 
 
 func ask(dice_ids: Array[String]) -> int:

@@ -12,6 +12,7 @@ const HIGHLIGHT: Color = Color(1.0, 0.82, 0.35)
 var die_type: DieType
 var _view: DieView
 var _panel: PanelContainer
+var _close_button: Button
 
 
 ## Opens an inspector for [type] over everything else.
@@ -98,6 +99,9 @@ func _ready() -> void:
 	close_button.add_theme_font_size_override("font_size", 20)
 	close_button.pressed.connect(close)
 	info.add_child(close_button)
+	_close_button = close_button
+	InputMode.register_menu(self, func() -> Control: return _close_button)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", "Close"))
 
 	_panel.modulate.a = 0.0
 	_panel.scale = Vector2.ONE * 0.85
@@ -135,8 +139,12 @@ func _face_entry(index: int) -> Control:
 	entry.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	entry.mouse_entered.connect(func(): entry.add_theme_stylebox_override("panel", hover))
 	entry.mouse_exited.connect(func(): entry.add_theme_stylebox_override("panel", normal))
+	# Focusable for the gamepad: same look as hovering
+	entry.focus_mode = Control.FOCUS_ALL
+	entry.focus_entered.connect(func(): entry.add_theme_stylebox_override("panel", hover))
+	entry.focus_exited.connect(func(): entry.add_theme_stylebox_override("panel", normal))
 	entry.gui_input.connect(func(event: InputEvent):
-		if event.is_action_pressed("select"):
+		if event.is_action_pressed("select") or event.is_action_pressed("ui_accept"):
 			_view.show_face(index))
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 14)

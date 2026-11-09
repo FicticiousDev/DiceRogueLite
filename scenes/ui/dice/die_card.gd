@@ -14,8 +14,7 @@ var button: Button
 var selected: bool = false:
 	set(value):
 		selected = value
-		_style.border_color = HIGHLIGHT if value else Rarity.COLORS[die_type.rarity]
-		_style.set_border_width_all(4 if value else 2)
+		_refresh_border()
 
 var _style: StyleBoxFlat
 
@@ -51,7 +50,25 @@ static func create(type: DieType, view_size: float = 110.0, button_text: String 
 		card.button.add_theme_font_size_override("font_size", 16)
 		card.button.pressed.connect(card.button_pressed.emit)
 		box.add_child(card.button)
+	else:
+		# Without a button the card itself takes the gamepad focus; accept inspects the die
+		card.focus_mode = Control.FOCUS_ALL
+		card.focus_entered.connect(card._refresh_border)
+		card.focus_exited.connect(card._refresh_border)
+		card.gui_input.connect(card._on_gui_input)
 	return card
+
+
+func _refresh_border() -> void:
+	var focused := has_focus()
+	_style.border_color = Color.WHITE if focused else (HIGHLIGHT if selected else Rarity.COLORS[die_type.rarity])
+	_style.set_border_width_all(4 if focused or selected else 2)
+
+
+func _on_gui_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_accept"):
+		accept_event()
+		view.activate()
 
 
 ## A grid of cards for [types], [columns] wide. Cards are returned in the grid's children, in order.

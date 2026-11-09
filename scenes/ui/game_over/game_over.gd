@@ -19,6 +19,12 @@ const VALUE_COLOR: Color = Color(1.0, 0.92, 0.75)
 
 func _ready() -> void:
 	menu_button.pressed.connect(_on_menu_pressed)
+	InputMode.register_menu(self, _entry, _on_menu_pressed)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Main menu", "", false))
+
+
+func _entry() -> Control:
+	return menu_button
 
 
 ## Shows the summary of [run], which ended with [outcome]. [unlocked]: challenges the run's end completed.
@@ -82,5 +88,7 @@ func _label(text: String, color: Color, align: HorizontalAlignment) -> Label:
 
 
 func _on_menu_pressed() -> void:
+	if menu_button.disabled:
+		return
 	menu_button.disabled = true
 	SceneManager.change_scene(MAIN_MENU_SCENE)

@@ -4,8 +4,6 @@
 [ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
 [ext_resource type="Texture2D" uid="uid://cqsleu83cdt8j" path="res://icon.svg" id="icon"]
 [ext_resource type="Script" uid="uid://584tivd4yo32" path="res://scenes/ui/main_menu/main_menu.gd" id="script"]
-[ext_resource type="PackedScene" path="res://scenes/ui/splash/splash_screen.tscn" id="splash"]
-[ext_resource type="PackedScene" path="res://scenes/ui/loading/loading_screen.tscn" id="loading"]
 
 [sub_resource type="StandardMaterial3D" id="hex_mat"]
 albedo_color = Color(0.43, 0.56, 0.36, 1)
@@ -105,7 +103,3 @@ theme_override_font_sizes/font_size = 30
 text = "QUIT"
 
 [node name="ConfirmDialog" parent="." unique_id=366425612 instance=ExtResource("dialog")]
-
-[node name="SplashScreen" parent="." unique_id=1884694401 instance=ExtResource("splash")]
-
-[node name="LoadingScreen" parent="." instance=ExtResource("loading")]

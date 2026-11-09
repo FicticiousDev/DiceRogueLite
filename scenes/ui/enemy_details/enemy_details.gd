@@ -39,6 +39,8 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 40)
 	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(_content)
+	# No controls to focus: the cursor stays, and a click or cancel closes it
+	ButtonPrompt.footer(self, [[[&"select", &"cancel"], "Close"]])
 
 
 func _unhandled_input(event: InputEvent) -> void:

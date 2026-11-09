@@ -27,6 +27,8 @@ func _ready() -> void:
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override("separation", 18)
 	center.add_child(_content)
+	InputMode.register_menu(self)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("Inspect", "Close"))
 
 
 func _unhandled_input(event: InputEvent) -> void:

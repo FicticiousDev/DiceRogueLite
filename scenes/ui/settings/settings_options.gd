@@ -141,7 +141,15 @@ func _ready() -> void:
 	auto_spend_defence_checkbutton.set_pressed(SaveManager.settings_data.auto_spend_defence)
 	turn_plan_side_options.select(SaveManager.settings_data.turn_plan_side)
 
+	# Prompts with a "Don't show this again" box change settings behind this menu's back
+	visibility_changed.connect(_sync_prompt_toggles)
+
 	centre_window()
+
+
+## Keeps the checkbuttons for settings that in-game prompts can flip in step with the saved values
+func _sync_prompt_toggles() -> void:
+	confirm_unused_dice_checkbutton.set_pressed_no_signal(SaveManager.settings_data.confirm_unused_dice)
 
 
 ## Centring the window after its size is set
