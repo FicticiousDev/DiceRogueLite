@@ -1244,6 +1244,58 @@ func enemy_strikes(enemy: Enemy) -> void:
 		await enemy_attack(enemy)
 
 
+## Like [method enemy_strikes], but the last attack of the turn is a slam ([method enemy_slam]) instead of a plain
+## swing. Strikes it made back this round use up the first ones.
+func enemy_slam_strikes(enemy: Enemy, damage: int, player_push: int, self_push: int) -> void:
+	for i in range(_retaliated.count(enemy), enemy.data.attacks_per_turn):
+		if _player_dead() or not enemy.can_hit(player.tile_id):
+			return
+		if i == enemy.data.attacks_per_turn - 1:
+			await enemy_slam(enemy, damage, player_push, self_push)
+		else:
+			await enemy_attack(enemy)
+
+
+## [enemy] slams the player for [damage] (they may block it). Unless it misses or is dodged / negated, the player is
+## pushed up to [player_push] tiles directly away from it and the enemy recoils up to [self_push] tiles directly
+## away from the player - each only as far as there is free floor. Awaitable.
+func enemy_slam(enemy: Enemy, damage: int, player_push: int, self_push: int) -> void:
+	var from_cell := Hex.coords(enemy.tile_id)
+	var to_cell := Hex.coords(player.tile_id)
+	var ctx := AttackContext.roll_enemy(enemy, player, 0, _miss_scale(), damage)
+	ctx.source_note = tr("NOTE_SLAM")
+	await hit_player(enemy, ctx)
+	if ctx.miss or ctx.negated or _dodged or _player_dead():
+		return
+	var away := away_offset(from_cell, to_cell)
+	await push(player, away, player_push)
+	await push(enemy, -away, self_push)
+
+
+## The hex direction pointing from [from_cell] most nearly towards [to_cell].
+func away_offset(from_cell: Vector2i, to_cell: Vector2i) -> Vector2i:
+	var wanted := board.cell_to_local(to_cell) - board.cell_to_local(from_cell)
+	var best := Hex.NEIGHBOUR_OFFSETS[0]
+	var best_dot := -INF
+	for offset in Hex.NEIGHBOUR_OFFSETS:
+		var step := board.cell_to_local(from_cell + offset) - board.cell_to_local(from_cell)
+		var dot := step.x * wanted.x + step.z * wanted.z
+		if dot > best_dot:
+			best_dot = dot
+			best = offset
+	return best
+
+
+## Shoves [piece] up to [tiles] tiles along [offset], one tile at a time, stopping before a wall, a gap or any other
+## piece (no room: it stays put). Awaitable.
+func push(piece: BoardPiece, offset: Vector2i, tiles: int) -> void:
+	for i in tiles:
+		var next := Hex.id(Hex.coords(piece.tile_id) + offset)
+		if not board.is_walkable(next) or board.get_piece(next) != null:
+			return
+		await piece.shove_to(next)
+
+
 ## Poisoned enemies take 1 damage each.
 func _poison_tick() -> void:
 	var deaths: Array[Enemy] = []

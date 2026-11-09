@@ -153,9 +153,10 @@ static func value_text(value: int) -> String:
 
 
 ## An enemy's attack: its fixed damage, with random crit/miss chances ([miss_scale] multiplies the miss chance).
-static func roll_enemy(enemy: Enemy, player: BoardPiece, assigned_defence: int = 0, miss_scale: float = 1.0) -> AttackContext:
+## [damage] replaces the enemy's attack stat for the attacks that hit harder (or softer) than its usual swing.
+static func roll_enemy(enemy: Enemy, player: BoardPiece, assigned_defence: int = 0, miss_scale: float = 1.0, damage: int = -1) -> AttackContext:
 	var data := enemy.data
-	var ctx := AttackContext.new(enemy, player, data.attack, assigned_defence)
+	var ctx := AttackContext.new(enemy, player, data.attack if damage < 0 else damage, assigned_defence)
 	var roll := randf()
 	var miss_chance := data.miss_chance * miss_scale
 	ctx.miss = roll < miss_chance

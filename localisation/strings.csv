@@ -181,6 +181,7 @@ LOG_HIT_YOU,%s hit you for %d,
 LOG_MISSED_YOU,%s missed you,Placeholders: %s
 LOG_REDIRECTED_TO,Redirected to %s,Placeholders: %s
 NOTE_ALREADY_ATTACKED_NO_STRIKE,Already attacked: no %s,Placeholders: %s
+NOTE_SLAM,slam,
 NOTE_BLOCKED_BY_SUFFIX,", blocked by %s",
 NOTE_BOSS_RESISTS_INSTA_KILL,Boss resists insta-kill,
 NOTE_CRIT,Crit,
@@ -450,7 +451,8 @@ Emptying a health segment sends flame bursts down all 6 lines (range 4) on its n
 Damage it deals sets the target on fire: half again next turn",
 ENEMY_TYRANT_NAME,Tyrant,
 ENEMY_VOIDCALLER_NAME,Voidcaller,
-ENEMY_WARLORD_DESC,Attacks twice each turn,
+ENEMY_WARLORD_DESC,"Attacks twice each turn
+Its second attack hits harder (3) and shoves you 2 tiles away; the Warlord recoils 1 tile",
 ENEMY_WARLORD_NAME,Warlord,
 BIOME_ABYSS_NAME,Abyss,
 BIOME_ASHLANDS_NAME,Ashlands,

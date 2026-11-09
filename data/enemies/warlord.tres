@@ -1,6 +1,13 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
+[ext_resource type="Script" path="res://resources/bosses/warlord_behaviour.gd" id="2"]
+
+[sub_resource type="Resource" id="Resource_behaviour"]
+script = ExtResource("2")
+slam_damage = 3
+player_push = 2
+self_push = 1
 
 [resource]
 script = ExtResource("1")
@@ -15,3 +22,4 @@ attacks_per_turn = 2
 is_boss = true
 stun_immune = true
 size = 1.6
+behaviour = SubResource("Resource_behaviour")
