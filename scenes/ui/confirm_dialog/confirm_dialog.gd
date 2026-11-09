@@ -3,7 +3,7 @@ class_name ConfirmDialog
 
 ## Yes/no prompt. Use: if await dialog.ask("Title", "Message"): ...
 ## Pass the name of a bool SettingsData flag (true = show this prompt) as the third argument to add a
-## "Don't show this again" checkbox that flips that setting, so it stays in step with the settings scene.
+## tr("DIALOG_DONT_SHOW_AGAIN") checkbox that flips that setting, so it stays in step with the settings scene.
 
 signal answered(confirmed: bool)
 
@@ -23,7 +23,7 @@ func _ready() -> void:
 	cancel_button.pressed.connect(answered.emit.bind(false))
 	# Starts on the safe answer
 	InputMode.register_menu(self, func() -> Control: return cancel_button)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", "No"))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", "PROMPT_NO"))
 	for button in [confirm_button, cancel_button]:
 		_highlight_on_focus(button)
 	_build_skip_check()
@@ -43,10 +43,10 @@ func ask(title: String, description: String, skip_setting: StringName = &"") -> 
 	return confirmed
 
 
-## The "Don't show this again" checkbox, under the buttons. Hidden unless ask() is given a setting.
+## The tr("DIALOG_DONT_SHOW_AGAIN") checkbox, under the buttons. Hidden unless ask() is given a setting.
 func _build_skip_check() -> void:
 	_skip_check = CheckBox.new()
-	_skip_check.text = "Don't show this again"
+	_skip_check.text = tr("DIALOG_DONT_SHOW_AGAIN")
 	_skip_check.visible = false
 	_skip_check.set_anchors_preset(Control.PRESET_CENTER)
 	_skip_check.offset_left = -340.0

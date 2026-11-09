@@ -135,7 +135,7 @@ func take_damage(amount: int, shield_multiplier: int = 1) -> void:
 	preview_defence = defence
 	hurt()
 	if amount >= AttackContext.INSTA_KILL:
-		popup("KILL", Color(1, 0.35, 0.25))
+		popup(tr("POPUP_KILL"), Color(1, 0.35, 0.25))
 	elif through > 0:
 		popup("-%d" % through, Color(1, 0.35, 0.25))
 	elif absorbed > 0:
@@ -145,9 +145,9 @@ func take_damage(amount: int, shield_multiplier: int = 1) -> void:
 	else:
 		popup("0", Color(0.8, 0.8, 0.8))
 	if soaked > 0 and defence == 0:
-		popup("DEFENCE BROKEN", Color(0.45, 0.7, 1.0))
+		popup(tr("POPUP_DEFENCE_BROKEN"), Color(0.45, 0.7, 1.0))
 	if absorbed > 0 and shield == 0:
-		popup("SHIELD BROKEN", Color(0.6, 0.85, 1.0))
+		popup(tr("POPUP_SHIELD_BROKEN"), Color(0.6, 0.85, 1.0))
 
 
 ## Sets the defence segments left (a boss changing form refills them for the new form).
@@ -166,7 +166,7 @@ func recover_defence() -> void:
 func regen_shield(amount: int) -> void:
 	shield = mini(shield + amount, base.shield)
 	preview_shield = shield
-	popup("+%d SHIELD" % amount, Color(0.6, 0.85, 1.0))
+	popup(tr("POPUP_SHIELD_GAINED") % amount, Color(0.6, 0.85, 1.0))
 
 
 ## Charges through [path] (tile ids) without taking the tiles, calling [on_pass] (awaitable) with each as it gets there,

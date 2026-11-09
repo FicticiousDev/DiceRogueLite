@@ -7,15 +7,12 @@
 [sub_resource type="Resource" id="Resource_preci0"]
 script = ExtResource("2_modifier")
 id = &"precision"
-display_name = "Precision"
-description = "Once per level: the highest die of one attack crits (stacks with other crits)."
 crit_highest = true
 uses_per_level = 1
 
 [resource]
 script = ExtResource("9_item")
 id = &"precision_charm"
-display_name = "Precision Charm"
 slot = 2
 rarity = 3
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_preci0")])

@@ -7,15 +7,12 @@
 [sub_resource type="Resource" id="Resource_sanct0"]
 script = ExtResource("2_immune")
 id = &"sanctified"
-display_name = "Sanctified"
-description = "Passive: you can't be stunned or poisoned."
 stun = true
 poison = true
 
 [resource]
 script = ExtResource("9_item")
 id = &"sanctified_armour"
-display_name = "Sanctified Armour"
 slot = 0
 rarity = 5
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_sanct0")])

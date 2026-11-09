@@ -8,14 +8,10 @@
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_enemy_range_ability")
 id = &"smoke"
-display_name = "Smoke"
-description = "Passive: ranged enemies have 1 less range."
 
 [sub_resource type="Resource" id="Ability_active"]
 script = ExtResource("3_attack_modifier_ability")
 id = &"ignite"
-display_name = "Ignite"
-description = "Every 3 turns: an attack sets what it hits on fire - half the damage dealt again at the start of the next round."
 active = true
 cooldown = 3
 fire = true
@@ -24,7 +20,6 @@ fire = true
 script = ExtResource("2_character")
 id = &"pyro"
 order = 5
-display_name = "Pyro"
 tint = Color(1, 0.5, 0.3, 1)
 attack_range = 3
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])

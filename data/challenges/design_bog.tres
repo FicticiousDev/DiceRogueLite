@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_bog"
-description = "Defeat the Brood Mother (Marsh boss) 20 times."
 reward = 1
 reward_id = &"bog"
 stat = &"boss_defeated"

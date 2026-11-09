@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_pebble"
-description = "Recover 100 health."
 reward = 1
 reward_id = &"pebble"
 stat = &"healed"

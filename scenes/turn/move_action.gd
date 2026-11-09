@@ -36,11 +36,11 @@ func resolve(turn: TurnController) -> void:
 
 
 func describe(turn: TurnController) -> String:
-	return "%s %d  →  %s" % ["Teleport" if teleport else "Move", turn.dice_value(dice), Hex.coords(target)]
+	return "%s %d  →  %s" % [tr("PLAN_TELEPORT") if teleport else tr("PLAN_MOVE"), turn.dice_value(dice), Hex.coords(target)]
 
 
 func warning(turn: TurnController) -> String:
-	return "Teleport lost: combined with normal movement" if turn.is_teleport_lost(dice) else ""
+	return tr("NOTE_TELEPORT_LOST") if turn.is_teleport_lost(dice) else ""
 
 
 func target_tile() -> int:

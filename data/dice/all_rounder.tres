@@ -56,5 +56,4 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_all_rounder_s5")])
 [resource]
 script = ExtResource("3_type")
 id = &"all_rounder"
-display_name = "All-Rounder Die"
 faces = Array[ExtResource("1_face")]([SubResource("Resource_all_rounder_f0"), SubResource("Resource_all_rounder_f1"), SubResource("Resource_all_rounder_f2"), SubResource("Resource_all_rounder_f3"), SubResource("Resource_all_rounder_f4"), SubResource("Resource_all_rounder_f5")])

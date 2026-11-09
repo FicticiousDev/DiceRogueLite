@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_design")
 id = &"gilded"
-display_name = "Gilded"
 mesh = ExtResource("1_mesh")
 face_size = 0.68
 face_offset = 0.485

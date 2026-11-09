@@ -66,7 +66,7 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 	var line := _flow()
 	_rows.add_child(line)
 	if results.is_empty():
-		line.add_child(_text("%s armed: choose attack dice" % " + ".join(armed.map(func(a: Ability): return a.display_name)), 22, GOLD))
+		line.add_child(_text(tr("PREVIEW_ARMED") % " + ".join(armed.map(func(a: Ability): return a.display_name)), 22, GOLD))
 	else:
 		for i in results.size():
 			if i > 0:
@@ -77,7 +77,7 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 		for ability in armed:
 			line.add_child(_text("+ " + ability.display_name, 20, GOLD))
 		line.add_child(_text("=", 30, Color(0.7, 0.7, 0.75)))
-		line.add_child(_text("KILL" if ctx.insta_kill else str(ctx.raw()), 40, Color(1, 0.45, 0.35)))
+		line.add_child(_text(tr("PREVIEW_KILL") if ctx.insta_kill else str(ctx.raw()), 40, Color(1, 0.45, 0.35)))
 
 	if target and results.size() > 0:
 		var outcome := _flow()
@@ -85,9 +85,9 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 		outcome.add_child(_text("vs %s:" % target.data.display_name, 20, Color(0.85, 0.85, 0.9)))
 		if not ctx.insta_kill:
 			if ctx.pierces() and target.data.defence > 0:
-				outcome.add_child(_text("bypasses defence", 20, Color(0.6, 0.8, 1.0)))
+				outcome.add_child(_text(tr("PREVIEW_BYPASSES_DEFENCE"), 20, Color(0.6, 0.8, 1.0)))
 		var damage := ctx.damage()
-		outcome.add_child(_text("→  %s damage" % ("all" if ctx.insta_kill else str(damage)), 22, Color(1, 0.5, 0.4)))
+		outcome.add_child(_text(tr("PREVIEW_DAMAGE") % ("all" if ctx.insta_kill else str(damage)), 22, Color(1, 0.5, 0.4)))
 		outcome.add_child(_icon(HEART, Color(1, 0.35, 0.35), 24))
 		var after := target_hp - damage
 		outcome.add_child(_text("%d → %s" % [target_hp, "dead" if after <= 0 else str(after)], 22, GOLD if after <= 0 else Color.WHITE))
@@ -142,7 +142,7 @@ func _die_part(result: DieResult, ctx: AttackContext, part: int) -> Control:
 	box.add_child(tile)
 	var multiplier: int = ctx.part_multipliers[part] if part < ctx.part_multipliers.size() else 1
 	var value: int = ctx.parts[part] if part < ctx.parts.size() else result.value()
-	var text := "KILL" if result.face().has(Symbol.Type.INSTA_KILL) and ctx.insta_kill else str(value)
+	var text := tr("PREVIEW_KILL") if result.face().has(Symbol.Type.INSTA_KILL) and ctx.insta_kill else str(value)
 	if multiplier > 1:
 		text += " ×%d" % multiplier
 	var label := _text(text, 20, GOLD if multiplier > 1 else Color.WHITE)
@@ -159,7 +159,7 @@ func _modifier_chips(ctx: AttackContext, results: Array[DieResult]) -> Array[Con
 	if ctx.poison:
 		chips.append(_chip(Symbol.ICONS[Symbol.Type.POISON], Symbol.INK[Symbol.Type.POISON], "poison", true))
 	if ctx.penetrate > 0:
-		chips.append(_chip(Symbol.ICONS[Symbol.Type.PENETRATE], Symbol.INK[Symbol.Type.PENETRATE].lightened(0.3), "pierce %d" % ctx.penetrate, true))
+		chips.append(_chip(Symbol.ICONS[Symbol.Type.PENETRATE], Symbol.INK[Symbol.Type.PENETRATE].lightened(0.3), tr("PREVIEW_PIERCE") % ctx.penetrate, true))
 	# Combined dice keep only the range they all share
 	var range_bonus := -1
 	var range_lost := false
@@ -168,11 +168,11 @@ func _modifier_chips(ctx: AttackContext, results: Array[DieResult]) -> Array[Con
 		range_lost = range_lost or (range_bonus != -1 and face_range != range_bonus)
 		range_bonus = face_range if range_bonus == -1 else mini(range_bonus, face_range)
 	if range_bonus > 0:
-		chips.append(_chip(BOW, Color(0.95, 0.85, 0.6), "range +%d" % range_bonus, false))
+		chips.append(_chip(BOW, Color(0.95, 0.85, 0.6), tr("PREVIEW_RANGE_BONUS") % range_bonus, false))
 	if range_lost:
-		chips.append(_chip(BOW, Color(0.6, 0.6, 0.65), "range lost", false))
+		chips.append(_chip(BOW, Color(0.6, 0.6, 0.65), tr("PREVIEW_RANGE_LOST"), false))
 	if ctx.aoe_tiles.size() > 0:
-		chips.append(_text("+ area", 20, GOLD))
+		chips.append(_text(tr("PREVIEW_AREA"), 20, GOLD))
 	return chips
 
 

@@ -7,6 +7,5 @@
 [resource]
 script = ExtResource("1_8tttu")
 id = &"sharp"
-display_name = "Sharp"
 mesh = SubResource("BoxMesh_nqw0x")
 face_size = 0.86

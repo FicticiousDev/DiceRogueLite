@@ -16,6 +16,12 @@ signal _redirect_picked(enemy: Enemy)
 
 enum State { IDLE, ROLL, PLAN, RESOLVE, ENEMY_TURN, LEVEL_CLEAR, GAME_OVER }
 
+## Localisation keys of the state names shown in the turn plan header
+const STATE_NAMES: Dictionary[State, String] = {
+	State.IDLE: "STATE_IDLE", State.ROLL: "STATE_ROLL", State.PLAN: "STATE_PLAN", State.RESOLVE: "STATE_RESOLVE",
+	State.ENEMY_TURN: "STATE_ENEMY_TURN", State.LEVEL_CLEAR: "STATE_LEVEL_CLEAR", State.GAME_OVER: "STATE_GAME_OVER",
+}
+
 const PATH_DOT_SPACING: float = 0.22
 const ARROW_LENGTH: float = 0.55
 ## Row dice raise this far (tray units) when selected / hovered
@@ -47,7 +53,7 @@ var show_los: bool = false
 var debug_pool: Array[DieType] = []
 var debug_design: DieDesign
 ## Shown once the level is clear; set by the run
-var clear_hint: String = "Level clear!"
+var clear_hint: String = tr("HINT_LEVEL_CLEAR")
 
 ## Buff dice spent automatically when the row formed
 var _auto_used: Array[int] = []
@@ -168,7 +174,7 @@ func start_turn(new_turn: bool = true) -> void:
 		return
 	# Player status effects come first: poison bites, fire burns, a stun (from the enemy turn) costs the whole turn
 	if player.poisoned:
-		player.popup("POISON", Color(0.5, 1.0, 0.4))
+		player.popup(tr("POPUP_POISON"), Color(0.5, 1.0, 0.4))
 		await _hurt_player(1, "-1")
 		if _player_dead():
 			await _game_over()
@@ -176,7 +182,7 @@ func start_turn(new_turn: bool = true) -> void:
 	if player.burn > 0:
 		var burn := player.burn
 		player.burn = 0
-		player.popup("BURNING", Color(1.0, 0.55, 0.2))
+		player.popup(tr("POPUP_BURNING"), Color(1.0, 0.55, 0.2))
 		await _hurt_player(burn, "-%d" % burn, _burn_from_boss)
 		_burn_from_boss = false
 		if _player_dead():
@@ -289,16 +295,16 @@ func _spend_all(wanted: Array[Ability]) -> Array[Ability]:
 	return spent
 
 
-## How an active stands, for buttons and the top bar: uses left of the total ("1/2"), or for a cooldown active "READY"
+## How an active stands, for buttons and the top bar: uses left of the total ("1/2"), or for a cooldown active tr("HUD_ABILITY_READY")
 ## or the turns until it is (counting a use planned this turn).
 func active_status(ability: Ability) -> String:
 	var left: int = uses_preview().get(ability.id, 0)
 	if ability.cooldown <= 0:
 		return "%d/%d" % [left, new_uses().get(ability.id, 0)]
 	if left > 0:
-		return "READY"
+		return tr("HUD_ABILITY_READY")
 	var wait: int = _ready_on.get(ability.id, turn_number + ability.cooldown) - turn_number
-	return "%d TURN%s" % [wait, "" if wait == 1 else "S"]
+	return tr("HUD_ABILITY_WAIT_ONE") if wait == 1 else tr("HUD_ABILITY_WAIT_MANY") % wait
 
 
 ## True if the player heals every round, whatever damage they took.
@@ -401,10 +407,10 @@ func player_attack_context(enemy: Enemy, dice: Array[int], used: Array[Ability] 
 		ctx.crit_part(ctx.highest_part())
 	if boosts.has(&"crit") and not ctx.insta_kill and ctx.parts.size() > 0:
 		ctx.crit_part(ctx.highest_part())
-		ctx.notes.append("Crit")
+		ctx.notes.append(tr("NOTE_CRIT"))
 	if boosts.has(&"pierce") and not ctx.ignore_defence:
 		ctx.ignore_defence = true
-		ctx.notes.append("Pierce")
+		ctx.notes.append(tr("NOTE_PIERCE"))
 	for ability in abilities():
 		ability.modify_attack(ctx, used.has(ability))
 	return ctx
@@ -464,7 +470,7 @@ func _offer_stun_cure() -> void:
 	_sync_uses()
 	for ability in actives_of(Ability.Use.ACTION):
 		if ability.cures_stun() and _uses.get(ability.id, 0) > 0:
-			if await confirm_dialog.ask("STUNNED", "You're stunned and will lose this turn.\nUse %s to shake it off?" % ability.display_name):
+			if await confirm_dialog.ask(tr("POPUP_STUNNED"), tr("DIALOG_STUNNED_MESSAGE") % ability.display_name):
 				_spend(ability)
 				player.popup(ability.display_name, Color(1.0, 0.85, 0.4))
 				await ability.perform(self)
@@ -480,7 +486,7 @@ func cure_player(poison: bool, stun: bool) -> void:
 	if stun and player.stunned:
 		player.stunned = false
 		cured = true
-	player.popup("CURED" if cured else "No effect", Color(0.5, 1.0, 0.4))
+	player.popup(tr("POPUP_CURED") if cured else tr("POPUP_NO_EFFECT"), Color(0.5, 1.0, 0.4))
 	await get_tree().create_timer(Anim.t(0.4)).timeout
 
 
@@ -553,7 +559,7 @@ func _click_die(index: int) -> void:
 	if not is_die_available(index) or result.category() == DieFace.Category.DEFENCE:
 		die.shake(dice_tray.camera.global_basis.x * 0.1 * dice_tray._scale)
 		if result.category() == DieFace.Category.DEFENCE:
-			_hint_note = "Defence dice aren't planned: they're kept to block hits this turn."
+			_hint_note = tr("HINT_DEFENCE_NOT_PLANNED")
 			_refresh()
 		return
 	_dashing = null
@@ -674,7 +680,7 @@ func commit() -> void:
 	_replan()
 	if SaveManager.settings_data.confirm_unused_dice and _unused_non_defence() > 0:
 		var count := _unused_non_defence()
-		if not await confirm_dialog.ask("UNUSED DICE", "%d %s will be discarded.\nCommit anyway?" % [count, "die" if count == 1 else "dice"], &"confirm_unused_dice"):
+		if not await confirm_dialog.ask(tr("DIALOG_UNUSED_DICE_TITLE"), tr("DIALOG_UNUSED_DICE_ONE") if count == 1 else tr("DIALOG_UNUSED_DICE_MANY") % count, &"confirm_unused_dice"):
 			return
 	await _resolve()
 
@@ -751,7 +757,7 @@ func heal_player(amount: int) -> void:
 	if player.poisoned:
 		# Curing poison takes the place of the heal
 		player.poisoned = false
-		player.popup("CURED", Color(0.5, 1.0, 0.4))
+		player.popup(tr("POPUP_CURED"), Color(0.5, 1.0, 0.4))
 	elif run.health < run.max_health:
 		var healed := mini(amount, run.max_health - run.health)
 		run.health += healed
@@ -767,7 +773,7 @@ func heal_player(amount: int) -> void:
 func _hurt_player(damage: int, text: String, from_boss: bool = false) -> bool:
 	_damage_taken += damage
 	if damage >= SaveManager.run_data.health and await _last_stand():
-		player.popup("SACRIFICED", Color(1.0, 0.6, 0.3))
+		player.popup(tr("POPUP_SACRIFICED"), Color(1.0, 0.6, 0.3))
 		return false
 	if from_boss:
 		SaveManager.run_data.count(&"boss_damage", damage)
@@ -795,7 +801,7 @@ func _game_over() -> void:
 func _stun_blocks(piece: BoardPiece) -> bool:
 	if not piece.stunned:
 		return false
-	piece.popup("STUNNED", Color(1.0, 0.8, 0.3))
+	piece.popup(tr("POPUP_STUNNED"), Color(1.0, 0.8, 0.3))
 	return true
 
 
@@ -806,7 +812,7 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 		return
 	# The target can have gone out of reach since the plan was made (a boss teleporting away)
 	if not board.in_attack_range(player.tile_id, enemy.tile_id, attack_range(dice)):
-		player.popup("OUT OF RANGE", Color(0.8, 0.8, 0.85))
+		player.popup(tr("POPUP_OUT_OF_RANGE"), Color(0.8, 0.8, 0.85))
 		await get_tree().create_timer(Anim.t(0.3)).timeout
 		return
 	var enemy_first := enemy.data.attacks_first and not player_strikes_first()
@@ -843,19 +849,19 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 	for target in hit:
 		if not target.is_dead():
 			if ctx.stun and target.data.stun_immune:
-				target.popup("IMMUNE", Color(0.8, 0.8, 0.85))
+				target.popup(tr("POPUP_IMMUNE"), Color(0.8, 0.8, 0.85))
 			elif ctx.stun and not target.stunned:
 				target.stunned = true
-				target.popup("STUNNED", Color(1.0, 0.8, 0.3))
+				target.popup(tr("POPUP_STUNNED"), Color(1.0, 0.8, 0.3))
 				SaveManager.run_data.count(&"stun")
 			if ctx.poison and not target.poisoned:
 				target.poisoned = true
-				target.popup("POISONED", Color(0.5, 1.0, 0.4))
+				target.popup(tr("POPUP_POISONED"), Color(0.5, 1.0, 0.4))
 				SaveManager.run_data.count(&"poison")
 			# Fire: half the damage dealt again at the start of the next round
 			if ctx.fire and dealt[target] / 2 > 0:
 				target.burn += dealt[target] / 2
-				target.popup("ON FIRE", Color(1.0, 0.55, 0.2))
+				target.popup(tr("POPUP_ON_FIRE"), Color(1.0, 0.55, 0.2))
 				SaveManager.run_data.count(&"burn")
 	var deaths: Array[Enemy] = []
 	deaths.assign(hit.filter(func(e: Enemy): return e.is_dead()))
@@ -927,7 +933,7 @@ func hit_player(enemy: Enemy, ctx: AttackContext, swing: bool = true) -> void:
 		if _redirect_to:
 			ctx.defence -= AttackContext.BLOCK_ALL
 			ctx.negated = true
-			ctx.notes.append("Redirected")
+			ctx.notes.append(tr("NOTE_REDIRECTED"))
 	if _dodged and enemy.data.is_boss:
 		SaveManager.run_data.count(StringName("dodged_boss:%s" % enemy.base.id))
 	var damage := ctx.damage()
@@ -937,12 +943,12 @@ func hit_player(enemy: Enemy, ctx: AttackContext, swing: bool = true) -> void:
 		await enemy.lunge(player.position)
 	if ctx.miss:
 		SaveManager.run_data.misses += 1
-		player.popup("MISS", Color(0.8, 0.8, 0.8))
+		player.popup(tr("POPUP_MISS"), Color(0.8, 0.8, 0.8))
 	elif ctx.negated:
 		player.popup(" + ".join(ctx.notes).to_upper(), Color(0.45, 0.7, 1.0))
 	elif damage == 0:
-		player.popup("DODGED" if _dodged else "BLOCKED", Color(0.45, 0.7, 1.0))
-	elif await _hurt_player(damage, ("CRIT -%d" if ctx.crit else "-%d") % damage, enemy.data.is_boss) and not _player_dead():
+		player.popup(tr("POPUP_DODGED") if _dodged else tr("POPUP_BLOCKED"), Color(0.45, 0.7, 1.0))
+	elif await _hurt_player(damage, (tr("POPUP_CRIT_DAMAGE") if ctx.crit else "-%d") % damage, enemy.data.is_boss) and not _player_dead():
 		# A sacrificed hit still counts as damage taken (no heal) but doesn't pass on status effects
 		_apply_hit_effects(enemy, damage)
 	if arc:
@@ -977,48 +983,48 @@ func _redirect_hit(target: Enemy, damage: int) -> void:
 func _apply_hit_effects(enemy: Enemy, damage: int) -> void:
 	if enemy.data.applies_stun and not player.stunned:
 		if player_prevents(&"stun"):
-			player.popup("STUN RESISTED", Color(0.8, 0.8, 0.85))
+			player.popup(tr("POPUP_STUN_RESISTED"), Color(0.8, 0.8, 0.85))
 		else:
 			player.stunned = true
-			player.popup("STUNNED", Color(1.0, 0.8, 0.3))
+			player.popup(tr("POPUP_STUNNED"), Color(1.0, 0.8, 0.3))
 	if enemy.data.applies_poison and not player.poisoned:
 		if player_prevents(&"poison"):
-			player.popup("POISON RESISTED", Color(0.8, 0.8, 0.85))
+			player.popup(tr("POPUP_POISON_RESISTED"), Color(0.8, 0.8, 0.85))
 		else:
 			player.poisoned = true
-			player.popup("POISONED", Color(0.5, 1.0, 0.4))
+			player.popup(tr("POPUP_POISONED"), Color(0.5, 1.0, 0.4))
 	if enemy.data.applies_freeze and not player.frozen_next:
 		if player_prevents(&"freeze"):
-			player.popup("FREEZE RESISTED", Color(0.8, 0.8, 0.85))
+			player.popup(tr("POPUP_FREEZE_RESISTED"), Color(0.8, 0.8, 0.85))
 		else:
 			player.frozen_next = true
-			player.popup("FROZEN", Color(0.6, 0.85, 1.0))
+			player.popup(tr("POPUP_FROZEN"), Color(0.6, 0.85, 1.0))
 	# Fire adds half of each damaging hit again at the start of the next turn
 	if enemy.data.applies_fire and damage / 2 > 0:
 		if player_prevents(&"fire"):
-			player.popup("FIRE RESISTED", Color(0.8, 0.8, 0.85))
+			player.popup(tr("POPUP_FIRE_RESISTED"), Color(0.8, 0.8, 0.85))
 		else:
 			player.burn += damage / 2
 			_burn_from_boss = _burn_from_boss or enemy.data.is_boss
-			player.popup("ON FIRE", Color(1.0, 0.55, 0.2))
+			player.popup(tr("POPUP_ON_FIRE"), Color(1.0, 0.55, 0.2))
 
 
 ## Turn plan entry for a resolved enemy attack.
 func _attack_log(enemy: Enemy, ctx: AttackContext) -> Array:
 	var name := enemy.data.display_name + (" (%s)" % ctx.source_note if ctx.source_note != "" else "")
 	if ctx.miss:
-		return ["%s missed you" % name, ""]
+		return [tr("LOG_MISSED_YOU") % name, ""]
 	var rolled := ctx.raw()
-	var line := "%s %shit you for %d" % [name, "critically " if ctx.crit else "", rolled]
+	var line := (tr("LOG_CRIT_HIT_YOU") if ctx.crit else tr("LOG_HIT_YOU")) % [name, rolled]
 	if ctx.negated and _redirect_to:
-		return [line, "Redirected to %s" % _redirect_to.data.display_name]
+		return [line, tr("LOG_REDIRECTED_TO") % _redirect_to.data.display_name]
 	if ctx.negated:
-		return [line, "Blocked by " + " + ".join(ctx.notes)]
+		return [line, tr("LOG_BLOCKED_BY") % " + ".join(ctx.notes)]
 	if _dodged:
-		return [line, "Dodged"]
+		return [line, tr("LOG_DODGED")]
 	if ctx.defence <= 0:
 		return [line, ""]
-	return [line, "%s blocked, %d damage taken" % [AttackContext.value_text(mini(ctx.defence, rolled)), ctx.damage()]]
+	return [line, tr("LOG_BLOCKED_DAMAGE_TAKEN") % [AttackContext.value_text(mini(ctx.defence, rolled)), ctx.damage()]]
 
 
 ## Plays out a planned action active; boosts it grants last the rest of the turn.
@@ -1109,7 +1115,7 @@ func knock_aside(piece: BoardPiece, line: Array[int], keep_clear: Array[int] = [
 	for side in [1, 5, 2, 4]:
 		var tile_id := Hex.id(cell + Hex.NEIGHBOUR_OFFSETS[(forward + side) % 6])
 		if board.is_walkable(tile_id) and board.get_piece(tile_id) == null and not line.has(tile_id) and not keep_clear.has(tile_id):
-			piece.popup("KNOCKED ASIDE", Color(0.85, 0.85, 0.9))
+			piece.popup(tr("POPUP_KNOCKED_ASIDE"), Color(0.85, 0.85, 0.9))
 			await piece.shove_to(tile_id)
 			return
 
@@ -1265,7 +1271,7 @@ func _burn_tick() -> void:
 	for enemy in board.get_enemies():
 		if enemy.burn > 0:
 			before[enemy] = Vector2i(enemy.hp, enemy.shield)
-			enemy.popup("BURNING", Color(1.0, 0.55, 0.2))
+			enemy.popup(tr("POPUP_BURNING"), Color(1.0, 0.55, 0.2))
 			_damage_enemy(enemy, enemy.burn)
 			enemy.burn = 0
 			if enemy.is_dead():
@@ -1307,7 +1313,7 @@ func _reward_kill(enemy: Enemy) -> void:
 		# Down to the last health point with a pool below its cap
 		if run.health == 1 and run.dice.size() < run.max_dice:
 			run.count(&"clutch_boss_kill")
-	player.popup("+%d gold" % gold, Color(1.0, 0.85, 0.3))
+	player.popup(tr("POPUP_GOLD") % gold, Color(1.0, 0.85, 0.3))
 
 
 ## Turn order: nearest to the player first (sortable, so initiative can be added later).
@@ -1341,7 +1347,7 @@ func _choose_block(enemy: Enemy, damage: int, log_index: int) -> int:
 		_blocking = enemy
 		_blocking_damage = damage
 		_block_selected.clear()
-		_enemy_log[log_index] = ["%s hits you for %d" % [enemy.data.display_name, damage], "Block or take it?"]
+		_enemy_log[log_index] = [tr("LOG_HITS_YOU") % [enemy.data.display_name, damage], tr("LOG_BLOCK_OR_TAKE")]
 		_refresh()
 		enemy.popup("!", Color(1.0, 0.6, 0.2))
 		var blockers := _block_actives(enemy)
@@ -1459,7 +1465,7 @@ func _click_block_die(index: int) -> void:
 
 ## Spawns [boss]'s minion on each of [tiles], popping in one after another. Awaitable.
 func summon(boss: Enemy, tiles: Array[int]) -> void:
-	boss.popup("SUMMON", Color(0.75, 0.55, 1.0))
+	boss.popup(tr("POPUP_SUMMON"), Color(0.75, 0.55, 1.0))
 	for tile_id in tiles:
 		board.spawn_minion(boss, tile_id)
 		await get_tree().create_timer(Anim.t(0.2)).timeout
@@ -1482,7 +1488,7 @@ func charge(boss: Enemy, path: Array[int]) -> void:
 ## [boss] bursts into flames: [damage] to every piece on the tiles up to [reach] along the six straight lines from it,
 ## which stop at walls and obstacles. Awaitable.
 func flame_burst(boss: Enemy, reach: int, damage: int) -> void:
-	boss.popup("FLAME BURST", Color(1.0, 0.55, 0.2))
+	boss.popup(tr("POPUP_FLAME_BURST"), Color(1.0, 0.55, 0.2))
 	var tiles: Array[int] = []
 	for offset in Hex.NEIGHBOUR_OFFSETS:
 		var cell := Hex.coords(boss.tile_id)
@@ -1864,7 +1870,7 @@ func _refresh_list() -> void:
 			lines.append(entry[0])
 			warnings.append(entry[1])
 	action_list.show_actions(lines, warnings, _edit_index if _editing else -1, listed.size(), state == State.PLAN)
-	action_list.set_header("TURN %d  ·  %s" % [turn_number, State.keys()[state].replace("_", " ")])
+	action_list.set_header(tr("HUD_TURN_HEADER") % [turn_number, tr(STATE_NAMES[state])])
 	action_list.set_commit_enabled(state == State.PLAN)
 	var buttons: Array[Dictionary] = []
 	for ability in plan_actives():
@@ -1913,48 +1919,48 @@ func _first_planned() -> bool:
 
 func _hint() -> String:
 	if _redirect_targets.size() > 0:
-		return "Click a highlighted enemy to send the hit to."
+		return tr("HINT_CHOOSE_REDIRECT_TARGET")
 	if _blocking:
-		return "%s hits you for %d.  Block with held defence dice or TAKE HIT." % [_blocking.data.display_name, _blocking_damage]
+		return tr("HINT_BLOCK_OR_TAKE_HIT") % [_blocking.data.display_name, _blocking_damage]
 	if _hint_note != "" and state == State.PLAN:
 		return _hint_note
 	match state:
 		State.ROLL:
-			return "Rolling..."
+			return tr("HINT_ROLLING")
 		State.RESOLVE:
-			return "Resolving your actions..."
+			return tr("HINT_RESOLVING")
 		State.ENEMY_TURN:
 			if results.is_empty() and actions.is_empty():
-				return "You are stunned and lose this turn."
-			return "Enemy turn..."
+				return tr("HINT_STUNNED_LOSE_TURN")
+			return tr("HINT_ENEMY_TURN")
 		State.LEVEL_CLEAR:
 			return clear_hint
 		State.GAME_OVER:
-			return "Defeated."
+			return tr("HINT_DEFEATED")
 	var armed_names := " + ".join(_armed.map(func(a: Ability): return a.display_name))
-	var armed_note := "  %s will be used on this attack." % armed_names if _armed.size() > 0 else ""
+	var armed_note := "  " + tr("HINT_ARMED_NOTE") % armed_names if _armed.size() > 0 else ""
 	match _selected_category():
 		DieFace.Category.ATTACK:
-			var range_note := "  Range lost by combining with dice without it." if is_range_lost(selected) else ""
-			return "Attack %d (range %d): click a highlighted enemy.  Click more attack dice to combine them.%s%s  Right-click to cancel." % [dice_value(selected), attack_range(selected), range_note, armed_note]
+			var range_note := "  " + tr("HINT_RANGE_LOST_NOTE") if is_range_lost(selected) else ""
+			return tr("HINT_ATTACK") % [dice_value(selected), attack_range(selected), range_note, armed_note]
 	if selected.size() > 0:
 		if is_teleport_lost(selected):
-			return "Move %d: teleport lost by combining with normal movement.  Click a highlighted tile.  Right-click to cancel." % dice_value(selected)
+			return tr("HINT_MOVE_TELEPORT_LOST") % dice_value(selected)
 		if _move_ctx and _move_ctx.teleport:
-			return "Teleport %d: click a highlighted tile in line of sight.  Right-click to cancel." % _move_ctx.budget
-		var frozen_note := " (frozen: half of %d)" % dice_value(selected) if player.frozen and _move_ctx and not _move_ctx.teleport else ""
-		return "Move %d%s: click a highlighted tile.  Click more movement dice to combine them.  Right-click to cancel." % [_move_ctx.budget if _move_ctx else dice_value(selected), frozen_note]
+			return tr("HINT_TELEPORT") % _move_ctx.budget
+		var frozen_note := " " + tr("HINT_FROZEN_NOTE") % dice_value(selected) if player.frozen and _move_ctx and not _move_ctx.teleport else ""
+		return tr("HINT_MOVE") % [_move_ctx.budget if _move_ctx else dice_value(selected), frozen_note]
 	if _dashing:
-		return "%s: click a highlighted tile (up to %d away, in line of sight).  Right-click to cancel." % [_dashing.display_name, _dashing.reach]
+		return tr("HINT_DASH") % [_dashing.display_name, _dashing.reach]
 	if _editing:
-		return "Editing: choose dice, then a target.  Right-click to cancel."
+		return tr("HINT_EDITING")
 	if _armed.size() > 0:
-		return "%s armed: choose attack dice, then a target.  Right-click to cancel." % armed_names
+		return tr("HINT_ARMED") % armed_names
 	if _enemies_acted:
-		return "The enemies have acted.  Click dice to plan moves and attacks, then COMMIT.  Defence dice are kept to block retaliation."
+		return tr("HINT_ENEMIES_ACTED")
 	if actions.is_empty():
-		return "Click dice to plan moves and attacks, then COMMIT, or let the enemies go first.  Defence dice are kept to block hits."
-	return "Click dice to plan moves and attacks, then COMMIT.  Defence dice are kept to block hits."
+		return tr("HINT_PLAN_OR_ENEMIES_FIRST")
+	return tr("HINT_PLAN")
 
 
 var _dot_mesh: SphereMesh

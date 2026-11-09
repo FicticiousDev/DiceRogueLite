@@ -47,11 +47,11 @@ func _ready() -> void:
 	stats.add_child(_character)
 	_hp = _add(HEART, Color(1, 0.35, 0.35))
 	_range = _add(BOW, Color(0.95, 0.85, 0.6))
-	_range.tooltip_text = "Attack range"
-	_stun = _status(STUN, Color(1.0, 0.75, 0.3), "Stunned", HelpText.PLAYER_STUNNED)
-	_poison = _status(POISON, Color(0.55, 1.0, 0.45), "Poisoned", HelpText.PLAYER_POISONED)
-	_frozen = _status(FREEZE, Color(0.55, 0.85, 1.0), "Frozen", HelpText.PLAYER_FROZEN)
-	_burning = _status(FIRE, Color(1.0, 0.55, 0.2), "Burning", HelpText.PLAYER_BURNING)
+	_range.tooltip_text = tr("HUD_ATTACK_RANGE")
+	_stun = _status(STUN, Color(1.0, 0.75, 0.3), tr("STATUS_STUNNED"), tr(HelpText.PLAYER_STUNNED))
+	_poison = _status(POISON, Color(0.55, 1.0, 0.45), tr("STATUS_POISONED"), tr(HelpText.PLAYER_POISONED))
+	_frozen = _status(FREEZE, Color(0.55, 0.85, 1.0), tr("STATUS_FROZEN"), tr(HelpText.PLAYER_FROZEN))
+	_burning = _status(FIRE, Color(1.0, 0.55, 0.2), tr("STATUS_BURNING"), tr(HelpText.PLAYER_BURNING))
 	_gold = _add(COIN, Color(1, 0.82, 0.3))
 	_bank = _add(BANK, Color(0.75, 0.8, 0.9))
 	_equipment_box = HBoxContainer.new()
@@ -60,7 +60,7 @@ func _ready() -> void:
 	stats.add_child(_equipment_box)
 	_pool_box = HBoxContainer.new()
 	_pool_box.add_theme_constant_override("separation", 4)
-	_pool_box.tooltip_text = "Your dice"
+	_pool_box.tooltip_text = tr("HUD_YOUR_DICE")
 	_pool_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	stats.add_child(_pool_box)
 	_pool_label = Label.new()

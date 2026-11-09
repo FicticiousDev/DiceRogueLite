@@ -43,7 +43,7 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 10)
 	center.add_child(_content)
 	InputMode.register_menu(self)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", ""))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", ""))
 
 
 func _process(delta: float) -> void:
@@ -64,7 +64,7 @@ func present(type: DieType, source: String, max_size: int) -> bool:
 	var run := SaveManager.run_data
 	var full := run.dice.size() >= max_size
 
-	var title := _label("NEW DIE!", 56, TITLE_COLOR)
+	var title := _label(tr("DICE_NEW_DIE"), 56, TITLE_COLOR)
 	_content.add_child(title)
 	_content.add_child(_label(source, 20, Color(0.7, 0.7, 0.75)))
 
@@ -87,31 +87,31 @@ func present(type: DieType, source: String, max_size: int) -> bool:
 	stage.add_child(view)
 
 	_content.add_child(_label(type.display_name, 36, Rarity.COLORS[type.rarity].lightened(0.2)))
-	_content.add_child(_label("%s die  ·  click it for all six faces, drag to turn it" % Rarity.Tier.keys()[type.rarity].capitalize(),
+	_content.add_child(_label(tr("DICE_KIND_HINT") % Rarity.display_name(type.rarity),
 		18, Color(0.65, 0.65, 0.7)))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 20)
 	if full:
-		_content.add_child(_label("Your pool is full (%d / %d). Choose a die to swap out for it, or leave it." % [run.dice.size(), max_size],
+		_content.add_child(_label(tr("DICE_POOL_FULL") % [run.dice.size(), max_size],
 			20, Color.WHITE))
 		var types: Array[DieType] = []
 		for id in run.dice:
 			types.append(Database.get_content("dice", id))
-		var grid := DieCard.grid(types, POOL_COLUMNS, POOL_VIEW, "SWAP OUT")
+		var grid := DieCard.grid(types, POOL_COLUMNS, POOL_VIEW, tr("DICE_SWAP_OUT"))
 		grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		_content.add_child(grid)
 		for i in grid.get_child_count():
 			var card: DieCard = grid.get_child(i)
 			card.button_pressed.connect(_choose_swap.bind(i))
 			_cards.append(card)
-		_swap_button = _button("SWAP", _swap)
+		_swap_button = _button(tr("BTN_SWAP"), _swap)
 		_swap_button.disabled = true
 		buttons.add_child(_swap_button)
-		buttons.add_child(_button("LEAVE IT", _finished.emit))
+		buttons.add_child(_button(tr("BTN_LEAVE_IT"), _finished.emit))
 	else:
-		buttons.add_child(_button("COLLECT  (%d / %d)" % [run.dice.size() + 1, max_size], _collect))
+		buttons.add_child(_button(tr("BTN_COLLECT") % [run.dice.size() + 1, max_size], _collect))
 	_content.add_child(_gap(6))
 	_content.add_child(buttons)
 
@@ -158,7 +158,7 @@ func _choose_swap(index: int) -> void:
 	for i in _cards.size():
 		_cards[i].selected = i == _swap_index
 	_swap_button.disabled = _swap_index == -1
-	_swap_button.text = "SWAP  %s → %s" % [_cards[_swap_index].die_type.display_name, _new_type.display_name] if _swap_index != -1 else "SWAP"
+	_swap_button.text = tr("BTN_SWAP_PAIR") % [_cards[_swap_index].die_type.display_name, _new_type.display_name] if _swap_index != -1 else tr("BTN_SWAP")
 
 
 ## Replaces the chosen die in place, so pool indices (and any dice rolled this turn) stay put.

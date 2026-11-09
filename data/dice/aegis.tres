@@ -59,7 +59,6 @@ buff_target = 1
 [resource]
 script = ExtResource("3_type")
 id = &"aegis"
-display_name = "Aegis Die"
 rarity = 4
 faces = Array[ExtResource("1_face")]([SubResource("Resource_aegi2"), SubResource("Resource_aegi4"), SubResource("Resource_aegi6"), SubResource("Resource_aegi8"), SubResource("Resource_aegi10"), SubResource("Resource_aegi12")])
 loot = true

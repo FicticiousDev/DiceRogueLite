@@ -20,7 +20,7 @@ var _tween: Tween
 func _ready() -> void:
 	give_up_button.pressed.connect(answered.emit.bind(-1))
 	InputMode.register_menu(self, _entry)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", ""))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", ""))
 
 
 ## The first die's button; giving up is never the default.

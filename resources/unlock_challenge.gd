@@ -11,8 +11,9 @@ enum Reward { CHARACTER, DIE_DESIGN }
 enum Mode { TOTAL, EACH }
 
 @export var id: StringName
-## How to unlock it, shown on locked characters and designs
-@export_multiline var description: String
+## How to unlock it, shown on locked characters and designs. Localised: the key is CHALLENGE_<ID>_DESC
+var description: String:
+	get: return tr("CHALLENGE_%s_DESC" % String(id).to_upper())
 @export var reward: Reward = Reward.CHARACTER
 @export var reward_id: StringName
 @export var stat: StringName
@@ -51,4 +52,4 @@ func reward_name() -> String:
 		var character: CharacterData = Database.get_content("characters", reward_id)
 		return character.display_name if character else String(reward_id)
 	var design: DieDesign = Database.get_content("die_designs", reward_id)
-	return "%s die design" % (design.display_name if design else String(reward_id))
+	return tr("UNLOCK_DIE_DESIGN_REWARD") % (design.display_name if design else String(reward_id))

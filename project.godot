@@ -115,6 +115,10 @@ debug_roll_showcase={
 ]
 }
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://localisation/strings.en.translation")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

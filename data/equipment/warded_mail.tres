@@ -7,14 +7,11 @@
 [sub_resource type="Resource" id="Resource_warde0"]
 script = ExtResource("2_block")
 id = &"ward"
-display_name = "Ward"
-description = "Once per level: completely block one attack."
 uses_per_level = 1
 
 [resource]
 script = ExtResource("9_item")
 id = &"warded_mail"
-display_name = "Warded Mail"
 slot = 0
 rarity = 2
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_warde0")])

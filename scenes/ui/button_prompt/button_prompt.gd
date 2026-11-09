@@ -17,21 +17,21 @@ var _icons: HBoxContainer
 var _label: Label
 
 
-## A prompt for [prompt_actions] (action names) captioned [text].
+## A prompt for [prompt_actions] (action names) captioned [text], a localisation key.
 static func create(prompt_actions: Array, text: String) -> ButtonPrompt:
 	var prompt := ButtonPrompt.new()
 	for action in prompt_actions:
 		prompt.actions.append(StringName(action))
-	prompt.caption = text
+	prompt.caption = TranslationServer.translate(text)
 	return prompt
 
 
 ## The usual prompts of a menu: navigate, select and back. A caption left empty leaves that prompt out; [extra] adds
 ## more as [[actions], caption] pairs.
-static func standard(select: String = "Select", back: String = "Back", navigate: bool = true, extra: Array = []) -> Array:
+static func standard(select: String = "PROMPT_SELECT", back: String = "PROMPT_BACK", navigate: bool = true, extra: Array = []) -> Array:
 	var entries: Array = []
 	if navigate:
-		entries.append([[&"ui_up", &"ui_down"], "Navigate"])
+		entries.append([[&"ui_up", &"ui_down"], "PROMPT_NAVIGATE"])
 	if select != "":
 		entries.append([[&"ui_accept"], select])
 	entries.append_array(extra)

@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_finish")
 id = &"plastic"
-display_name = "Plastic"
 base_color = Color(1, 1, 1, 1)
 tint = 1.0
 detail_color = Color(0.2, 0.2, 0.2, 1)

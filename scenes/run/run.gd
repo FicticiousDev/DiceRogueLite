@@ -234,14 +234,22 @@ func load_level(carried: HexTile = null) -> void:
 ## The turn plan's text once the level is clear, naming the shop / bank while they're open.
 func _clear_hint(index: int) -> String:
 	if RunMap.next(SaveManager.run_data, index).is_empty():
-		return "Run complete!"
-	var open := PackedStringArray()
+		return tr("HINT_RUN_COMPLETE")
+	var shop_open := false
+	var bank_open := false
 	for building in board.get_buildings():
 		if not building.closed:
-			open.append("the shop" if building.kind == Building.Kind.SHOP else "the bank")
-	if open.is_empty():
-		return "Level clear!  Click an open gate to choose your next level.  [M] map  [P] dice"
-	return "Click %s to use %s, or an open gate to move on.  [M] map  [P] dice" % [" or ".join(open), "it" if open.size() == 1 else "them"]
+			if building.kind == Building.Kind.SHOP:
+				shop_open = true
+			else:
+				bank_open = true
+	if shop_open and bank_open:
+		return tr("HINT_CLEAR_SHOP_BANK")
+	if shop_open:
+		return tr("HINT_CLEAR_SHOP")
+	if bank_open:
+		return tr("HINT_CLEAR_BANK")
+	return tr("HINT_LEVEL_CLEAR_GATES")
 
 
 ## What the camera fits in the free space: every tile's outline at its top, and again raised by the headroom for
@@ -472,9 +480,9 @@ func _on_player_moved(_from_id: int, to_id: int) -> void:
 	if die_id != &"" or item_id != &"" or mystery:
 		get_tree().paused = true
 		if die_id != &"":
-			await _award.present(Database.get_content("dice", die_id), "Found in a chest", SaveManager.run_data.max_dice)
+			await _award.present(Database.get_content("dice", die_id), tr("REWARD_FOUND_IN_CHEST"), SaveManager.run_data.max_dice)
 		if item_id != &"":
-			await _item_award.present(Database.get_content("equipment", item_id), "Found in a chest")
+			await _item_award.present(Database.get_content("equipment", item_id), tr("REWARD_FOUND_IN_CHEST"))
 		if mystery:
 			await _unlock()
 		get_tree().paused = false
@@ -518,21 +526,21 @@ func _level_award() -> void:
 			return
 		var item := EquipmentLoot.roll(rng, difficulty, true) if rng.randf() < challenge_item_chance else null
 		if item:
-			await _item_award.present(item, "Challenge reward")
+			await _item_award.present(item, tr("REWARD_CHALLENGE"))
 			return
 		var top := DiceLoot.roll(rng, difficulty, true)
 		if top:
-			await _award.present(top, "Challenge reward", SaveManager.run_data.max_dice)
+			await _award.present(top, tr("REWARD_CHALLENGE"), SaveManager.run_data.max_dice)
 		return
 	var boss := level.type == LevelData.Type.BOSS
 	if boss or rng.randf() < die_award_chance:
 		var die := DiceLoot.roll(rng, difficulty, boss)
 		if die:
-			await _award.present(die, "Boss reward" if boss else "Level clear reward", SaveManager.run_data.max_dice)
+			await _award.present(die, tr("REWARD_BOSS") if boss else tr("REWARD_LEVEL_CLEAR"), SaveManager.run_data.max_dice)
 	if boss and rng.randf() < boss_item_chance:
 		var drop := EquipmentLoot.roll(rng, difficulty, true)
 		if drop:
-			await _item_award.present(drop, "Boss reward")
+			await _item_award.present(drop, tr("REWARD_BOSS"))
 
 
 func _toggle_pool_view() -> void:
@@ -569,7 +577,7 @@ func _choose_exit(exit: ExitGate) -> void:
 	var biome := RunMap.biome(run, exit.target)
 	var type := RunMap.level(run, exit.target).type
 	_loading = true
-	if not await confirm_dialog.ask("TRAVEL", "Head to the %s: %s?" % [biome.display_name, LevelData.NAMES[type]]):
+	if not await confirm_dialog.ask(tr("DIALOG_TRAVEL_TITLE"), tr("DIALOG_TRAVEL_MESSAGE") % [biome.display_name, tr(LevelData.NAMES[type])]):
 		_loading = false
 		return
 	var target := exit.target
@@ -610,7 +618,7 @@ func _shop(shop: Building) -> void:
 			return
 		var offer := shop.stock[index]
 		var price := ShopStock.price(offer)
-		var source := "From the shop for %d gold  ·  only paid if you keep it" % price
+		var source := tr("SHOP_SOURCE_PRICE") % price
 		var taken: bool
 		if offer is DieType:
 			taken = await _award.present(offer, source, SaveManager.run_data.max_dice)
@@ -638,7 +646,7 @@ func _bank(bank: Building) -> void:
 	bank.close()
 	turn.clear_hint = _clear_hint(index)
 	turn._refresh()
-	bank.popup("%d banked" % amount if amount > 0 else "+%d" % -amount, Color(1, 0.82, 0.3))
+	bank.popup(tr("POPUP_BANKED") % amount if amount > 0 else "+%d" % -amount, Color(1, 0.82, 0.3))
 
 
 func _process(delta: float) -> void:
@@ -723,7 +731,7 @@ func _boss_bonus() -> void:
 	player.stunned = false
 	player.frozen_next = false
 	player.burn = 0
-	player.popup("+1 MAX HP  ·  +1 DIE SLOT", Color(0.5, 1.0, 0.4))
+	player.popup(tr("POPUP_LEVEL_UP"), Color(0.5, 1.0, 0.4))
 	await get_tree().create_timer(Anim.t(0.8)).timeout
 
 
@@ -745,7 +753,7 @@ func _end_run(outcome: ProgressionData.Outcome) -> void:
 
 
 func _on_exit_pressed() -> void:
-	if await confirm_dialog.ask("MAIN MENU", "Return to the main menu?\nContinue picks up from the start of this level."):
+	if await confirm_dialog.ask(tr("DIALOG_MAIN_MENU_TITLE"), tr("DIALOG_MAIN_MENU_MESSAGE")):
 		SaveManager.save_data()
 		SceneManager.change_scene(MAIN_MENU_SCENE)
 
@@ -768,7 +776,7 @@ func _update_die_tip(delta: float) -> void:
 	_die_tip_time += delta
 	if _die_tip == null and _die_tip_time >= DIE_TIP_DELAY:
 		var result := turn.results[index]
-		var title := "%s  ·  %s" % [result.die_type.display_name, Rarity.Tier.keys()[result.die_type.rarity].capitalize()]
+		var title := "%s  ·  %s" % [result.die_type.display_name, Rarity.display_name(result.die_type.rarity)]
 		_die_tip = InfoPanel.create(title, HelpText.face_rows(result.display_face()), 340.0, 17)
 		_die_tip_layer.add_child(_die_tip)
 	if _die_tip:
@@ -879,7 +887,7 @@ func _debug_boss() -> void:
 			RunMap.node(data, index).level = String(biome.boss_level)
 	run.health = run.max_health
 	load_level()
-	player.popup("Boss: %s" % biome.display_name, Color(1.0, 0.45, 0.85))
+	player.popup(tr("POPUP_NEXT_BOSS") % biome.display_name, Color(1.0, 0.45, 0.85))
 
 
 func _can_force_next() -> bool:
@@ -898,7 +906,7 @@ func _debug_next_shop(type: LevelData.Type) -> void:
 				RunMap.node(run, target).level = level_id
 	for exit in board.get_exits():
 		exit.set_icon(LevelData.ICONS[type])
-	player.popup("Next: %s" % LevelData.NAMES[type], Color(1.0, 0.45, 0.85))
+	player.popup(tr("POPUP_NEXT_LEVEL") % tr(LevelData.NAMES[type]), Color(1.0, 0.45, 0.85))
 
 
 ## Puts a Mystery piece on this level now (where one would go), if anything is still locked and there isn't one already.

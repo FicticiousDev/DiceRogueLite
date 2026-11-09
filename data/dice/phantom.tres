@@ -62,7 +62,6 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_phan12")])
 [resource]
 script = ExtResource("3_type")
 id = &"phantom"
-display_name = "Phantom Die"
 rarity = 3
 faces = Array[ExtResource("1_face")]([SubResource("Resource_phan3"), SubResource("Resource_phan5"), SubResource("Resource_phan7"), SubResource("Resource_phan9"), SubResource("Resource_phan11"), SubResource("Resource_phan13")])
 loot = true

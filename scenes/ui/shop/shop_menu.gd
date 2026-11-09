@@ -35,7 +35,7 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 18)
 	center.add_child(_content)
 	InputMode.register_menu(self)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", "Close"))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", "PROMPT_CLOSE"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -49,12 +49,12 @@ func choose(stock: Array[Resource], sold: Array[bool]) -> int:
 	for child in _content.get_children():
 		child.queue_free()
 	var gold := SaveManager.run_data.gold
-	_content.add_child(_label("SHOP", 48, Color.WHITE))
+	_content.add_child(_label(tr("SHOP_TITLE"), 48, Color.WHITE))
 	var purse := StatIcon.create(COIN, GOLD_COLOR, 26, 32.0)
-	purse.set_value("%d gold to spend" % gold)
+	purse.set_value(tr("SHOP_GOLD_TO_SPEND") % gold)
 	purse.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_content.add_child(purse)
-	_content.add_child(_label("You only pay for what you keep: a full pool or slot lets you swap or leave it.", 18, Color(0.65, 0.65, 0.7)))
+	_content.add_child(_label(tr("SHOP_INFO"), 18, Color(0.65, 0.65, 0.7)))
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -63,7 +63,7 @@ func choose(stock: Array[Resource], sold: Array[bool]) -> int:
 	for i in stock.size():
 		var offer := stock[i]
 		var price := ShopStock.price(offer)
-		var text := "SOLD" if sold[i] else "BUY  ·  %d gold" % price
+		var text := tr("SHOP_SOLD") if sold[i] else tr("SHOP_BUY") % price
 		# DieCard or EquipmentCard: both have a button and button_pressed
 		var card = DieCard.create(offer, DIE_VIEW, text) if offer is DieType else EquipmentCard.create(offer, ITEM_WIDTH, text, 64.0)
 		card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -74,7 +74,7 @@ func choose(stock: Array[Resource], sold: Array[bool]) -> int:
 		row.add_child(card)
 
 	var close_button := Button.new()
-	close_button.text = "CLOSE"
+	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(200, 50)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.add_theme_font_size_override("font_size", 20)

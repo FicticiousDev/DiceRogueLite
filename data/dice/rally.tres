@@ -59,7 +59,6 @@ buff_target = 1
 [resource]
 script = ExtResource("3_type")
 id = &"rally"
-display_name = "Rally Die"
 rarity = 2
 faces = Array[ExtResource("1_face")]([SubResource("Resource_rall2"), SubResource("Resource_rall4"), SubResource("Resource_rall6"), SubResource("Resource_rall8"), SubResource("Resource_rall10"), SubResource("Resource_rall12")])
 loot = true

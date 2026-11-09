@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_design")
 id = &"thunder"
-display_name = "Thunder"
 mesh = ExtResource("1_mesh")
 face_size = 0.62
 starts_unlocked = false

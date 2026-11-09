@@ -27,14 +27,14 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 		return false
 	_notes.clear()
 	if turn.is_range_lost(dice):
-		_notes.append("Range lost: combined with dice without it")
+		_notes.append(tr("NOTE_RANGE_LOST"))
 	var enemy_first := enemy.data.attacks_first and not turn.player_strikes_first()
 	if enemy_first:
-		_add_strike_note(state, turn, "Strikes first")
+		_add_strike_note(state, turn, "NOTE_STRIKES_FIRST")
 	var spent := TurnController.spend_uses(actives, state.uses)
 	for ability in actives:
 		if not spent.has(ability):
-			_notes.append("No %s uses left" % ability.display_name)
+			_notes.append(tr("NOTE_NO_USES_LEFT") % ability.display_name)
 	_ctx = turn.player_attack_context(enemy, dice, spent, state.attacks == 0, state.player_tile, state.boosts)
 	state.attacks += 1
 	# A crit boost goes on the first attack after it
@@ -47,26 +47,26 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 		if other and state.is_alive(other):
 			var splash := _ctx.split(other, 0).damage()
 			state.hurt(other, splash, _ctx.shield_multiplier())
-			_notes.append("%s %s" % [other.data.display_name, "killed" if state.enemy_hp[other] <= 0 else "-%d" % splash])
+			_notes.append("%s %s" % [other.data.display_name, tr("NOTE_KILLED") if state.enemy_hp[other] <= 0 else "-%d" % splash])
 			if _ctx.fire and state.is_alive(other) and splash / 2 > 0 and not state.burning.has(other):
 				state.burning.append(other)
 	if state.enemy_hp[enemy] <= 0:
-		_notes.append("Kills it (+%d gold)" % TurnController.kill_gold(enemy.data))
+		_notes.append(tr("NOTE_KILLS_IT") % TurnController.kill_gold(enemy.data))
 	else:
 		if _ctx.fire and damage / 2 > 0:
 			if not state.burning.has(enemy):
 				state.burning.append(enemy)
-			_notes.append("Sets it on fire (%d next round)" % (damage / 2))
+			_notes.append(tr("NOTE_SETS_ON_FIRE") % (damage / 2))
 		if _ctx.stun and enemy.data.stun_immune:
-			_notes.append("Immune to stun")
+			_notes.append(tr("NOTE_IMMUNE_TO_STUN"))
 		elif _ctx.stun and not state.stunned.has(enemy):
 			state.stunned.append(enemy)
-			_notes.append("Stuns it")
+			_notes.append(tr("NOTE_STUNS_IT"))
 		if _ctx.poison and not state.poisoned.has(enemy):
 			state.poisoned.append(enemy)
-			_notes.append("Poisons it")
+			_notes.append(tr("NOTE_POISONS_IT"))
 		if not enemy_first:
-			_add_strike_note(state, turn, "Retaliates")
+			_add_strike_note(state, turn, "NOTE_RETALIATES")
 	if not state.attacked.has(enemy):
 		state.attacked.append(enemy)
 	state.used_dice.append_array(dice)
@@ -78,19 +78,19 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 func _add_strike_note(state: TurnState, turn: TurnController, verb: String) -> void:
 	if not enemy.can_hit(state.player_tile):
 		return
-	var noun := "first strike" if verb == "Strikes first" else "retaliation"
+	var noun := tr("NOTE_NOUN_FIRST_STRIKE") if verb == "NOTE_STRIKES_FIRST" else tr("NOTE_NOUN_RETALIATION")
 	if state.stunned.has(enemy):
-		_notes.append("Stunned: no %s" % noun)
+		_notes.append(tr("NOTE_STUNNED_NO_STRIKE") % noun)
 		return
 	if not turn.can_retaliate(enemy):
-		_notes.append("Already attacked: no %s" % noun)
+		_notes.append(tr("NOTE_ALREADY_ATTACKED_NO_STRIKE") % noun)
 		return
 	state.retaliated.append(enemy)
 	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack, 0)
 	turn.apply_incoming(strike)
-	var note := "%s %d" % [verb, enemy.data.attack]
+	var note := "%s %d" % [tr(verb), enemy.data.attack]
 	if strike.negated:
-		note += ", blocked by " + " + ".join(strike.notes)
+		note += tr("NOTE_BLOCKED_BY_SUFFIX") % " + ".join(strike.notes)
 	_notes.append(note)
 
 
@@ -101,15 +101,15 @@ func resolve(turn: TurnController) -> void:
 func describe(turn: TurnController) -> String:
 	var target := enemy.data.display_name if is_instance_valid(enemy) else "?"
 	if _ctx and _ctx.insta_kill:
-		return "Insta-kill  →  %s" % target
+		return tr("PLAN_INSTA_KILL") % target
 	var extras := ""
 	if _ctx and _ctx.crit:
-		extras += ", crit"
+		extras += tr("PLAN_EXTRA_CRIT")
 	if _ctx and _ctx.penetrate > 0 and not _ctx.ignore_defence:
-		extras += ", pierce %d" % _ctx.penetrate
+		extras += tr("PLAN_EXTRA_PIERCE") % _ctx.penetrate
 	if _ctx and _ctx.multiplier > 1:
 		extras += ", ×%d" % _ctx.multiplier
-	return "Attack %d  →  %s  (%d dmg%s)" % [_ctx.base_damage if _ctx else turn.dice_value(dice), target, damage, extras]
+	return tr("PLAN_ATTACK") % [_ctx.base_damage if _ctx else turn.dice_value(dice), target, damage, extras]
 
 
 func warning(_turn: TurnController) -> String:

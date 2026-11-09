@@ -7,8 +7,6 @@
 [sub_resource type="Resource" id="Resource_scale0"]
 script = ExtResource("2_extra")
 id = &"scale_armour_die"
-display_name = "Defence 3 die"
-description = "Passive: rolls an extra die every turn showing 3 shields."
 symbol = 1
 count = 3
 rarity = 2
@@ -16,7 +14,6 @@ rarity = 2
 [resource]
 script = ExtResource("9_item")
 id = &"scale_armour"
-display_name = "Scale Armour"
 slot = 0
 rarity = 2
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_scale0")])

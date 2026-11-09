@@ -14,12 +14,13 @@ const ICONS: Dictionary[Type, Texture2D] = {
 	Type.CHALLENGE: preload("res://assets/ui/icons/star.png"),
 	Type.BOSS: preload("res://assets/ui/icons/crown.png"),
 }
+## Localisation keys of the level type names: wrap in tr() where shown
 const NAMES: Dictionary[Type, String] = {
-	Type.NORMAL: "Battle",
-	Type.SHOP: "Shop",
-	Type.SHOP_BANK: "Shop & Bank",
-	Type.CHALLENGE: "Challenge",
-	Type.BOSS: "Boss",
+	Type.NORMAL: "LEVEL_BATTLE",
+	Type.SHOP: "LEVEL_SHOP",
+	Type.SHOP_BANK: "LEVEL_SHOP_BANK",
+	Type.CHALLENGE: "LEVEL_CHALLENGE",
+	Type.BOSS: "LEVEL_BOSS",
 }
 
 @export var id: StringName

@@ -59,7 +59,7 @@ theme_override_constants/separation = 20
 [node name="Title" type="Label" parent="UI/Menu" unique_id=710407791]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "Fatecast"
+text = "GAME_TITLE"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="UI/Menu" unique_id=132229885]
@@ -71,7 +71,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "NEW RUN"
+text = "MENU_NEW_RUN"
 
 [node name="ContinueButton" type="Button" parent="UI/Menu" unique_id=1274260996]
 unique_name_in_owner = true
@@ -79,27 +79,27 @@ custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 disabled = true
-text = "CONTINUE"
+text = "MENU_CONTINUE"
 
 [node name="DiceButton" type="Button" parent="UI/Menu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "DICE"
+text = "MENU_DICE"
 
 [node name="SettingsButton" type="Button" parent="UI/Menu" unique_id=890945139]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "SETTINGS"
+text = "MENU_SETTINGS"
 
 [node name="QuitButton" type="Button" parent="UI/Menu" unique_id=761591312]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "QUIT"
+text = "MENU_QUIT"
 
 [node name="ConfirmDialog" parent="." unique_id=366425612 instance=ExtResource("dialog")]

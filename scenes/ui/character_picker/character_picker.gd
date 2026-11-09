@@ -56,7 +56,7 @@ func _ready() -> void:
 	left_arrow.pressed.connect(scroll.bind(-1))
 	right_arrow.pressed.connect(scroll.bind(1))
 	InputMode.register_menu(self, _entry, Callable(), _navigate)
-	ButtonPrompt.footer(self, [[[&"ui_left", &"ui_right"], "Browse"], [[&"ui_accept"], "Play"], [[&"cancel"], "Back"]])
+	ButtonPrompt.footer(self, [[[&"ui_left", &"ui_right"], "PROMPT_BROWSE"], [[&"ui_accept"], "PROMPT_PLAY"], [[&"cancel"], "PROMPT_BACK"]])
 
 
 func _input(event: InputEvent) -> void:
@@ -305,7 +305,7 @@ func _card(character: CharacterData) -> Control:
 	hp.label.text = "%d HP" % character.max_hp
 	stats.add_child(hp)
 	var range_stat := StatIcon.create(BOW, Color(0.95, 0.85, 0.6), 20, 26.0)
-	range_stat.label.text = "Range %d" % character.attack_range if character.attack_range > 1 else "Melee"
+	range_stat.label.text = tr("CHARACTER_RANGE") % character.attack_range if character.attack_range > 1 else tr("CHARACTER_MELEE")
 	stats.add_child(range_stat)
 	box.add_child(stats)
 	box.add_child(_gap(4))
@@ -325,18 +325,18 @@ func _card(character: CharacterData) -> Control:
 	else:
 		# How to unlock it, with progress so far
 		var challenge := SaveManager.progression_data.challenge_for(character.id)
-		var heading := _label("LOCKED", 19, HORIZONTAL_ALIGNMENT_LEFT)
+		var heading := _label(tr("CHARACTER_LOCKED_HEADING"), 19, HORIZONTAL_ALIGNMENT_LEFT)
 		heading.add_theme_color_override("font_color", HIGHLIGHT)
 		box.add_child(heading)
 		if challenge:
-			box.add_child(_wrapped("To unlock: %s" % challenge.description, 17))
-			box.add_child(_wrapped("Progress: %s" % challenge.progress_text(SaveManager.progression_data), 17))
+			box.add_child(_wrapped(tr("CHARACTER_TO_UNLOCK") % challenge.description, 17))
+			box.add_child(_wrapped(tr("CHARACTER_PROGRESS") % challenge.progress_text(SaveManager.progression_data), 17))
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
 	var button := Button.new()
-	button.text = "PLAY" if unlocked else "LOCKED"
+	button.text = tr("BTN_PLAY") if unlocked else tr("CHARACTER_LOCKED_HEADING")
 	button.disabled = not unlocked
 	button.custom_minimum_size = Vector2(0, 50)
 	button.add_theme_font_size_override("font_size", 22)

@@ -4,7 +4,9 @@ extends Resource
 ## An enemy type. Stats are fixed per type.
 
 @export var id: StringName
-@export var display_name: String
+## Localised name. The key is ENEMY_<ID>_NAME (localisation/strings.csv)
+var display_name: String:
+	get: return tr("ENEMY_%s_NAME" % String(id).to_upper())
 @export var texture: Texture2D = preload("res://icon.svg")
 @export var tint: Color = Color.WHITE
 @export var hp: int = 5
@@ -47,5 +49,9 @@ extends Resource
 @export var starting_minions: int = 0
 ## Unique rules
 @export var behaviour: BossBehaviour
-## Explains the unique rules in the enemy details, one line per row
-@export_multiline var description: String = ""
+## Explains the unique rules in the enemy details, one line per row. Localised: the key is ENEMY_<ID>_DESC, left out for enemies without rules
+var description: String:
+	get:
+		var key := "ENEMY_%s_DESC" % String(id).to_upper()
+		var text := tr(key)
+		return "" if text == key else text

@@ -44,7 +44,7 @@ func _show(challenge: UnlockChallenge) -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)
-	box.add_child(_label("UNLOCKED!", 20, GOLD))
+	box.add_child(_label(tr("UNLOCK_TITLE"), 20, GOLD))
 	box.add_child(_label(challenge.reward_name(), 30, Color.WHITE))
 	box.add_child(_label(challenge.description, 17, Color(0.8, 0.8, 0.85)))
 	add_child(panel)

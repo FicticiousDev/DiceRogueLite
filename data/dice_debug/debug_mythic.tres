@@ -78,6 +78,5 @@ symbols = Array[ExtResource("2_2d58w")]([SubResource("Resource_qnhsn"), SubResou
 [resource]
 script = ExtResource("3_xyh1h")
 id = &"debug_mythic"
-display_name = "Debug Mythic"
 rarity = 5
 faces = Array[ExtResource("1_05gm3")]([SubResource("Resource_2d58w"), SubResource("Resource_8ulyv"), SubResource("Resource_3c56n"), SubResource("Resource_81st1"), SubResource("Resource_ddclc"), SubResource("Resource_vkop2")])

@@ -15,8 +15,8 @@ var _button: Button
 func _ready() -> void:
 	layer = 40
 	_button = Button.new()
-	_button.text = "ENEMIES GO FIRST"
-	_button.tooltip_text = "Enemies move and attack now. Those that attack can't retaliate on your turn."
+	_button.text = tr("BTN_ENEMIES_FIRST")
+	_button.tooltip_text = tr("TIP_ENEMIES_FIRST")
 	_button.custom_minimum_size = Vector2(220.0, 56.0)
 	_button.add_theme_font_size_override("font_size", 22)
 	_button.visible = false

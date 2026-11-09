@@ -11,7 +11,6 @@ damage = 3
 [resource]
 script = ExtResource("1")
 id = &"tyrant"
-display_name = "Tyrant"
 tint = Color(0.95, 0.25, 0.1, 1)
 hp = 90
 move = 3
@@ -25,4 +24,3 @@ is_boss = true
 stun_immune = true
 size = 1.6
 behaviour = SubResource("Resource_behaviour")
-description = "Attacks twice each turn\nEmptying a health segment sends flame bursts down all 6 lines (range 4) on its next turn instead\nDamage it deals sets the target on fire: half again next turn"

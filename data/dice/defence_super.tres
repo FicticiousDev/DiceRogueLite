@@ -61,7 +61,6 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_defence_super_s5")]
 [resource]
 script = ExtResource("3_type")
 id = &"defence_super"
-display_name = "Super Defence Die"
 rarity = 4
 faces = Array[ExtResource("1_face")]([SubResource("Resource_defence_super_f0"), SubResource("Resource_defence_super_f1"), SubResource("Resource_defence_super_f2"), SubResource("Resource_defence_super_f3"), SubResource("Resource_defence_super_f4"), SubResource("Resource_defence_super_f5")])
 loot = true

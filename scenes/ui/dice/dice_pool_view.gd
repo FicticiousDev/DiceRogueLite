@@ -28,7 +28,7 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 18)
 	center.add_child(_content)
 	InputMode.register_menu(self)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Inspect", "Close"))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_INSPECT", "PROMPT_CLOSE"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -49,12 +49,12 @@ func open() -> void:
 		child.queue_free()
 	var dice := SaveManager.run_data.dice
 	var title := Label.new()
-	title.text = "YOUR DICE  %d / %d" % [dice.size(), SaveManager.run_data.max_dice]
+	title.text = tr("DICE_POOL_TITLE") % [dice.size(), SaveManager.run_data.max_dice]
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 40)
 	_content.add_child(title)
 	var hint := Label.new()
-	hint.text = "Drag a die to turn it  ·  click one to see all six faces"
+	hint.text = tr("DICE_POOL_HINT")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 18)
 	hint.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
@@ -63,7 +63,7 @@ func open() -> void:
 	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_content.add_child(grid)
 	var close_button := Button.new()
-	close_button.text = "CLOSE"
+	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(200, 50)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.add_theme_font_size_override("font_size", 20)

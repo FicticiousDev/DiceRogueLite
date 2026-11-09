@@ -105,8 +105,8 @@ func key() -> String:
 
 func describe() -> String:
 	if is_buff():
-		return "+1 %s buff" % Symbol.Type.keys()[buff_target]
+		return tr("DIE_FACE_BUFF") % Symbol.Type.keys()[buff_target]
 	var parts: PackedStringArray = []
 	for face_symbol in symbols:
 		parts.append("%d %s" % [face_symbol.count, Symbol.Type.keys()[face_symbol.symbol]])
-	return " + ".join(parts) if parts.size() > 0 else "blank"
+	return " + ".join(parts) if parts.size() > 0 else tr("DIE_FACE_BLANK")

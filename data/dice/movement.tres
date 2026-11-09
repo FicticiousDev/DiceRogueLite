@@ -60,5 +60,4 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_movement_s5")])
 [resource]
 script = ExtResource("3_type")
 id = &"movement"
-display_name = "Movement Die"
 faces = Array[ExtResource("1_face")]([SubResource("Resource_movement_f0"), SubResource("Resource_movement_f1"), SubResource("Resource_movement_f2"), SubResource("Resource_movement_f3"), SubResource("Resource_movement_f4"), SubResource("Resource_movement_f5")])

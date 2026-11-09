@@ -62,6 +62,5 @@ symbols = Array[ExtResource("2_4yvbe")]([SubResource("Resource_2f840")])
 [resource]
 script = ExtResource("3_rxpk5")
 id = &"viper"
-display_name = "Viper Die"
 rarity = 1
 faces = Array[ExtResource("1_li0q1")]([SubResource("Resource_a0w8a"), SubResource("Resource_7w0ov"), SubResource("Resource_y4uru"), SubResource("Resource_atfmo"), SubResource("Resource_ohmeu"), SubResource("Resource_tkipg")])

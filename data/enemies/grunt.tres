@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1")
 id = &"grunt"
-display_name = "Grunt"
 tint = Color(1, 0.45, 0.4, 1)
 hp = 6
 move = 2

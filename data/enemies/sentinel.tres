@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1")
 id = &"sentinel"
-display_name = "Sentinel"
 tint = Color(0.75, 0.85, 1, 1)
 hp = 16
 move = 2

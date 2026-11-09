@@ -69,7 +69,7 @@ func _ready() -> void:
 	var screens = DisplayServer.get_screen_count()
 	var current_screen = DisplayServer.window_get_current_screen()
 	for screen in screens:
-		screen_options.add_item("Screen: " + str(screen))
+		screen_options.add_item(tr("SETTINGS_SCREEN_N") + " " + str(screen))
 	screen_options.select(current_screen)
 
 	# Restoring settings to what was saved or the default

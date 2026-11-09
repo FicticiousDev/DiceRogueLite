@@ -36,8 +36,8 @@ func show_prompt(attacker: String, damage: int, abilities: Array = []) -> void:
 		button.text = String(abilities[i]).to_upper()
 		button.pressed.connect(ability_pressed.emit.bind(i))
 		ability_button.add_sibling(button)
-	title_label.text = "%s ATTACKS!" % attacker.to_upper()
-	damage_label.text = "Hits you for %d damage.\nBlock or take it?" % damage
+	title_label.text = tr("BLOCK_TITLE") % attacker.to_upper()
+	damage_label.text = tr("BLOCK_DAMAGE") % damage
 	set_block_value(0)
 	visible = true
 	panel.pivot_offset = panel.size / 2.0
@@ -51,7 +51,7 @@ func show_prompt(attacker: String, damage: int, abilities: Array = []) -> void:
 ## Total defence of the selected dice; BLOCK is only available once some are selected.
 func set_block_value(value: int) -> void:
 	block_button.disabled = value <= 0
-	block_button.text = "BLOCK %s" % AttackContext.value_text(value) if value > 0 else "BLOCK"
+	block_button.text = tr("BLOCK_BUTTON_VALUE") % AttackContext.value_text(value) if value > 0 else tr("BLOCK_BUTTON")
 
 
 func hide_prompt() -> void:

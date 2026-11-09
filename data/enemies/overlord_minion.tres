@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1")
 id = &"overlord_minion"
-display_name = "Void Husk"
 tint = Color(0.7, 0.4, 0.85, 1)
 hp = 6
 move = 3

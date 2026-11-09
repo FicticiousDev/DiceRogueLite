@@ -40,7 +40,7 @@ func _ready() -> void:
 	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(_content)
 	# No controls to focus: the cursor stays, and a click or cancel closes it
-	ButtonPrompt.footer(self, [[[&"select", &"cancel"], "Close"]])
+	ButtonPrompt.footer(self, [[[&"select", &"cancel"], "PROMPT_CLOSE"]])
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -78,44 +78,44 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 	var data := enemy.data
 	var result: Array[Dictionary] = []
 	if enemy.stunned:
-		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), HelpText.ENEMY_STUNNED))
+		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), tr(HelpText.ENEMY_STUNNED)))
 	if enemy.poisoned:
-		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), HelpText.ENEMY_POISONED))
+		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), tr(HelpText.ENEMY_POISONED)))
 	if enemy.burn > 0:
-		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), "On fire: takes %d damage at the start of the next round." % enemy.burn))
+		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), TranslationServer.translate("DETAILS_ON_FIRE") % enemy.burn))
 	if data.is_boss:
-		result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), "Boss: can't be insta-killed – an insta-kill face hits it for %d with a crit instead." % AttackContext.BOSS_INSTA_KILL_DAMAGE))
+		result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), TranslationServer.translate("DETAILS_BOSS") % AttackContext.BOSS_INSTA_KILL_DAMAGE))
 		for line in data.description.split("\n", false):
 			result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), line))
 		if data.stun_immune:
-			result.append(InfoPanel.row(STUN, Color(0.7, 0.7, 0.75), HelpText.STUN_IMMUNE))
-	var health := "Health %d / %d." % [enemy.hp, data.hp]
+			result.append(InfoPanel.row(STUN, Color(0.7, 0.7, 0.75), tr(HelpText.STUN_IMMUNE)))
+	var health := TranslationServer.translate("DETAILS_HEALTH") % [enemy.hp, data.hp]
 	if data.segments > 1:
-		health += " Split into %d segments." % data.segments
+		health += " " + TranslationServer.translate("DETAILS_SEGMENTS") % data.segments
 	result.append(InfoPanel.row(HEART, Color(1, 0.35, 0.35), health))
 	if data.shield > 0:
-		result.append(InfoPanel.row(SHIELD, Color(0.55, 0.85, 1.0), "Ice shield %d / %d: damage hits the shield first and the rest carries over to health; armour piercing attacks take double from it. Recovers %d in any round it takes no damage." % [enemy.shield, data.shield, data.shield_regen]))
-	var attack := "Attack %d damage per hit. %d%% chance to crit (double damage), %d%% chance to miss you." % [
+		result.append(InfoPanel.row(SHIELD, Color(0.55, 0.85, 1.0), TranslationServer.translate("DETAILS_ICE_SHIELD") % [enemy.shield, data.shield, data.shield_regen]))
+	var attack := TranslationServer.translate("DETAILS_ATTACK") % [
 		data.attack, roundi(data.crit_chance * 100), roundi(minf(data.miss_chance * TurnController.miss_scale_for(SaveManager.run_data), 1.0) * 100)]
 	if data.attacks_per_turn > 1:
-		attack += " Attacks %d times in its turn, each rolled and blocked separately. A strike back uses up one of them that round." % data.attacks_per_turn
+		attack += " " + TranslationServer.translate("DETAILS_ATTACKS_PER_TURN") % data.attacks_per_turn
 	result.append(InfoPanel.row(SWORD, Symbol.INK[Symbol.Type.ATTACK].lightened(0.3), attack))
 	if data.applies_stun:
-		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), "Stunning hits: a hit that damages you stuns you – you can't act until the next round (in its turn: you lose your next turn)."))
+		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), TranslationServer.translate("DETAILS_STUNNING_HITS")))
 	if data.applies_freeze:
-		result.append(InfoPanel.row(FREEZE, Color(0.55, 0.85, 1.0), HelpText.FREEZING_HITS))
+		result.append(InfoPanel.row(FREEZE, Color(0.55, 0.85, 1.0), tr(HelpText.FREEZING_HITS)))
 	if data.applies_fire:
-		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), HelpText.FIRE_HITS))
+		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), tr(HelpText.FIRE_HITS)))
 	if data.applies_poison:
-		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), "Poisonous hits: a hit that damages you poisons you – 1 damage at the start of each of your turns until a heal cures it."))
-	result.append(InfoPanel.row(SHIELD, Color(0.45, 0.7, 1.0), "Defence %d / %d: each segment soaks a point of damage before the ice shield and health; armour piercing attacks bypass it. One segment recovers at the end of every round." % [enemy.defence, data.defence] if data.defence > 0 else "Defence 0: takes the full damage of every hit."))
-	result.append(InfoPanel.row(MOVE, Symbol.INK[Symbol.Type.MOVE].lightened(0.4), "Move %d: tiles it can move each turn; difficult terrain costs more." % data.move))
+		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), TranslationServer.translate("DETAILS_POISONOUS_HITS")))
+	result.append(InfoPanel.row(SHIELD, Color(0.45, 0.7, 1.0), TranslationServer.translate("DETAILS_DEFENCE") % [enemy.defence, data.defence] if data.defence > 0 else TranslationServer.translate("DETAILS_NO_DEFENCE")))
+	result.append(InfoPanel.row(MOVE, Symbol.INK[Symbol.Type.MOVE].lightened(0.4), TranslationServer.translate("DETAILS_MOVE") % data.move))
 	if enemy.reach() > 1:
-		var reduced := " (cut from %d by your abilities)" % data.attack_range if enemy.reach() < data.attack_range else ""
-		result.append(InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), "Range %d%s: attacks from up to %d tiles away with line of sight." % [enemy.reach(), reduced, enemy.reach()]))
+		var reduced := " " + TranslationServer.translate("DETAILS_REDUCED_RANGE") % data.attack_range if enemy.reach() < data.attack_range else ""
+		result.append(InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), TranslationServer.translate("DETAILS_RANGE") % [enemy.reach(), reduced, enemy.reach()]))
 	else:
-		result.append(InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), "Melee: attacks adjacent tiles only."))
+		result.append(InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), TranslationServer.translate("DETAILS_MELEE")))
 	if data.attacks_first:
-		result.append(InfoPanel.row(LIGHTNING, Color(1.0, 0.65, 0.25), HelpText.ATTACKS_FIRST))
-	result.append(InfoPanel.row(COIN, Color(1, 0.82, 0.3), "Worth %d gold." % TurnController.kill_gold(data)))
+		result.append(InfoPanel.row(LIGHTNING, Color(1.0, 0.65, 0.25), tr(HelpText.ATTACKS_FIRST)))
+	result.append(InfoPanel.row(COIN, Color(1, 0.82, 0.3), TranslationServer.translate("DETAILS_WORTH") % TurnController.kill_gold(data)))
 	return result

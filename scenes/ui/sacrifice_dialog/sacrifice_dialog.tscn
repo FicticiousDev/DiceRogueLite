@@ -52,14 +52,14 @@ theme_override_constants/separation = 16
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
 theme_override_font_sizes/font_size = 36
-text = "LAST STAND"
+text = "SACRIFICE_TITLE"
 horizontal_alignment = 1
 
 [node name="Description" type="Label" parent="Center/Panel/VBox"]
 custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "That hit would kill you. Sacrifice a die to survive it - the die is gone for the rest of the run."
+text = "SACRIFICE_INFO"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -76,4 +76,4 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "ACCEPT DEFEAT"
+text = "SACRIFICE_ACCEPT_DEFEAT"

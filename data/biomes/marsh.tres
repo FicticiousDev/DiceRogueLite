@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1")
 id = &"marsh"
-display_name = "Marsh"
 order = 3
 difficulty = 3
 color = Color(0.3, 0.9, 0.75, 1)

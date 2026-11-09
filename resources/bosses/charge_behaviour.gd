@@ -15,7 +15,7 @@ func take_turn(turn: TurnController, boss: Enemy) -> void:
 	var path := plan(turn.board, boss, turn.player)
 	if path.is_empty():
 		return
-	boss.popup("CHARGE", Color(1.0, 0.6, 0.25))
+	boss.popup(tr("POPUP_CHARGE"), Color(1.0, 0.6, 0.25))
 	await turn.charge(boss, path)
 
 

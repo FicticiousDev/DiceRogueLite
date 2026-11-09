@@ -40,7 +40,7 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 10)
 	center.add_child(_content)
 	InputMode.register_menu(self)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", ""))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", ""))
 
 
 func _process(delta: float) -> void:
@@ -66,7 +66,7 @@ func present(item: EquipmentData, source: String) -> bool:
 			free_slot = index
 			break
 
-	var title := _label("NEW ITEM!", 56, TITLE_COLOR)
+	var title := _label(tr("ITEM_NEW_ITEM"), 56, TITLE_COLOR)
 	_content.add_child(title)
 	_content.add_child(_label(source, 20, Color(0.7, 0.7, 0.75)))
 	var stage := Control.new()
@@ -97,23 +97,22 @@ func present(item: EquipmentData, source: String) -> bool:
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 20)
 	if free_slot != -1:
-		buttons.add_child(_button("EQUIP", _equip.bind(free_slot)))
+		buttons.add_child(_button(tr("BTN_EQUIP"), _equip.bind(free_slot)))
 	else:
-		_content.add_child(_label("Your %s slot%s full. Choose an item to replace, or leave it." % [
-			EquipmentData.SLOT_NAMES[item.slot].to_lower(), "s are" if _slots.size() > 1 else " is"], 20, Color.WHITE))
+		_content.add_child(_label(tr("ITEM_SLOTS_FULL_MANY" if _slots.size() > 1 else "ITEM_SLOT_FULL_ONE") % tr(EquipmentData.SLOT_NAMES_LOWER[item.slot]), 20, Color.WHITE))
 		var current := HBoxContainer.new()
 		current.alignment = BoxContainer.ALIGNMENT_CENTER
 		current.add_theme_constant_override("separation", 14)
 		_content.add_child(current)
 		for i in _slots.size():
-			var card := EquipmentCard.create(run.item_in(_slots[i]), 400.0, "REPLACE", 56.0)
+			var card := EquipmentCard.create(run.item_in(_slots[i]), 400.0, tr("BTN_REPLACE"), 56.0)
 			card.button_pressed.connect(_choose_replace.bind(i))
 			current.add_child(card)
 			_cards.append(card)
-		_replace_button = _button("REPLACE", _do_replace)
+		_replace_button = _button(tr("BTN_REPLACE"), _do_replace)
 		_replace_button.disabled = true
 		buttons.add_child(_replace_button)
-	buttons.add_child(_button("LEAVE IT", _finished.emit))
+	buttons.add_child(_button(tr("BTN_LEAVE_IT"), _finished.emit))
 	_content.add_child(buttons)
 
 	visible = true
@@ -161,7 +160,7 @@ func _choose_replace(card: int) -> void:
 	for i in _cards.size():
 		_cards[i].selected = i == _replace
 	_replace_button.disabled = _replace == -1
-	_replace_button.text = "REPLACE  %s → %s" % [_cards[_replace].item.display_name, _item.display_name] if _replace != -1 else "REPLACE"
+	_replace_button.text = tr("BTN_REPLACE_PAIR") % [_cards[_replace].item.display_name, _item.display_name] if _replace != -1 else tr("BTN_REPLACE")
 
 
 func _do_replace() -> void:

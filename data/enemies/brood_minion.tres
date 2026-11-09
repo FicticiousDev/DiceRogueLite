@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1")
 id = &"brood_minion"
-display_name = "Brood Spawn"
 tint = Color(0.55, 0.8, 0.35, 1)
 hp = 1
 move = 3

@@ -66,8 +66,8 @@ func start(turn_controller: TurnController, turn_limit: int) -> void:
 	visible = limit > 0
 	if not visible:
 		return
-	_title.text = "CHALLENGE"
-	_status.text = "Defeat every enemy within %d turns" % limit
+	_title.text = tr("BANNER_CHALLENGE")
+	_status.text = tr("BANNER_DEFEAT_WITHIN") % limit
 	_status.modulate = Color.WHITE
 	await get_tree().process_frame
 	var viewport := _panel.get_viewport_rect().size
@@ -95,13 +95,13 @@ func _process(_delta: float) -> void:
 	elif won == null and current > limit:
 		won = false
 	if won == true:
-		_set_status("CHALLENGE COMPLETE", "Cleared on turn %d of %d" % [current, limit], GOLD)
+		_set_status(tr("BANNER_COMPLETE"), tr("BANNER_CLEARED_ON_TURN") % [current, limit], GOLD)
 	elif won == false:
-		_set_status("CHALLENGE FAILED", "Turn limit of %d passed: no challenge reward" % limit, FAIL)
+		_set_status(tr("BANNER_FAILED"), tr("BANNER_TURN_LIMIT_PASSED") % limit, FAIL)
 	elif current == limit:
-		_set_status("CHALLENGE  ·  LAST TURN", "Turn %d of %d" % [current, limit], WARN)
+		_set_status(tr("BANNER_LAST_TURN"), tr("BANNER_TURN_OF") % [current, limit], WARN)
 	else:
-		_set_status("CHALLENGE", "Turn %d of %d  ·  %d left after this" % [current, limit, limit - current], Color.WHITE)
+		_set_status(tr("BANNER_CHALLENGE"), tr("BANNER_TURN_OF_LEFT") % [current, limit, limit - current], Color.WHITE)
 
 
 func _set_status(title: String, status: String, color: Color) -> void:

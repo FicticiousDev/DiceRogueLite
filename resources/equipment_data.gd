@@ -8,7 +8,9 @@ extends Resource
 
 enum Slot { ARMOUR, BOOTS, CHARM }
 
-const SLOT_NAMES: Dictionary[Slot, String] = { Slot.ARMOUR: "Armour", Slot.BOOTS: "Boots", Slot.CHARM: "Charm" }
+## Localisation keys of the slot names (title case / lower case): wrap in tr() where shown
+const SLOT_NAMES: Dictionary[Slot, String] = { Slot.ARMOUR: "ITEM_SLOT_ARMOUR", Slot.BOOTS: "ITEM_SLOT_BOOTS", Slot.CHARM: "ITEM_SLOT_CHARM" }
+const SLOT_NAMES_LOWER: Dictionary[Slot, String] = { Slot.ARMOUR: "ITEM_SLOT_ARMOUR_LC", Slot.BOOTS: "ITEM_SLOT_BOOTS_LC", Slot.CHARM: "ITEM_SLOT_CHARM_LC" }
 const SLOT_ICONS: Dictionary[Slot, Texture2D] = {
 	Slot.ARMOUR: preload("res://assets/equipment/armour.png"),
 	Slot.BOOTS: preload("res://assets/equipment/boots.png"),
@@ -16,7 +18,9 @@ const SLOT_ICONS: Dictionary[Slot, Texture2D] = {
 }
 
 @export var id: StringName
-@export var display_name: String
+## Localised name. The key is EQUIPMENT_<ID>_NAME (localisation/strings.csv)
+var display_name: String:
+	get: return tr("EQUIPMENT_%s_NAME" % String(id).to_upper())
 @export var slot: Slot = Slot.CHARM
 @export var rarity: Rarity.Tier = Rarity.Tier.COMMON
 ## Optional; defaults to the slot's placeholder icon, tinted by rarity
@@ -41,10 +45,10 @@ func info_rows() -> Array[Dictionary]:
 		var text := "%s: %s" % [ability.display_name, ability.description]
 		rows.append(InfoPanel.row(get_icon(), Rarity.COLORS[rarity], text))
 	if max_hp != 0:
-		rows.append(InfoPanel.row(preload("res://assets/ui/icons/heart.png"), Color(1, 0.35, 0.35), "%+d maximum health." % max_hp))
+		rows.append(InfoPanel.row(preload("res://assets/ui/icons/heart.png"), Color(1, 0.35, 0.35), tr("ITEM_MAX_HEALTH") % max_hp))
 	return rows
 
 
 ## "Rare Armour" etc.
 func kind() -> String:
-	return "%s %s" % [Rarity.Tier.keys()[rarity].capitalize(), SLOT_NAMES[slot].to_lower()]
+	return tr("ITEM_KIND") % [Rarity.display_name(rarity), tr(SLOT_NAMES_LOWER[slot])]

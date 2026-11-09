@@ -20,6 +20,11 @@ Implementation follows `Dice_Roguelike_Development_Plan.md` (Obsidian vault `Gam
    - Signals up, function calls down
 4. **Reuse settings and save/load from `DiceRogueLite`** – already ported in Phase 01 (`autoloads/save_manager.gd`, `saves/*.gd`, `scenes/ui/settings/*`, `scenes/ui/confirm_dialog/*`, `scenes/ui/splash/*`). Extend rather than rewrite. The original prototype is in `_archived/` for reference.
 
+## Localisation
+- **All future changes must take localisation into account.** No hard-coded player-facing text in code, scenes or `.tres` files: add a row to `localisation/strings.csv` (`en` column, placeholders listed in `_notes`) and reference the key. New data resources need their `<PREFIX>_<ID>_NAME` / `_DESC` rows. Follow `LOCALISATION.md` for key conventions, plurals and static/const handling.
+- Only English is provided for now; the CSV is set up for more language columns.
+- Debug-only text may stay unlocalised.
+
 ## Assets
 - Placeholder texture: Godot's built-in icon (`icon.svg`, as created with every new project). Tint it with `modulate` to tell placeholders apart.
 - Assets from `DiceRogueLite` and `MiceAndDice` may also be used as placeholders (UI buttons, splash images, tile highlights, `dice.glb`, grass tile art).

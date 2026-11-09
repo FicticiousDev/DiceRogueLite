@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_design")
 id = &"ember"
-display_name = "Ember"
 mesh = ExtResource("1_mesh")
 face_size = 0.76
 starts_unlocked = false

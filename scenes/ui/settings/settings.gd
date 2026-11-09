@@ -15,7 +15,7 @@ func _ready() -> void:
 	($Menu/SettingsScrollContainer as ScrollContainer).follow_focus = true
 	InputMode.register_menu(menu)
 	# Beside the panel, which fills the screen's height
-	var prompts := ButtonPrompt.bar(ButtonPrompt.standard("Select / change", "Done", true, [[[&"ui_left", &"ui_right"], "Adjust"]]), true)
+	var prompts := ButtonPrompt.bar(ButtonPrompt.standard("PROMPT_SELECT_CHANGE", "PROMPT_DONE", true, [[[&"ui_left", &"ui_right"], "PROMPT_ADJUST"]]), true)
 	menu.add_child(prompts)
 	prompts.anchor_left = 0.0
 	prompts.anchor_right = 0.0

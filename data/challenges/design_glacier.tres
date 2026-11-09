@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_glacier"
-description = "Defeat the Colossus (Frost boss) 10 times."
 reward = 1
 reward_id = &"glacier"
 stat = &"boss_defeated"

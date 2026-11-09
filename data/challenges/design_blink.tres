@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_blink"
-description = "Teleport 100 times."
 reward = 1
 reward_id = &"blink"
 stat = &"teleport"

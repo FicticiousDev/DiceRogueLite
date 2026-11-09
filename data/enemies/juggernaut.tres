@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1")
 id = &"juggernaut"
-display_name = "Juggernaut"
 tint = Color(0.6, 0.3, 0.25, 1)
 hp = 19
 move = 1

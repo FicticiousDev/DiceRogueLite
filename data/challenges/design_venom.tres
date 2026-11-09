@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_venom"
-description = "Poison enemies 100 times."
 reward = 1
 reward_id = &"venom"
 stat = &"poison"

@@ -59,5 +59,4 @@ symbols = Array[ExtResource("2_1aove")]([SubResource("Resource_5eu2w")])
 [resource]
 script = ExtResource("3_qhk8p")
 id = &"debug_common"
-display_name = "Debug Common"
 faces = Array[ExtResource("1_r65mj")]([SubResource("Resource_1aove"), SubResource("Resource_o6wkv"), SubResource("Resource_af430"), SubResource("Resource_dx8uf"), SubResource("Resource_jvbjm"), SubResource("Resource_gwu3g")])

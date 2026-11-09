@@ -8,8 +8,6 @@
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_extra_die_ability")
 id = &"iron_wall"
-display_name = "Iron Wall"
-description = "Passive: you always roll an extra defence die showing 2."
 symbol = 1
 count = 2
 rarity = 1
@@ -17,8 +15,6 @@ rarity = 1
 [sub_resource type="Resource" id="Ability_active"]
 script = ExtResource("3_dash_ability")
 id = &"shield_charge"
-display_name = "Shield Charge"
-description = "Every 3 turns: charge up to 3 tiles (like a teleport), dealing 3 damage that ignores defence to every enemy in the way and knocking them aside."
 active = true
 cooldown = 3
 use = 3
@@ -31,7 +27,6 @@ knockback = true
 script = ExtResource("2_character")
 id = &"tank"
 order = 7
-display_name = "Tank"
 tint = Color(0.6, 0.66, 0.72, 1)
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"rampart", &"rampart"])

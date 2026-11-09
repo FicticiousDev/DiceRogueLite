@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_finish")
 id = &"flecked"
-display_name = "Flecked"
 pattern = 7
 base_color = Color(1, 1, 1, 1)
 tint = 1.0

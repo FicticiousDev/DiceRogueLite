@@ -83,8 +83,8 @@ func _ready() -> void:
 	row.add_child(info)
 	var title := _label(die_type.display_name, 36, Rarity.COLORS[die_type.rarity].lightened(0.15))
 	info.add_child(title)
-	info.add_child(_label("%s die" % Rarity.Tier.keys()[die_type.rarity].capitalize(), 20, Color(0.75, 0.75, 0.8)))
-	info.add_child(_label("Drag the die to turn it  ·  click a face to show it  ·  hover a face for details", 16, Color(0.6, 0.6, 0.66)))
+	info.add_child(_label(tr("DICE_KIND") % Rarity.display_name(die_type.rarity), 20, Color(0.75, 0.75, 0.8)))
+	info.add_child(_label(tr("DICE_INSPECTOR_HINT"), 16, Color(0.6, 0.6, 0.66)))
 	var faces := GridContainer.new()
 	faces.columns = 2
 	faces.add_theme_constant_override("h_separation", 14)
@@ -93,7 +93,7 @@ func _ready() -> void:
 	for i in die_type.faces.size():
 		faces.add_child(_face_entry(i))
 	var close_button := Button.new()
-	close_button.text = "CLOSE"
+	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(180, 48)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	close_button.add_theme_font_size_override("font_size", 20)
@@ -101,7 +101,7 @@ func _ready() -> void:
 	info.add_child(close_button)
 	_close_button = close_button
 	InputMode.register_menu(self, func() -> Control: return _close_button)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", "Close"))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", "PROMPT_CLOSE"))
 
 	_panel.modulate.a = 0.0
 	_panel.scale = Vector2.ONE * 0.85

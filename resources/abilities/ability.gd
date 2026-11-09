@@ -11,8 +11,12 @@ extends Resource
 enum Use { ATTACK, BLOCK, ACTION, MOVE }
 
 @export var id: StringName
-@export var display_name: String
-@export_multiline var description: String
+## Localised name and description. The keys are ABILITY_<ID>_NAME / ABILITY_<ID>_DESC (localisation/strings.csv).
+## Descriptions read "Prefix: effect" (see AbilityAction.describe), so translations must keep the ": " separator
+var display_name: String:
+	get: return tr("ABILITY_%s_NAME" % String(id).to_upper())
+var description: String:
+	get: return tr("ABILITY_%s_DESC" % String(id).to_upper())
 @export var active: bool = false
 ## ATTACK: armed from the turn plan, applies to the next attack the player plans. BLOCK: chosen from the block
 ## prompt when the player is hit. ACTION: added to the turn plan as its own step and played out with the plan

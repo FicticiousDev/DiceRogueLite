@@ -44,7 +44,7 @@ func _ready() -> void:
 
 	var header := HBoxContainer.new()
 	column.add_child(header)
-	var title := _label("DICE DESIGNER", 40, GOLD)
+	var title := _label(tr("DESIGNER_TITLE"), 40, GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	if OS.is_debug_build():
@@ -56,7 +56,7 @@ func _ready() -> void:
 		unlock_all.pressed.connect(_unlock_all)
 		header.add_child(unlock_all)
 	var close := Button.new()
-	close.text = "CLOSE"
+	close.text = tr("BTN_CLOSE")
 	close.custom_minimum_size = Vector2(160, 50)
 	close.add_theme_font_size_override("font_size", 22)
 	close.pressed.connect(close_designer)
@@ -66,12 +66,12 @@ func _ready() -> void:
 	_previews.alignment = BoxContainer.ALIGNMENT_CENTER
 	_previews.add_theme_constant_override("separation", 30)
 	column.add_child(_previews)
-	_designs = _row(column, "DESIGN")
-	_finishes = _row(column, "FINISH")
-	_trims = _row(column, "TRIM FINISH")
+	_designs = _row(column, tr("DESIGNER_DESIGN"))
+	_finishes = _row(column, tr("DESIGNER_FINISH"))
+	_trims = _row(column, tr("DESIGNER_TRIM_FINISH"))
 	_trim_section = _trims.get_parent().get_parent()
 	InputMode.register_menu(self, _entry)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Pick", "Close"))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_PICK", "PROMPT_CLOSE"))
 
 
 ## The first design card.
@@ -154,7 +154,7 @@ func _rebuild() -> void:
 		var view := DieView.create(options.pick_random(), PREVIEW_SIZE)
 		view.design = design
 		box.add_child(view)
-		box.add_child(_label(Rarity.Tier.keys()[tier].capitalize(), 18, Rarity.COLORS[tier]))
+		box.add_child(_label(Rarity.display_name(tier), 18, Rarity.COLORS[tier]))
 		_previews.add_child(box)
 
 	var designs: Array[DieDesign] = []
@@ -169,7 +169,7 @@ func _rebuild() -> void:
 		var tip := ""
 		if not unlocked:
 			var challenge := progression.challenge_for(each.id)
-			tip = "Locked\n%s\nProgress: %s" % [challenge.description, challenge.progress_text(progression)] if challenge else "Locked"
+			tip = tr("DESIGNER_LOCKED_TIP") % [challenge.description, challenge.progress_text(progression)] if challenge else tr("DESIGNER_LOCKED")
 		_designs.add_child(_card(each.display_name, each, null, null, each == design, unlocked, tip,
 			func(): _pick("die_design", String(each.id))))
 
@@ -260,7 +260,7 @@ func _card(title: String, design: DieDesign, main: DieFinish, trim: DieFinish, s
 	view.tooltip_text = tip
 	view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(view)
-	box.add_child(_label(title if unlocked else "%s  (locked)" % title, 17, GOLD if selected else Color.WHITE))
+	box.add_child(_label(title if unlocked else tr("DESIGNER_LOCKED_TITLE") % title, 17, GOLD if selected else Color.WHITE))
 	if unlocked:
 		view.clicked.connect(on_pick)
 		panel.gui_input.connect(func(event: InputEvent):

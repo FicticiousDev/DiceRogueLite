@@ -49,7 +49,7 @@ func phase(turn: TurnController, boss: Enemy) -> void:
 		var piece := board.get_piece(tile_id)
 		if piece == null or piece == boss:
 			if tile_id != boss.tile_id:
-				boss.popup("TELEPORT", Color(0.75, 0.55, 1.0))
+				boss.popup(tr("POPUP_TELEPORT"), Color(0.75, 0.55, 1.0))
 				await boss.teleport_to(tile_id)
 			break
 	var spawn := board.nearest_free(closest)
@@ -57,5 +57,5 @@ func phase(turn: TurnController, boss: Enemy) -> void:
 		var tiles: Array[int] = [spawn]
 		await turn.summon(boss, tiles)
 	apply_form(boss, (boss.form + 1) % FORMS.size())
-	boss.popup("NEW FORM", Color(0.75, 0.55, 1.0))
+	boss.popup(tr("POPUP_NEW_FORM"), Color(0.75, 0.55, 1.0))
 	await turn.get_tree().create_timer(Anim.t(0.4)).timeout

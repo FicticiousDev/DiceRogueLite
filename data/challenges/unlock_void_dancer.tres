@@ -5,6 +5,5 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"unlock_void_dancer"
-description = "Win a run."
 reward_id = &"void_dancer"
 stat = &"victories"

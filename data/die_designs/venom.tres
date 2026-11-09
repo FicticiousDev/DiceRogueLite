@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("2_design")
 id = &"venom"
-display_name = "Venom"
 mesh = ExtResource("1_mesh")
 face_size = 0.55
 face_offset = 0.485

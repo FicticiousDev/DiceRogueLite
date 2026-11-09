@@ -8,7 +8,9 @@ extends Resource
 enum Pattern { PLASTIC, METAL, GLASS, RUST, MARBLE, OBSIDIAN, GALAXY, FLECKED, WOOD, PEARL }
 
 @export var id: StringName
-@export var display_name: String
+## Localised name. The key is DIE_FINISH_<ID>_NAME (localisation/strings.csv)
+var display_name: String:
+	get: return tr("DIE_FINISH_%s_NAME" % String(id).to_upper())
 @export var pattern: Pattern = Pattern.PLASTIC
 @export var base_color: Color = Color.WHITE
 ## Share of the rarity colour in the finish's colour (0: the base colour only)

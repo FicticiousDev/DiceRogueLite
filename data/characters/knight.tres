@@ -8,14 +8,10 @@
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_defence_bonus_ability")
 id = &"bulwark"
-display_name = "Bulwark"
-description = "Passive: every defence die you roll gets +1 shield."
 
 [sub_resource type="Resource" id="Ability_active"]
 script = ExtResource("3_block_attack_ability")
 id = &"shield_block"
-display_name = "Shield Block"
-description = "Every 3 turns: completely block one attack."
 active = true
 cooldown = 3
 use = 1
@@ -24,7 +20,6 @@ use = 1
 script = ExtResource("2_character")
 id = &"knight"
 order = 0
-display_name = "Knight"
 tint = Color(0.55, 0.75, 1, 1)
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"guardian", &"guardian"])

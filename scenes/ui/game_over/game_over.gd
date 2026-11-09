@@ -20,7 +20,7 @@ const VALUE_COLOR: Color = Color(1.0, 0.92, 0.75)
 func _ready() -> void:
 	menu_button.pressed.connect(_on_menu_pressed)
 	InputMode.register_menu(self, _entry, _on_menu_pressed)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Main menu", "", false))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_MAIN_MENU", "", false))
 
 
 func _entry() -> Control:
@@ -30,39 +30,38 @@ func _entry() -> Control:
 ## Shows the summary of [run], which ended with [outcome]. [unlocked]: challenges the run's end completed.
 func show_screen(run: RunData, outcome: ProgressionData.Outcome, unlocked: Array[UnlockChallenge] = []) -> void:
 	var won := outcome == ProgressionData.Outcome.VICTORY
-	title.text = "RUN COMPLETE" if won else "DEFEATED"
+	title.text = tr("GAMEOVER_RUN_COMPLETE") if won else tr("GAMEOVER_DEFEATED")
 	title.add_theme_color_override("font_color", VICTORY_COLOR if won else DEFEAT_COLOR)
 	var character: CharacterData = Database.get_content("characters", run.character_id)
 	var biome := RunMap.biome(run, RunMap.current_index(run))
-	subtitle.text = "%s  ·  %s %s  ·  level %d" % [character.display_name if character else "?",
-		"conquered the" if won else "fell in the", biome.display_name, run.path.size()]
+	subtitle.text = tr("GAMEOVER_SUBTITLE_WON" if won else "GAMEOVER_SUBTITLE_LOST") % [character.display_name if character else "?", biome.display_name, run.path.size()]
 
 	for child in stats.get_children():
 		child.queue_free()
 	var rows: Array[Control] = []
 	for entry in [
-		["Levels cleared", run.levels_cleared],
-		["Turns", run.turns],
-		["Enemies defeated", run.enemies_defeated],
-		["Bosses defeated", run.bosses_defeated],
-		["Gold earned", run.gold_earned],
-		["Gold spent", run.gold_spent],
-		["Damage dealt", run.damage_dealt],
-		["Damage taken", run.damage_received],
-		["Critical hits", run.crits],
-		["Enemy misses", run.misses],
-		["Dice obtained", run.dice_obtained],
-		["Items obtained", run.items_obtained],
-		["Dice in pool", run.dice.size()],
+		[tr("GAMEOVER_LEVELS_CLEARED"), run.levels_cleared],
+		[tr("GAMEOVER_TURNS"), run.turns],
+		[tr("GAMEOVER_ENEMIES_DEFEATED"), run.enemies_defeated],
+		[tr("GAMEOVER_BOSSES_DEFEATED"), run.bosses_defeated],
+		[tr("GAMEOVER_GOLD_EARNED"), run.gold_earned],
+		[tr("GAMEOVER_GOLD_SPENT"), run.gold_spent],
+		[tr("GAMEOVER_DAMAGE_DEALT"), run.damage_dealt],
+		[tr("GAMEOVER_DAMAGE_TAKEN"), run.damage_received],
+		[tr("GAMEOVER_CRITICAL_HITS"), run.crits],
+		[tr("GAMEOVER_ENEMY_MISSES"), run.misses],
+		[tr("GAMEOVER_DICE_OBTAINED"), run.dice_obtained],
+		[tr("GAMEOVER_ITEMS_OBTAINED"), run.items_obtained],
+		[tr("GAMEOVER_DICE_IN_POOL"), run.dice.size()],
 	]:
 		rows.append(_label(entry[0], Color(0.8, 0.8, 0.85), HORIZONTAL_ALIGNMENT_LEFT))
 		rows.append(_label(str(entry[1]), VALUE_COLOR, HORIZONTAL_ALIGNMENT_RIGHT))
 	for row in rows:
 		stats.add_child(row)
 	var progression := SaveManager.progression_data
-	lifetime.text = "All runs: %d played  ·  %d won  ·  %d lost" % [progression.runs, progression.victories, progression.deaths]
+	lifetime.text = tr("GAMEOVER_ALL_RUNS") % [progression.runs, progression.victories, progression.deaths]
 	if unlocked.size() > 0:
-		lifetime.text += "\nUnlocked: " + ", ".join(unlocked.map(func(c: UnlockChallenge): return c.reward_name()))
+		lifetime.text += tr("GAMEOVER_UNLOCKED") + " " + ", ".join(unlocked.map(func(c: UnlockChallenge): return c.reward_name()))
 
 	visible = true
 	panel.pivot_offset = panel.size / 2.0

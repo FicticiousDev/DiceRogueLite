@@ -35,7 +35,7 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 18)
 	center.add_child(_content)
 	InputMode.register_menu(self)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Select", "Close", true, [[[&"ui_left", &"ui_right"], "Adjust"]]))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", "PROMPT_CLOSE", true, [[[&"ui_left", &"ui_right"], "PROMPT_ADJUST"]]))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -49,17 +49,17 @@ func choose() -> int:
 		child.queue_free()
 	var gold := SaveManager.run_data.gold
 	var banked := SaveManager.progression_data.gold_in_bank
-	_content.add_child(_label("BANK", 48, Color.WHITE))
-	_content.add_child(_label("Banked gold is kept between runs, for any bank in a later run.\nOne deposit or withdrawal per visit: the bank closes after it.",
+	_content.add_child(_label(tr("BANK_TITLE"), 48, Color.WHITE))
+	_content.add_child(_label(tr("BANK_INFO"),
 		18, Color(0.65, 0.65, 0.7)))
 	var balances := HBoxContainer.new()
 	balances.alignment = BoxContainer.ALIGNMENT_CENTER
 	balances.add_theme_constant_override("separation", 40)
 	var carried := StatIcon.create(COIN, GOLD_COLOR, 24, 30.0)
-	carried.set_value("%d carried" % gold)
+	carried.set_value(tr("BANK_CARRIED") % gold)
 	balances.add_child(carried)
 	var stored := StatIcon.create(BANK, BANK_COLOR, 24, 30.0)
-	stored.set_value("%d banked" % banked)
+	stored.set_value(tr("BANK_BANKED") % banked)
 	balances.add_child(stored)
 	_content.add_child(balances)
 
@@ -69,11 +69,11 @@ func choose() -> int:
 	rows.add_theme_constant_override("v_separation", 14)
 	rows.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_content.add_child(rows)
-	_add_row(rows, "DEPOSIT", gold, 1)
-	_add_row(rows, "WITHDRAW", banked, -1)
+	_add_row(rows, tr("BANK_DEPOSIT"), gold, 1)
+	_add_row(rows, tr("BANK_WITHDRAW"), banked, -1)
 
 	var close_button := Button.new()
-	close_button.text = "CLOSE"
+	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(200, 50)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_button.add_theme_font_size_override("font_size", 20)

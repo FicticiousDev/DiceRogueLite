@@ -11,7 +11,6 @@ count = 2
 [resource]
 script = ExtResource("1")
 id = &"brood_mother"
-display_name = "Brood Mother"
 tint = Color(0.35, 0.75, 0.4, 1)
 hp = 34
 move = 2
@@ -25,4 +24,3 @@ stun_immune = true
 size = 1.6
 behaviour = SubResource("Resource_behaviour")
 minion = ExtResource("3")
-description = "Steps back to the furthest tile still in range before attacking\nCalls 2 Brood Spawn beside it whenever none are alive; attacks instead if there is no room"

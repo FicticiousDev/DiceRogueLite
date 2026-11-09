@@ -31,11 +31,11 @@ func _ready() -> void:
 			toggle())
 	add_child(dim)
 	var title := Label.new()
-	title.text = "MAP"
+	title.text = tr("MAP_TITLE")
 	title.add_theme_font_size_override("font_size", 56)
 	title.position = Vector2(140, 70)
 	add_child(title)
-	ButtonPrompt.footer(self, [[[&"map", &"cancel"], "Close"]])
+	ButtonPrompt.footer(self, [[[&"map", &"cancel"], "PROMPT_CLOSE"]])
 	_graph = Control.new()
 	_graph.mouse_filter = Control.MOUSE_FILTER_PASS
 	_graph.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -105,7 +105,7 @@ func _add_node(index: int, centre: Vector2, greyed: bool) -> void:
 	disc.size = Vector2.ONE * NODE_SIZE
 	disc.position = centre - disc.size / 2.0
 	disc.modulate = color
-	disc.tooltip_text = "%s: %s" % [biome.display_name, LevelData.NAMES[type]]
+	disc.tooltip_text = "%s: %s" % [biome.display_name, tr(LevelData.NAMES[type])]
 	_graph.add_child(disc)
 	var icon := TextureRect.new()
 	icon.texture = LevelData.ICONS[type]

@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_ember"
-description = "Set enemies on fire 50 times."
 reward = 1
 reward_id = &"ember"
 stat = &"burn"

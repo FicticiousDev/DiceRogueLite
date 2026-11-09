@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_inferno"
-description = "Defeat the Tyrant (Ashlands boss) 10 times."
 reward = 1
 reward_id = &"inferno"
 stat = &"boss_defeated"

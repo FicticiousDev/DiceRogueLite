@@ -50,7 +50,7 @@ func _ready() -> void:
 	add_child(_flash)
 	# CONTINUE takes the focus itself once it is enabled
 	InputMode.register_menu(self)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("Continue", "", false))
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_CONTINUE", "", false))
 
 
 func _process(delta: float) -> void:
@@ -66,7 +66,7 @@ func present(content: Resource) -> void:
 	var rarity_color: Color = Rarity.COLORS[rarity]
 
 	# Everything is laid out up front (the reveal hidden) so the question mark sits where the prize will appear
-	var title := _label("UNLOCKED!", 60, TITLE_COLOR)
+	var title := _label(tr("UNLOCK_TITLE"), 60, TITLE_COLOR)
 	title.modulate.a = 0.0
 	_content.add_child(title)
 	_stage = Control.new()
@@ -107,15 +107,15 @@ func present(content: Resource) -> void:
 	var reveal: Array[Control] = []
 	reveal.append(_label(content.get("display_name"), 38, rarity_color.lightened(0.2)))
 	var item := content as EquipmentData
-	var kind: String = item.kind() if item else "%s die" % Rarity.Tier.keys()[rarity].capitalize()
+	var kind: String = item.kind() if item else tr("DICE_KIND") % Rarity.display_name(rarity)
 	reveal.append(_label(kind, 18, Color(0.65, 0.65, 0.7)))
 	if item:
 		var rows := InfoPanel.content("", item.info_rows(), 560.0, 19)
 		rows.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		reveal.append(rows)
-	reveal.append(_label("Unlocked for good: from now on it can turn up in rewards, chests and shops.", 20, Color.WHITE))
+	reveal.append(_label(tr("UNLOCK_FOR_GOOD"), 20, Color.WHITE))
 	var button := Button.new()
-	button.text = "CONTINUE"
+	button.text = tr("BTN_CONTINUE")
 	button.custom_minimum_size = Vector2(240, 54)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.add_theme_font_size_override("font_size", 22)

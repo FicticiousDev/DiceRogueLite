@@ -7,13 +7,10 @@
 [sub_resource type="Resource" id="Resource_pathf0"]
 script = ExtResource("2_terrain")
 id = &"sure_footed"
-display_name = "Sure-Footed"
-description = "Passive: every tile costs 1 move, whatever its terrain."
 
 [resource]
 script = ExtResource("9_item")
 id = &"pathfinder_boots"
-display_name = "Pathfinder Boots"
 slot = 1
 rarity = 2
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_pathf0")])

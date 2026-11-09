@@ -71,6 +71,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.75, 0.75, 0.8, 1)
 theme_override_font_sizes/font_size = 32
-text = "Compiling shaders"
+text = "LOADING_COMPILING_SHADERS"
 horizontal_alignment = 1
 vertical_alignment = 1

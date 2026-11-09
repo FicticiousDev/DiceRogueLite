@@ -64,6 +64,5 @@ symbols = Array[ExtResource("2_symbol")]([SubResource("Symbol_5_0"), SubResource
 [resource]
 script = ExtResource("3_type")
 id = &"tumble"
-display_name = "Tumble Die"
 rarity = 1
 faces = Array[ExtResource("1_face")]([SubResource("Face_0"), SubResource("Face_1"), SubResource("Face_2"), SubResource("Face_3"), SubResource("Face_4"), SubResource("Face_5")])

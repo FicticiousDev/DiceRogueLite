@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_void"
-description = "Defeat the Overlord (Abyss boss) 5 times."
 reward = 1
 reward_id = &"void"
 stat = &"boss_defeated"

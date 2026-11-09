@@ -52,5 +52,4 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_attack_s5")])
 [resource]
 script = ExtResource("3_type")
 id = &"attack"
-display_name = "Attack Die"
 faces = Array[ExtResource("1_face")]([SubResource("Resource_attack_f0"), SubResource("Resource_attack_f1"), SubResource("Resource_attack_f2"), SubResource("Resource_attack_f3"), SubResource("Resource_attack_f4"), SubResource("Resource_attack_f5")])

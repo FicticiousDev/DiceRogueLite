@@ -71,9 +71,9 @@ func _process(_delta: float) -> void:
 func show_tile(board: Board, tile_id: int) -> void:
 	var tile := board.get_tile(tile_id)
 	_swatch_style.bg_color = Terrain.COLORS[tile.terrain]
-	_terrain.text = String(Terrain.Type.keys()[tile.terrain]).capitalize()
+	_terrain.text = tr("TERRAIN_" + Terrain.Type.keys()[tile.terrain])
 	var cost := board.move_cost(tile_id)
-	_cost.text = "Move cost %d" % cost if cost > 0 else "Impassable"
+	_cost.text = tr("TILE_MOVE_COST") % cost if cost > 0 else tr("TILE_IMPASSABLE")
 	var piece_name := piece_name(board, tile_id)
 	_piece.text = piece_name
 	_piece.visible = piece_name != ""
@@ -89,23 +89,23 @@ func clear() -> void:
 static func piece_name(board: Board, tile_id: int) -> String:
 	var piece := board.get_piece(tile_id)
 	if piece is Player:
-		return piece.character.display_name if piece.character else "Player"
+		return piece.character.display_name if piece.character else TranslationServer.translate("PIECE_PLAYER")
 	if piece is Enemy:
 		return piece.data.display_name
 	if piece is Building:
-		return ("Shop" if piece.kind == Building.Kind.SHOP else "Bank") + ("  (closed)" if piece.closed else "")
+		return (TranslationServer.translate("PIECE_SHOP") if piece.kind == Building.Kind.SHOP else TranslationServer.translate("PIECE_BANK")) + ("  " + TranslationServer.translate("PIECE_CLOSED_SUFFIX") if piece.closed else "")
 	if piece is ExitGate:
 		var run := SaveManager.run_data
-		return "Gate to the %s: %s" % [RunMap.biome(run, piece.target).display_name, LevelData.NAMES[RunMap.level(run, piece.target).type]]
+		return TranslationServer.translate("PIECE_GATE") % [RunMap.biome(run, piece.target).display_name, TranslationServer.translate(LevelData.NAMES[RunMap.level(run, piece.target).type])]
 	if piece:
-		return piece.scene_file_path.get_file().get_basename().capitalize()
+		return tr("PIECE_" + piece.scene_file_path.get_file().get_basename().to_upper())
 	# Chests and Mystery pieces don't occupy their tile
 	for child in board.pieces_root.get_children():
 		if child is BoardPiece and child.tile_id == tile_id and not child.is_queued_for_deletion():
 			if child is Loot:
-				return "Chest"
+				return TranslationServer.translate("PIECE_CHEST")
 			if child is Mystery:
-				return "Mystery"
+				return TranslationServer.translate("PIECE_MYSTERY")
 	return ""
 
 

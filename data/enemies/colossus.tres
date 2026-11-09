@@ -9,7 +9,6 @@ script = ExtResource("2")
 [resource]
 script = ExtResource("1")
 id = &"colossus"
-display_name = "Colossus"
 tint = Color(0.55, 0.85, 1.0, 1)
 hp = 56
 move = 3
@@ -24,4 +23,3 @@ size = 1.7
 is_boss = true
 stun_immune = true
 behaviour = SubResource("Resource_behaviour")
-description = "An ice shield takes damage before its health and recovers 3 each round it takes none\nArmour piercing attacks deal double damage to the shield\nShield up: closes in and attacks from adjacent\nShield broken: keeps away and attacks from range\nA landed hit freezes you: half movement next turn"

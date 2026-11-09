@@ -10,7 +10,7 @@ extends CanvasLayer
 
 ## Seconds the screen is fully shown, even if compiling finishes sooner
 const MIN_DURATION: float = 1.0
-const STATUS_TEXT: String = "Compiling shaders"
+const STATUS_TEXT: String = "LOADING_COMPILING_SHADERS"  # localisation key
 
 ## Set once run so returning to the main menu doesn't show it again
 static var has_run: bool = false
@@ -104,4 +104,4 @@ func _fade(alpha: float) -> void:
 
 
 func _on_progress(done: int, total: int) -> void:
-	status.text = "%s  %d%%" % [STATUS_TEXT, 100 * done / maxi(total, 1)]
+	status.text = "%s  %d%%" % [tr(STATUS_TEXT), 100 * done / maxi(total, 1)]

@@ -10,7 +10,6 @@ script = ExtResource("2")
 [resource]
 script = ExtResource("1")
 id = &"overlord"
-display_name = "Overlord"
 tint = Color(0.85, 0.3, 0.9, 1)
 hp = 120
 move = 2
@@ -24,4 +23,3 @@ stun_immune = true
 size = 1.6
 behaviour = SubResource("Resource_behaviour")
 minion = ExtResource("3")
-description = "Emptying a health segment teleports it to the marked tile furthest from you and calls a Void Husk on the closest\nAlternates form after each teleport: ranged (range 4, attack 3, def 1) and melee (attack 4, move 3, def 2)"

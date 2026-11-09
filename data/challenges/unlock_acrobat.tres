@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"unlock_acrobat"
-description = "Dodge an attack from every boss."
 reward_id = &"acrobat"
 stat = &"dodged_boss"
 subjects = Array[StringName]([&"warlord", &"overseer", &"brood_mother", &"colossus", &"tyrant", &"overlord"])

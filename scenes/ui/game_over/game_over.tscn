@@ -48,7 +48,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.3, 1)
 theme_override_font_sizes/font_size = 56
-text = "DEFEATED"
+text = "GAMEOVER_DEFEATED"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Center/Panel/VBox"]
@@ -79,4 +79,4 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "MAIN MENU"
+text = "BTN_MAIN_MENU"

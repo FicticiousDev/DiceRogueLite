@@ -28,7 +28,7 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 				continue
 			var damage := turn.dash_damage(ability, enemy)
 			state.hurt(enemy, damage, 2 if ability.ignore_defence else 1)
-			_notes.append("%s %s" % [enemy.data.display_name, "killed" if not state.is_alive(enemy) else "-%d" % damage])
+			_notes.append("%s %s" % [enemy.data.display_name, tr("NOTE_KILLED") if not state.is_alive(enemy) else "-%d" % damage])
 	state.player_tile = target
 	state.boosts.append_array(ability.grants_boosts())
 	return true

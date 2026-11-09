@@ -120,7 +120,7 @@ func resist_insta_kill() -> int:
 	for i in insta_kill_parts:
 		base_damage += BOSS_INSTA_KILL_DAMAGE - parts[i]
 		parts[i] = BOSS_INSTA_KILL_DAMAGE
-	notes.append("Boss resists insta-kill")
+	notes.append(tr("NOTE_BOSS_RESISTS_INSTA_KILL"))
 	return insta_kill_parts.size()
 
 
@@ -147,9 +147,9 @@ func split(other: BoardPiece, other_defence: int) -> AttackContext:
 	return ctx
 
 
-## Shows a defence value, with a whole-hit block as "ALL".
+## Shows a defence value, with a whole-hit block as tr("VALUE_ALL").
 static func value_text(value: int) -> String:
-	return "ALL" if value >= BLOCK_ALL else str(value)
+	return TranslationServer.translate("VALUE_ALL") if value >= BLOCK_ALL else str(value)
 
 
 ## An enemy's attack: its fixed damage, with random crit/miss chances ([miss_scale] multiplies the miss chance).

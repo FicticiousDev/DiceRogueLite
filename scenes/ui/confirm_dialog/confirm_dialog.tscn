@@ -48,7 +48,7 @@ offset_bottom = -128.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 34
-text = "CONFIRM"
+text = "DIALOG_CONFIRM_TITLE"
 horizontal_alignment = 1
 
 [node name="Description" type="Label" parent="Panel" unique_id=1063733550]
@@ -65,7 +65,7 @@ offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 20
-text = "Are you sure?"
+text = "DIALOG_CONFIRM_MESSAGE"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3

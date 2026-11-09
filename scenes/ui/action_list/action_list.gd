@@ -30,9 +30,9 @@ var _editing: int = -1
 func _ready() -> void:
 	commit_button.pressed.connect(commit_pressed.emit)
 	ability_button.visible = false
-	menu.add_item("Rewind to here", Option.REWIND)
-	menu.add_item("Edit", Option.EDIT)
-	menu.add_item("Delete", Option.DELETE)
+	menu.add_item(tr("ACTION_REWIND"), Option.REWIND)
+	menu.add_item(tr("ACTION_EDIT"), Option.EDIT)
+	menu.add_item(tr("ACTION_DELETE"), Option.DELETE)
 	menu.id_pressed.connect(_on_menu_id_pressed)
 
 
@@ -65,7 +65,7 @@ func show_actions(lines: Array[String], warnings: Array[String], editing: int = 
 			button.disabled = true
 			button.add_theme_color_override("font_disabled_color", Color(1.0, 0.55, 0.45))
 		elif i == editing:
-			button.text += "   (editing)"
+			button.text += "   " + tr("ACTION_EDITING_SUFFIX")
 			button.modulate = Color(1.0, 0.85, 0.4)
 			button.disabled = true
 		elif not interactive:

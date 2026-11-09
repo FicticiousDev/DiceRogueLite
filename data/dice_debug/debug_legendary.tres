@@ -74,6 +74,5 @@ symbols = Array[ExtResource("2_qp0ew")]([SubResource("Resource_jt1gv"), SubResou
 [resource]
 script = ExtResource("3_k1f08")
 id = &"debug_legendary"
-display_name = "Debug Legendary"
 rarity = 4
 faces = Array[ExtResource("1_ndgwx")]([SubResource("Resource_qp0ew"), SubResource("Resource_51bx0"), SubResource("Resource_scikt"), SubResource("Resource_jdsnk"), SubResource("Resource_32jqx"), SubResource("Resource_oc0uf")])

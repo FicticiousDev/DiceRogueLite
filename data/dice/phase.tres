@@ -65,6 +65,5 @@ symbols = Array[ExtResource("2_mo5dd")]([SubResource("Resource_gww2t"), SubResou
 [resource]
 script = ExtResource("3_mh2fn")
 id = &"phase"
-display_name = "Phase Die"
 rarity = 1
 faces = Array[ExtResource("1_lhrwt")]([SubResource("Resource_mo5dd"), SubResource("Resource_fiwc2"), SubResource("Resource_lwjao"), SubResource("Resource_avij1"), SubResource("Resource_tne7q"), SubResource("Resource_n3xio")])

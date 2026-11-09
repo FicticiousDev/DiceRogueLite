@@ -30,7 +30,7 @@ func _ready() -> void:
 		SaveManager.save_data()
 	_bob_piece()
 	InputMode.register_menu($UI, func() -> Control: return new_run_button if continue_button.disabled else continue_button)
-	ButtonPrompt.footer($UI, ButtonPrompt.standard("Select", ""))
+	ButtonPrompt.footer($UI, ButtonPrompt.standard("PROMPT_SELECT", ""))
 
 
 func _process(delta: float) -> void:
@@ -39,7 +39,7 @@ func _process(delta: float) -> void:
 
 func _on_new_run_pressed() -> void:
 	if SaveManager.has_run():
-		if not await confirm_dialog.ask("NEW RUN", "Start a new run?\nYour saved run will be lost."):
+		if not await confirm_dialog.ask(tr("DIALOG_NEW_RUN_TITLE"), tr("DIALOG_NEW_RUN_MESSAGE")):
 			return
 		SaveManager.end_run(ProgressionData.Outcome.ABANDONED)
 	else:
@@ -53,7 +53,7 @@ func _on_continue_pressed() -> void:
 
 
 func _on_quit_pressed() -> void:
-	if await confirm_dialog.ask("QUIT", "Are you sure you want to quit?"):
+	if await confirm_dialog.ask(tr("DIALOG_QUIT_TITLE"), tr("DIALOG_QUIT_MESSAGE")):
 		SaveManager.save_data()
 		get_tree().quit()
 

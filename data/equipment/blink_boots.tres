@@ -7,13 +7,10 @@
 [sub_resource type="Resource" id="Resource_blink0"]
 script = ExtResource("2_teleport")
 id = &"blink"
-display_name = "Blink"
-description = "Passive: every move is a teleport – any free tile in range and line of sight, terrain ignored."
 
 [resource]
 script = ExtResource("9_item")
 id = &"blink_boots"
-display_name = "Blink Boots"
 slot = 1
 rarity = 3
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_blink0")])

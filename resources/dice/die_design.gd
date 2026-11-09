@@ -8,7 +8,9 @@ extends Resource
 ## challenge (UnlockChallenge).
 
 @export var id: StringName
-@export var display_name: String
+## Localised name. The key is DIE_DESIGN_<ID>_NAME (localisation/strings.csv)
+var display_name: String:
+	get: return tr("DIE_DESIGN_%s_NAME" % String(id).to_upper())
 @export var mesh: Mesh
 ## Side length of the flat area on each face that the symbols are drawn on
 @export var face_size: float = 0.76

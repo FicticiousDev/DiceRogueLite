@@ -5,6 +5,5 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"unlock_tank"
-description = "Defeat a boss with only 1 health left and fewer dice than your pool can hold."
 reward_id = &"tank"
 stat = &"clutch_boss_kill"

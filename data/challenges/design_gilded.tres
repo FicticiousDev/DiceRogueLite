@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_gilded"
-description = "Land 250 critical hits."
 reward = 1
 reward_id = &"gilded"
 stat = &"crits"

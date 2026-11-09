@@ -8,14 +8,10 @@
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_range_damage_ability")
 id = &"deadeye"
-display_name = "Deadeye"
-description = "Passive: +1 damage against enemies 3 tiles away, +2 at 4 and +3 at 5 or more, added after crits."
 
 [sub_resource type="Resource" id="Ability_active"]
 script = ExtResource("3_boost_ability")
 id = &"armour_piercer"
-display_name = "Armour Piercer"
-description = "Every 3 turns, as an action: your attacks for the rest of the turn ignore defence."
 active = true
 cooldown = 3
 use = 2
@@ -24,7 +20,6 @@ use = 2
 script = ExtResource("2_character")
 id = &"sniper"
 order = 8
-display_name = "Sniper"
 tint = Color(0.75, 0.9, 0.6, 1)
 attack_range = 5
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])

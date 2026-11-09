@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_challenge")
 id = &"design_iron"
-description = "Defeat the Warlord (Grasslands boss) 10 times."
 reward = 1
 reward_id = &"iron"
 stat = &"boss_defeated"

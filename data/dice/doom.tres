@@ -73,7 +73,6 @@ symbols = Array[ExtResource("2_sym")]([SubResource("Resource_doom13"), SubResour
 [resource]
 script = ExtResource("3_type")
 id = &"doom"
-display_name = "Doom Die"
 rarity = 5
 faces = Array[ExtResource("1_face")]([SubResource("Resource_doom2"), SubResource("Resource_doom4"), SubResource("Resource_doom7"), SubResource("Resource_doom10"), SubResource("Resource_doom12"), SubResource("Resource_doom15")])
 loot = true
