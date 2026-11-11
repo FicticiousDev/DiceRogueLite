@@ -2,27 +2,32 @@ class_name ButtonPrompt
 extends HBoxContainer
 
 ## A button prompt: the icon of one or more actions with a caption, e.g. [A] Select. The icons follow the active device
-## (keyboard, Xbox or PlayStation gamepad, see [InputMode]).
+## (keyboard, Xbox or PlayStation gamepad, see [InputMode]). Given a callable, the prompt can also be clicked.
 ## Use: ButtonPrompt.footer(self, ButtonPrompt.standard()) adds the usual bar along the bottom of a menu.
 
 const ICON_SIZE: float = 34.0
 const FONT_SIZE: int = 31
 const TEXT_COLOR: Color = Color(0.85, 0.85, 0.9)
+## Brightness of a clickable prompt under the mouse
+const HOVER_TINT: Color = Color(1.25, 1.25, 1.15)
 
 ## Shown together, e.g. up and down for navigating
 var actions: Array[StringName] = []
 var caption: String = ""
+## Called when the prompt is clicked; not clickable if empty
+var on_pressed: Callable
 
 var _icons: HBoxContainer
 var _label: Label
 
 
-## A prompt for [prompt_actions] (action names) captioned [text], a localisation key.
-static func create(prompt_actions: Array, text: String) -> ButtonPrompt:
+## A prompt for [prompt_actions] (action names) captioned [text], a localisation key. Clicking it calls [pressed], if given.
+static func create(prompt_actions: Array, text: String, pressed: Callable = Callable()) -> ButtonPrompt:
 	var prompt := ButtonPrompt.new()
 	for action in prompt_actions:
 		prompt.actions.append(StringName(action))
 	prompt.caption = TranslationServer.translate(text)
+	prompt.on_pressed = pressed
 	return prompt
 
 
@@ -40,13 +45,14 @@ static func standard(select: String = "PROMPT_SELECT", back: String = "PROMPT_BA
 	return entries
 
 
-## A row (or [param vertical] column) of prompts: [[actions], caption] pairs, see [method standard].
+## A row (or [param vertical] column) of prompts: [[actions], caption] pairs, see [method standard], each optionally with a
+## third element, the callable to call when it is clicked.
 static func bar(entries: Array, vertical: bool = false) -> BoxContainer:
 	var box: BoxContainer = VBoxContainer.new() if vertical else HBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", 12 if vertical else 48)
 	for entry in entries:
-		box.add_child(create(entry[0], entry[1]))
+		box.add_child(create(entry[0], entry[1], entry[2] if entry.size() > 2 else Callable()))
 	return box
 
 
@@ -82,8 +88,20 @@ func _ready() -> void:
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	add_child(_label)
+	if on_pressed.is_valid():
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		mouse_entered.connect(func(): modulate = HOVER_TINT)
+		mouse_exited.connect(func(): modulate = Color.WHITE)
+		gui_input.connect(_on_gui_input)
 	InputMode.device_changed.connect(_refresh)
 	_refresh()
+
+
+func _on_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		accept_event()
+		on_pressed.call()
 
 
 ## Redraws the icons for the active device.

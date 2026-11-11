@@ -52,36 +52,25 @@ layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 16
 
-[node name="LeftArrow" type="Button" parent="Center/Content/Carousel"]
+[node name="LeftArrow" type="TextureButton" parent="Center/Content/Carousel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 120)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme_override_font_sizes/font_size = 56
-text = "<"
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="Strip" type="Control" parent="Center/Content/Carousel"]
 unique_name_in_owner = true
 clip_contents = true
 layout_mode = 2
 
-[node name="RightArrow" type="Button" parent="Center/Content/Carousel"]
+[node name="RightArrow" type="TextureButton" parent="Center/Content/Carousel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 120)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme_override_font_sizes/font_size = 56
-text = ">"
-
-[node name="BackButton" type="Button" parent="."]
-unique_name_in_owner = true
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 184.0
-offset_bottom = 76.0
-theme_override_font_sizes/font_size = 31
-text = "BTN_BACK"
-theme = ExtResource("ui_theme")
-
+ignore_texture_size = true
+stretch_mode = 5

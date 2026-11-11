@@ -4,12 +4,12 @@ extends CanvasLayer
 ## Character select at the start of a new run. One card per character (by [member CharacterData.order]): its
 ## cut-out on a tile, health and range, passive and active, and its unique starting die - turnable, click it for the
 ## inspector - with its six faces (every character also starts with the shared dice, explained under the title).
-## The cards sit in a carousel: [constant SHOWN] at full size in the middle, and the ones beyond cascading away to each
-## side, smaller, darker and tucked behind. The arrows either side, the left / right keys and the mouse wheel scroll it
-## one card at a time; clicking a card in the cascade scrolls to it. All cards are the same size (the whole selection
-## is scaled down if it doesn't fit the screen). Locked characters are greyed out and can't be picked; their card
-## says how to unlock them (UnlockChallenge). Clicking a card selects it (scales up, the cut-out hops, PLAY
-## highlighted); PLAY starts the run.
+## The cards sit in a carousel that wraps around: [constant SHOWN] at full size in the middle, and the ones beyond cascading
+## away to each side, smaller, darker and tucked behind. The arrows either side (the left / right prompts of the active
+## device), the left / right keys and the mouse wheel turn it one card at a time, selecting the middle card; clicking a
+## card in the cascade turns it to the middle. Hovering a full-size card selects it (scales up, the cut-out hops, PLAY
+## highlighted); PLAY, the accept action or the PLAY prompt starts the run with it. All cards are the same size (the whole selection is scaled down if it doesn't fit
+## the screen). Locked characters are greyed out and can't be picked; their card says how to unlock them (UnlockChallenge).
 ## Use: var id: StringName = await picker.pick() - empty if the player backed out.
 
 signal picked(id: StringName)
@@ -34,33 +34,76 @@ const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 const SHARED_DICE: Array[StringName] = [&"movement", &"defence", &"attack"]
 const FACE_SIZE: float = 44.0
 const DIE_VIEW_SIZE: float = 100.0
+## Distance of the PLAY / BACK prompts from the bottom-right corner
+const PROMPT_MARGIN: float = 28.0
 
 @onready var strip: Control = %Strip
 @onready var content: Control = %Content
-@onready var back_button: Button = %BackButton
-@onready var left_arrow: Button = %LeftArrow
-@onready var right_arrow: Button = %RightArrow
+@onready var left_arrow: TextureButton = %LeftArrow
+@onready var right_arrow: TextureButton = %RightArrow
 
 ## Per character: [panel, play button, panel style, cut-out]
 var _cards: Dictionary[StringName, Array] = {}
 ## Character ids in carousel order
 var _order: Array[StringName] = []
 var _selected: StringName = &""
-## Index of the first of the full-size cards
-var _first: int = 0
+## Index of the middle card
+var _centre: int = 0
+## Per character: places from the middle at the last layout (negative: left), to spot cards wrapping round
+var _offsets: Dictionary[StringName, int] = {}
+## Places the carousel turned since the last layout (negative: left)
+var _turn: int = 0
 var _tween: Tween
 
 
 func _ready() -> void:
-	back_button.pressed.connect(func(): picked.emit(&""))
 	left_arrow.pressed.connect(scroll.bind(-1))
 	right_arrow.pressed.connect(scroll.bind(1))
 	InputMode.register_menu(self, _entry, Callable(), _navigate)
-	ButtonPrompt.footer(self, [[[&"ui_left", &"ui_right"], "PROMPT_BROWSE"], [[&"ui_accept"], "PROMPT_PLAY"], [[&"cancel"], "PROMPT_BACK"]])
+	InputMode.device_changed.connect(_refresh_arrows)
+	_refresh_arrows()
+	_add_prompts()
+
+
+## PLAY above BACK in the bottom-right corner, clickable.
+func _add_prompts() -> void:
+	var box := ButtonPrompt.bar([
+		[[&"ui_accept"], "PROMPT_PLAY", _play_selected],
+		[[&"cancel"], "PROMPT_BACK", picked.emit.bind(&"")],
+	], true)
+	# Anchors first: setting one moves the offsets to keep the control where it was
+	box.anchor_left = 1.0
+	box.anchor_right = 1.0
+	box.anchor_top = 1.0
+	box.anchor_bottom = 1.0
+	box.offset_left = -PROMPT_MARGIN
+	box.offset_right = -PROMPT_MARGIN
+	box.offset_top = -PROMPT_MARGIN
+	box.offset_bottom = -PROMPT_MARGIN
+	box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(box)
+
+
+## The arrows show the left / right prompts of the active device.
+func _refresh_arrows() -> void:
+	left_arrow.texture_normal = InputMode.glyph(&"ui_left")
+	right_arrow.texture_normal = InputMode.glyph(&"ui_right")
+
+
+## Bumps [arrow] as the carousel turns its way.
+func _pulse(arrow: Control) -> void:
+	arrow.pivot_offset = arrow.size / 2.0
+	var tween := create_tween()
+	tween.tween_property(arrow, "scale", Vector2.ONE * 1.25, Anim.t(0.06))
+	tween.tween_property(arrow, "scale", Vector2.ONE, Anim.t(0.15)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _input(event: InputEvent) -> void:
 	if not visible:
+		return
+	if event is InputEventMouseMotion:
+		_hover(event)
 		return
 	var step := 0
 	# Keys only: a gamepad steps through _navigate
@@ -77,7 +120,7 @@ func _input(event: InputEvent) -> void:
 	if step != 0:
 		get_viewport().set_input_as_handled()
 		scroll(step)
-		if get_viewport().gui_get_focus_owner() != null:
+		if get_viewport().gui_get_focus_owner() != null and _card_focus():
 			_card_focus().grab_focus()
 
 
@@ -87,42 +130,64 @@ func _hovering_picker() -> bool:
 	return hovered == null or is_ancestor_of(hovered)
 
 
+## Selects the full-size card under the mouse. Checked by rect rather than mouse_entered, so the card's own buttons and
+## die views don't get in the way; full-size cards don't overlap, and are drawn over the cascades.
+func _hover(event: InputEventMouseMotion) -> void:
+	if InputMode.is_gamepad() or not _hovering_picker():
+		return
+	for id in _cards:
+		if _depth(_order.find(id)) == 0 and _cards[id][0].get_global_rect().has_point(event.position):
+			_select(id)
+			return
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed("cancel"):
+	if not visible:
+		return
+	if event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		picked.emit(&"")
+	elif event.is_action_pressed("ui_accept"):
+		# Not while something drawn over the picker has the focus
+		var focus := get_viewport().gui_get_focus_owner()
+		if focus == null or is_ancestor_of(focus):
+			get_viewport().set_input_as_handled()
+			_play_selected()
+
+
+## Starts the run with the selected character, if it's unlocked.
+func _play_selected() -> void:
+	if _selected == &"":
+		return
+	if SaveManager.progression_data.is_character_unlocked(Database.get_content("characters", _selected)):
+		picked.emit(_selected)
 
 
 ## The card in the middle of the full-size ones.
 func _middle_id() -> StringName:
-	return _order[clampi(_first + int(mini(SHOWN, _order.size()) / 2.0), 0, _order.size() - 1)]
+	return _order[_centre]
 
 
-## What the gamepad focuses: the PLAY button of the middle card (selecting the card), or BACK if it is locked.
+## What the gamepad focuses: the middle card (selecting it). The accept action plays it from there (see _unhandled_input).
 func _card_focus() -> Control:
 	if _order.is_empty():
-		return back_button
+		return null
 	var id := _middle_id()
-	var button: Button = _cards[id][1]
-	if button.disabled:
-		return back_button
 	_select(id)
-	return button
+	return _cards[id][0]
 
 
 func _entry() -> Control:
 	return _card_focus()
 
 
-## Gamepad navigation: left and right turn the carousel, up and down switch between the card and BACK.
+## Gamepad navigation: left and right turn the carousel; up and down do nothing.
 func _navigate(direction: Vector2) -> bool:
 	if direction.x != 0.0:
 		scroll(int(direction.x))
-		_card_focus().grab_focus()
-	elif get_viewport().gui_get_focus_owner() == back_button:
-		_card_focus().grab_focus()
-	else:
-		back_button.grab_focus()
+		var focus := _card_focus()
+		if focus:
+			focus.grab_focus()
 	return true
 
 
@@ -131,8 +196,9 @@ func pick() -> StringName:
 		child.queue_free()
 	_cards.clear()
 	_order.clear()
+	_offsets.clear()
 	_selected = &""
-	_first = 0
+	_centre = 0
 	var characters: Array[CharacterData] = []
 	characters.assign(Database.get_all("characters"))
 	characters.sort_custom(func(a: CharacterData, b: CharacterData): return a.order < b.order)
@@ -148,9 +214,13 @@ func pick() -> StringName:
 	await get_tree().process_frame
 	_even_out()
 	await get_tree().process_frame
+	left_arrow.visible = _order.size() > 1
+	right_arrow.visible = _order.size() > 1
 	_layout(false)
 	await get_tree().process_frame
 	_fit_to_screen()
+	if not _order.is_empty():
+		_select(_middle_id())
 	create_tween().tween_property(content, "modulate:a", 1.0, Anim.t(0.25))
 
 	var id: StringName = await picked
@@ -181,28 +251,48 @@ func _even_out() -> void:
 # ===========================================================================================================================================
 
 
-## Scrolls the carousel by [step] cards (negative: left), keeping the full-size cards within the list.
+## Turns the carousel by [step] cards (negative: left), wrapping round, and selects the new middle card.
 func scroll(step: int) -> void:
-	scroll_to(_first + step)
-
-
-## Makes [first] the first full-size card (clamped).
-func scroll_to(first: int) -> void:
-	first = clampi(first, 0, maxi(_order.size() - SHOWN, 0))
-	if first == _first:
+	if _order.size() < 2 or step == 0:
 		return
-	_first = first
+	_pulse(left_arrow if step < 0 else right_arrow)
+	scroll_to(_centre + step)
+
+
+## Turns the carousel so card [index] (wrapped) is in the middle, and selects it.
+func scroll_to(index: int) -> void:
+	index = posmod(index, _order.size())
+	if index == _centre:
+		return
+	_turn = _offset(index)
+	_centre = index
+	_set_selected(_middle_id())
 	_layout(true)
 
 
-## Where each card sits for the current scroll: full-size ones side by side in the middle, the rest cascading out to
-## each side, smaller, darker and further back (drawn behind, and below in input order). [animate] tweens there.
+## Places card [index] is from the middle card, going the shorter way round (negative: left).
+func _offset(index: int) -> int:
+	var low := -int(_order.size() / 2.0)
+	return posmod(index - _centre - low, _order.size()) + low
+
+
+## The range of offsets that are full size: [first, last].
+func _full_size_range() -> Vector2i:
+	var shown := mini(SHOWN, _order.size())
+	var first := -int(shown / 2.0)
+	return Vector2i(first, first + shown - 1)
+
+
+## Where each card sits for the current turn: full-size ones side by side in the middle, the rest cascading out to
+## each side, smaller, darker and further back (drawn behind, and below in input order). [animate] tweens there; a card
+## wrapping round to the other side jumps there and fades in rather than sliding across.
 func _layout(animate: bool) -> void:
 	if _tween:
 		_tween.kill()
 	if animate:
 		_tween = create_tween().set_parallel().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	var shown := mini(SHOWN, _order.size())
+	var full := _full_size_range()
 	var centre := strip.custom_minimum_size.x / 2.0
 	# Nearest the middle drawn last, so it's on top and gets the clicks
 	var by_depth: Array[int] = []
@@ -213,26 +303,35 @@ func _layout(animate: bool) -> void:
 		var id := _order[i]
 		var panel: Control = _cards[id][0]
 		strip.move_child(panel, -1)
+		var offset := _offset(i)
 		var depth := _depth(i)
-		var side := -1.0 if i < _first else 1.0
+		var side := -1.0 if offset < 0 else 1.0
 		var x: float
 		var card_scale := 1.0
 		var shade := 1.0
 		if depth == 0:
-			x = centre + (i - _first - (shown - 1) / 2.0) * (CARD_WIDTH + CARD_GAP)
+			x = centre + (offset - (full.x + full.y) / 2.0) * (CARD_WIDTH + CARD_GAP)
 		else:
 			card_scale = CASCADE_SCALES[mini(depth, CASCADE_SCALES.size()) - 1]
 			shade = CASCADE_SHADES[mini(depth, CASCADE_SHADES.size()) - 1]
 			var edge := (shown * CARD_WIDTH + (shown - 1) * CARD_GAP) / 2.0
 			# The visible strip of each cascaded card runs out from under the one in front
 			x = centre + side * (edge + _cascade_offset(depth) - CARD_WIDTH * card_scale / 2.0)
-		if id == _selected:
+		if id == _selected and depth == 0:
 			card_scale *= SELECTED_SCALE
 		var hidden := depth > CASCADE_SCALES.size()
 		var target_position := Vector2(x - CARD_WIDTH / 2.0, (strip.custom_minimum_size.y - panel.size.y) / 2.0)
 		var tint: Color = _base_tint(id) * Color(shade, shade, shade, 0.0 if hidden else 1.0)
 		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE if hidden else Control.MOUSE_FILTER_STOP
-		if animate:
+		# Every card moves the other way by the turn, except those that went round the back
+		var wrapped := _offsets.has(id) and offset != _offsets[id] - _turn
+		_offsets[id] = offset
+		if animate and wrapped:
+			panel.position = target_position
+			panel.scale = Vector2.ONE * card_scale
+			panel.modulate = Color(tint, 0.0)
+			_tween.tween_property(panel, "modulate", tint, Anim.t(0.3))
+		elif animate:
 			_tween.tween_property(panel, "position", target_position, Anim.t(0.3))
 			_tween.tween_property(panel, "scale", Vector2.ONE * card_scale, Anim.t(0.3))
 			_tween.tween_property(panel, "modulate", tint, Anim.t(0.3))
@@ -240,8 +339,7 @@ func _layout(animate: bool) -> void:
 			panel.position = target_position
 			panel.scale = Vector2.ONE * card_scale
 			panel.modulate = tint
-	left_arrow.disabled = _first <= 0
-	right_arrow.disabled = _first >= _order.size() - shown
+	_turn = 0
 
 
 ## How far past the full-size cards the outer edge of the cascade's [depth]th card reaches: each shows
@@ -255,9 +353,11 @@ func _cascade_offset(depth: int) -> float:
 
 ## Places from the full-size cards: 0 for one of them, 1 for the next card out, and so on.
 func _depth(index: int) -> int:
-	if index < _first:
-		return _first - index
-	return maxi(index - (_first + mini(SHOWN, _order.size()) - 1), 0)
+	var offset := _offset(index)
+	var full := _full_size_range()
+	if offset < full.x:
+		return full.x - offset
+	return maxi(offset - full.y, 0)
 
 
 ## A card's colour before any cascade shading: greyed out if locked.
@@ -282,6 +382,8 @@ func _card(character: CharacterData) -> Control:
 	var unlocked := SaveManager.progression_data.is_character_unlocked(character)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(CARD_WIDTH, 0)
+	# Takes the gamepad focus (see _card_focus)
+	panel.focus_mode = Control.FOCUS_ALL
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.14)
 	style.border_color = character.tint if unlocked else Color(0.35, 0.35, 0.4)
@@ -413,25 +515,31 @@ func _die_faces(die: DieType) -> Control:
 	return box
 
 
-## A click on a card in the cascade scrolls to it; on a full-size one, selects it (if unlocked).
+## A click on a card in the cascade turns it to the middle; on a full-size one, selects it.
 func _on_card_input(event: InputEvent, id: StringName) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
 	var index := _order.find(id)
-	if index < _first:
+	if _depth(index) > 0:
 		scroll_to(index)
-	elif index >= _first + SHOWN:
-		scroll_to(index - SHOWN + 1)
-	elif SaveManager.progression_data.is_character_unlocked(Database.get_content("characters", id)):
+	else:
 		_select(id)
 
 
-## Scales the chosen card up, hops its cut-out and highlights its PLAY button; the others go back to normal.
+## Selects full-size card [id] and lays the carousel out for it.
 func _select(id: StringName) -> void:
 	if id == _selected:
 		return
-	_selected = id
+	_set_selected(id)
 	_layout(true)
+
+
+## Scales the chosen card up (in the next layout), hops its cut-out and highlights its PLAY button (unless it's locked);
+## the others go back to normal.
+func _set_selected(id: StringName) -> void:
+	if id == _selected:
+		return
+	_selected = id
 	for card_id in _cards:
 		var panel: PanelContainer = _cards[card_id][0]
 		var button: Button = _cards[card_id][1]
