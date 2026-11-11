@@ -98,7 +98,7 @@ static func piece_name(board: Board, tile_id: int) -> String:
 		var run := SaveManager.run_data
 		return TranslationServer.translate("PIECE_GATE") % [RunMap.biome(run, piece.target).display_name, TranslationServer.translate(LevelData.NAMES[RunMap.level(run, piece.target).type])]
 	if piece:
-		return tr("PIECE_" + piece.scene_file_path.get_file().get_basename().to_upper())
+		return TranslationServer.translate("PIECE_" + piece.scene_file_path.get_file().get_basename().to_upper())
 	# Chests and Mystery pieces don't occupy their tile
 	for child in board.pieces_root.get_children():
 		if child is BoardPiece and child.tile_id == tile_id and not child.is_queued_for_deletion():

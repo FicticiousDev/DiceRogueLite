@@ -78,9 +78,9 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 	var data := enemy.data
 	var result: Array[Dictionary] = []
 	if enemy.stunned:
-		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), tr(HelpText.ENEMY_STUNNED)))
+		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), TranslationServer.translate(HelpText.ENEMY_STUNNED)))
 	if enemy.poisoned:
-		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), tr(HelpText.ENEMY_POISONED)))
+		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), TranslationServer.translate(HelpText.ENEMY_POISONED)))
 	if enemy.burn > 0:
 		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), TranslationServer.translate("DETAILS_ON_FIRE") % enemy.burn))
 	if data.is_boss:
@@ -88,7 +88,7 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 		for line in data.description.split("\n", false):
 			result.append(InfoPanel.row(CROWN, Color(1.0, 0.82, 0.3), line))
 		if data.stun_immune:
-			result.append(InfoPanel.row(STUN, Color(0.7, 0.7, 0.75), tr(HelpText.STUN_IMMUNE)))
+			result.append(InfoPanel.row(STUN, Color(0.7, 0.7, 0.75), TranslationServer.translate(HelpText.STUN_IMMUNE)))
 	var health := TranslationServer.translate("DETAILS_HEALTH") % [enemy.hp, data.hp]
 	if data.segments > 1:
 		health += " " + TranslationServer.translate("DETAILS_SEGMENTS") % data.segments
@@ -103,9 +103,9 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 	if data.applies_stun:
 		result.append(InfoPanel.row(STUN, Color(1.0, 0.75, 0.3), TranslationServer.translate("DETAILS_STUNNING_HITS")))
 	if data.applies_freeze:
-		result.append(InfoPanel.row(FREEZE, Color(0.55, 0.85, 1.0), tr(HelpText.FREEZING_HITS)))
+		result.append(InfoPanel.row(FREEZE, Color(0.55, 0.85, 1.0), TranslationServer.translate(HelpText.FREEZING_HITS)))
 	if data.applies_fire:
-		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), tr(HelpText.FIRE_HITS)))
+		result.append(InfoPanel.row(FIRE, Color(1.0, 0.55, 0.2), TranslationServer.translate(HelpText.FIRE_HITS)))
 	if data.applies_poison:
 		result.append(InfoPanel.row(POISON, Color(0.55, 1.0, 0.45), TranslationServer.translate("DETAILS_POISONOUS_HITS")))
 	result.append(InfoPanel.row(SHIELD, Color(0.45, 0.7, 1.0), TranslationServer.translate("DETAILS_DEFENCE") % [enemy.defence, data.defence] if data.defence > 0 else TranslationServer.translate("DETAILS_NO_DEFENCE")))
@@ -116,6 +116,6 @@ static func rows(enemy: Enemy) -> Array[Dictionary]:
 	else:
 		result.append(InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), TranslationServer.translate("DETAILS_MELEE")))
 	if data.attacks_first:
-		result.append(InfoPanel.row(LIGHTNING, Color(1.0, 0.65, 0.25), tr(HelpText.ATTACKS_FIRST)))
+		result.append(InfoPanel.row(LIGHTNING, Color(1.0, 0.65, 0.25), TranslationServer.translate(HelpText.ATTACKS_FIRST)))
 	result.append(InfoPanel.row(COIN, Color(1, 0.82, 0.3), TranslationServer.translate("DETAILS_WORTH") % TurnController.kill_gold(data)))
 	return result
