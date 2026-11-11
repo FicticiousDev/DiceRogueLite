@@ -5,6 +5,7 @@ extends Node3D
 ## camera: everything lies on a plane facing the camera far beyond the board (so the board always hides it) and is
 ## placed in screen units, so sizes and speeds stay the same whatever the camera distance.
 ## Screen units: y runs from -1 (bottom edge) to 1 (top edge), x from -aspect to aspect.
+## Without a [member rig] (e.g. the main menu) [member camera_distance] stands in for the rig's distance.
 
 const STREAK_SHADER: Shader = preload("res://shaders/streak.gdshader")
 const DIE_SCENE: PackedScene = preload("res://scenes/dice/die_3d.tscn")
@@ -13,6 +14,8 @@ const EDGE: float = 0.1
 
 ## Plane distance as a multiple of the camera rig's distance (the board sits at about 1×)
 @export var depth_factor: float = 4.0
+## Camera-to-scene distance used when there is no rig
+@export var camera_distance: float = 4.5
 @export var max_streaks: int = 5
 ## Seconds between new streaks (min, max)
 @export var streak_interval: Vector2 = Vector2(0.5, 1.8)
@@ -59,9 +62,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var camera := get_parent() as Camera3D
-	if camera == null or rig == null:
+	if camera == null:
 		return
-	var depth := rig.distance * depth_factor
+	var depth := (rig.distance if rig else camera_distance) * depth_factor
 	var half_height := depth * tan(deg_to_rad(camera.fov) / 2.0)
 
 	_streak_timer -= delta

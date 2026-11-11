@@ -3,19 +3,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog/confirm_dialog.tscn" id="dialog"]
 [ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
 [ext_resource type="Texture2D" uid="uid://cqsleu83cdt8j" path="res://icon.svg" id="icon"]
+[ext_resource type="Script" path="res://scenes/ui/main_menu/dice_pile.gd" id="pile"]
 [ext_resource type="Script" uid="uid://584tivd4yo32" path="res://scenes/ui/main_menu/main_menu.gd" id="script"]
 [ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
-
-[sub_resource type="StandardMaterial3D" id="hex_mat"]
-albedo_color = Color(0.43, 0.56, 0.36, 1)
-
-[sub_resource type="CylinderMesh" id="hex_mesh"]
-material = SubResource("hex_mat")
-top_radius = 1.0
-bottom_radius = 1.0
-height = 0.3
-radial_segments = 6
-rings = 1
 
 [node name="MainMenu" type="Node3D" unique_id=263604195]
 script = ExtResource("script")
@@ -31,17 +21,21 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 3.2, 3.2)
 fov = 45.0
 
-[node name="Hex" type="MeshInstance3D" parent="." unique_id=297404594]
-mesh = SubResource("hex_mesh")
-
-[node name="Piece" type="Sprite3D" parent="Hex" unique_id=1887438025]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.66, 0)
-pixel_size = 0.008
-shaded = true
-alpha_cut = 1
-texture = ExtResource("icon")
+[node name="DicePile" type="Node3D" parent="."]
+script = ExtResource("pile")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=2115469367]
+
+[node name="Highlight" type="NinePatchRect" parent="UI"]
+modulate = Color(1, 0.8, 0.4, 0.6)
+offset_right = 460.0
+offset_bottom = 70.0
+mouse_filter = 2
+texture = ExtResource("icon")
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
 
 [node name="Menu" type="VBoxContainer" parent="UI" unique_id=1544881037]
 anchors_preset = 6
@@ -60,7 +54,7 @@ theme = ExtResource("ui_theme")
 
 [node name="Title" type="Label" parent="UI/Menu" unique_id=710407791]
 layout_mode = 2
-theme_override_font_sizes/font_size = 67
+theme_override_font_sizes/font_size = 201
 text = "GAME_TITLE"
 horizontal_alignment = 1
 
