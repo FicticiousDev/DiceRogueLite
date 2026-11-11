@@ -18,6 +18,7 @@ var _content: VBoxContainer
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 38
 	visible = false
 	var dim := ColorRect.new()
@@ -49,16 +50,16 @@ func choose() -> int:
 		child.queue_free()
 	var gold := SaveManager.run_data.gold
 	var banked := SaveManager.progression_data.gold_in_bank
-	_content.add_child(_label(tr("BANK_TITLE"), 48, Color.WHITE))
+	_content.add_child(_label(tr("BANK_TITLE"), 67, Color.WHITE))
 	_content.add_child(_label(tr("BANK_INFO"),
-		18, Color(0.65, 0.65, 0.7)))
+		25, Color(0.65, 0.65, 0.7)))
 	var balances := HBoxContainer.new()
 	balances.alignment = BoxContainer.ALIGNMENT_CENTER
 	balances.add_theme_constant_override("separation", 40)
-	var carried := StatIcon.create(COIN, GOLD_COLOR, 24, 30.0)
+	var carried := StatIcon.create(COIN, GOLD_COLOR, 34, 30.0)
 	carried.set_value(tr("BANK_CARRIED") % gold)
 	balances.add_child(carried)
-	var stored := StatIcon.create(BANK, BANK_COLOR, 24, 30.0)
+	var stored := StatIcon.create(BANK, BANK_COLOR, 34, 30.0)
 	stored.set_value(tr("BANK_BANKED") % banked)
 	balances.add_child(stored)
 	_content.add_child(balances)
@@ -76,7 +77,7 @@ func choose() -> int:
 	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(200, 50)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	close_button.add_theme_font_size_override("font_size", 20)
+	close_button.add_theme_font_size_override("font_size", 28)
 	close_button.pressed.connect(_chosen.emit.bind(0))
 	_content.add_child(close_button)
 
@@ -99,12 +100,12 @@ func _add_row(rows: GridContainer, verb: String, most: int, direction: int) -> v
 	slider.value = most
 	slider.editable = most > 0
 	rows.add_child(slider)
-	var amount := _label("", 24, GOLD_COLOR)
+	var amount := _label("", 34, GOLD_COLOR)
 	amount.custom_minimum_size.x = 70
 	rows.add_child(amount)
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(240, 50)
-	button.add_theme_font_size_override("font_size", 20)
+	button.add_theme_font_size_override("font_size", 28)
 	button.pressed.connect(func(): _chosen.emit(int(slider.value) * direction))
 	rows.add_child(button)
 	var update := func(value: float):

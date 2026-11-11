@@ -13,12 +13,13 @@ var _button: Button
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 40
 	_button = Button.new()
 	_button.text = tr("BTN_ENEMIES_FIRST")
 	_button.tooltip_text = tr("TIP_ENEMIES_FIRST")
 	_button.custom_minimum_size = Vector2(220.0, 56.0)
-	_button.add_theme_font_size_override("font_size", 22)
+	_button.add_theme_font_size_override("font_size", 31)
 	_button.visible = false
 	_button.pressed.connect(pressed.emit)
 	add_child(_button)

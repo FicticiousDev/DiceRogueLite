@@ -14,6 +14,7 @@ var _showing: bool = false
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 56
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -44,9 +45,9 @@ func _show(challenge: UnlockChallenge) -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)
-	box.add_child(_label(tr("UNLOCK_TITLE"), 20, GOLD))
-	box.add_child(_label(challenge.reward_name(), 30, Color.WHITE))
-	box.add_child(_label(challenge.description, 17, Color(0.8, 0.8, 0.85)))
+	box.add_child(_label(tr("UNLOCK_TITLE"), 28, GOLD))
+	box.add_child(_label(challenge.reward_name(), 42, Color.WHITE))
+	box.add_child(_label(challenge.description, 24, Color(0.8, 0.8, 0.85)))
 	add_child(panel)
 	panel.custom_minimum_size.x = WIDTH
 	await get_tree().process_frame

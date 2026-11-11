@@ -21,6 +21,7 @@ var _bounce: Tween
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 35
 	visible = false
 	var dim := ColorRect.new()
@@ -32,7 +33,7 @@ func _ready() -> void:
 	add_child(dim)
 	var title := Label.new()
 	title.text = tr("MAP_TITLE")
-	title.add_theme_font_size_override("font_size", 56)
+	title.add_theme_font_size_override("font_size", 78)
 	title.position = Vector2(140, 70)
 	add_child(title)
 	ButtonPrompt.footer(self, [[[&"map", &"cancel"], "PROMPT_CLOSE"]])

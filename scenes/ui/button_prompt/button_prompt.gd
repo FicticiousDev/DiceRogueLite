@@ -6,7 +6,7 @@ extends HBoxContainer
 ## Use: ButtonPrompt.footer(self, ButtonPrompt.standard()) adds the usual bar along the bottom of a menu.
 
 const ICON_SIZE: float = 34.0
-const FONT_SIZE: int = 22
+const FONT_SIZE: int = 31
 const TEXT_COLOR: Color = Color(0.85, 0.85, 0.9)
 
 ## Shown together, e.g. up and down for navigating

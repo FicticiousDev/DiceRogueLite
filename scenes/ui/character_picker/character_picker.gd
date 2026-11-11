@@ -295,16 +295,16 @@ func _card(character: CharacterData) -> Control:
 
 	var portrait := _portrait(character, unlocked)
 	box.add_child(portrait[0])
-	box.add_child(_label(character.display_name, 30, HORIZONTAL_ALIGNMENT_CENTER))
+	box.add_child(_label(character.display_name, 42, HORIZONTAL_ALIGNMENT_CENTER))
 
 	box.add_child(_gap(4))
 	var stats := HBoxContainer.new()
 	stats.alignment = BoxContainer.ALIGNMENT_CENTER
 	stats.add_theme_constant_override("separation", 24)
-	var hp := StatIcon.create(HEART, Color(1, 0.35, 0.35), 20, 26.0)
+	var hp := StatIcon.create(HEART, Color(1, 0.35, 0.35), 28, 26.0)
 	hp.label.text = "%d HP" % character.max_hp
 	stats.add_child(hp)
-	var range_stat := StatIcon.create(BOW, Color(0.95, 0.85, 0.6), 20, 26.0)
+	var range_stat := StatIcon.create(BOW, Color(0.95, 0.85, 0.6), 28, 26.0)
 	range_stat.label.text = tr("CHARACTER_RANGE") % character.attack_range if character.attack_range > 1 else tr("CHARACTER_MELEE")
 	stats.add_child(range_stat)
 	box.add_child(stats)
@@ -313,7 +313,7 @@ func _card(character: CharacterData) -> Control:
 	if unlocked:
 		# Descriptions already say whether an ability is passive or once per level
 		for ability in character.abilities:
-			var heading := _label(ability.display_name, 19, HORIZONTAL_ALIGNMENT_LEFT)
+			var heading := _label(ability.display_name, 27, HORIZONTAL_ALIGNMENT_LEFT)
 			heading.add_theme_color_override("font_color", HIGHLIGHT)
 			box.add_child(heading)
 			box.add_child(_wrapped(ability.description, 17))
@@ -325,7 +325,7 @@ func _card(character: CharacterData) -> Control:
 	else:
 		# How to unlock it, with progress so far
 		var challenge := SaveManager.progression_data.challenge_for(character.id)
-		var heading := _label(tr("CHARACTER_LOCKED_HEADING"), 19, HORIZONTAL_ALIGNMENT_LEFT)
+		var heading := _label(tr("CHARACTER_LOCKED_HEADING"), 27, HORIZONTAL_ALIGNMENT_LEFT)
 		heading.add_theme_color_override("font_color", HIGHLIGHT)
 		box.add_child(heading)
 		if challenge:
@@ -339,7 +339,7 @@ func _card(character: CharacterData) -> Control:
 	button.text = tr("BTN_PLAY") if unlocked else tr("CHARACTER_LOCKED_HEADING")
 	button.disabled = not unlocked
 	button.custom_minimum_size = Vector2(0, 50)
-	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_font_size_override("font_size", 31)
 	button.pressed.connect(picked.emit.bind(character.id))
 	box.add_child(button)
 	panel.gui_input.connect(_on_card_input.bind(character.id))
@@ -395,7 +395,7 @@ func _portrait(character: CharacterData, unlocked: bool) -> Array:
 func _die_faces(die: DieType) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
-	var heading := _label(die.display_name, 19, HORIZONTAL_ALIGNMENT_LEFT)
+	var heading := _label(die.display_name, 27, HORIZONTAL_ALIGNMENT_LEFT)
 	heading.add_theme_color_override("font_color", HIGHLIGHT)
 	box.add_child(heading)
 	var row := HBoxContainer.new()

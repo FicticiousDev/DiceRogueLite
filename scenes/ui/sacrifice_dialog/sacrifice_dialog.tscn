@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/sacrifice_dialog/sacrifice_dialog.gd" id="1"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.1, 0.05, 0.06, 0.95)
@@ -30,6 +31,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.45)
+theme = ExtResource("ui_theme")
 
 [node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -38,6 +40,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("ui_theme")
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 unique_name_in_owner = true
@@ -51,14 +54,14 @@ theme_override_constants/separation = 16
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 50
 text = "SACRIFICE_TITLE"
 horizontal_alignment = 1
 
 [node name="Description" type="Label" parent="Center/Panel/VBox"]
 custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "SACRIFICE_INFO"
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -75,5 +78,5 @@ columns = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 31
 text = "SACRIFICE_ACCEPT_DEFEAT"

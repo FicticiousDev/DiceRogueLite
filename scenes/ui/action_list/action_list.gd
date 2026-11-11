@@ -54,7 +54,7 @@ func show_actions(lines: Array[String], warnings: Array[String], editing: int = 
 		var entry := VBoxContainer.new()
 		var button := Button.new()
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.add_theme_font_size_override("font_size", 22)
+		button.add_theme_font_size_override("font_size", 31)
 		# Wrap rather than widen the panel
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.custom_minimum_size.x = 1
@@ -75,7 +75,7 @@ func show_actions(lines: Array[String], warnings: Array[String], editing: int = 
 		if warnings[i] != "":
 			var label := Label.new()
 			label.text = "!  " + warnings[i]
-			label.add_theme_font_size_override("font_size", 16)
+			label.add_theme_font_size_override("font_size", 22)
 			label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.25))
 			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			entry.add_child(label)

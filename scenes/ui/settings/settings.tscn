@@ -1,9 +1,12 @@
 [gd_scene format=3]
 
 [ext_resource type="Theme" path="res://themes/base_theme.tres" id="1_5p8wc"]
+[ext_resource type="Theme" path="res://themes/settings_theme.tres" id="4_sett"]
 [ext_resource type="Script" path="res://scenes/ui/settings/settings.gd" id="1_tt6xx"]
 [ext_resource type="Script" path="res://scenes/ui/settings/settings_options.gd" id="2_vu5fi"]
 [ext_resource type="Script" path="res://scenes/ui/settings/fps_label.gd" id="3_fps"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pages"]
 
 [node name="Settings" type="CanvasLayer" unique_id=743356449]
 layer = 100
@@ -16,101 +19,146 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_5p8wc")
 color = Color(1, 1, 1, 0)
 
 [node name="Menu" type="ColorRect" parent="." unique_id=828510961]
 visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -346.0
-offset_top = -513.0
-offset_right = 346.0
-offset_bottom = 513.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_5p8wc")
-color = Color(0, 0, 0, 0.5686275)
+color = Color(0.055, 0.058, 0.082, 1)
 
-[node name="SettingsScrollContainer" type="ScrollContainer" parent="Menu" unique_id=1472286314]
+[node name="Margin" type="MarginContainer" parent="Menu"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -323.0
-offset_top = -382.0
-offset_right = 323.0
-offset_bottom = 431.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_5p8wc")
+theme_override_constants/margin_left = 96
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 96
+theme_override_constants/margin_bottom = 40
 
-[node name="SettingsOptions" type="VBoxContainer" parent="Menu/SettingsScrollContainer" unique_id=362767263]
+[node name="Layout" type="VBoxContainer" parent="Menu/Margin"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-script = ExtResource("2_vu5fi")
+theme_override_constants/separation = 8
 
-[node name="Gameplay" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=829871587]
+[node name="Title" type="Label" parent="Menu/Margin/Layout" unique_id=1974879000]
 layout_mode = 2
-theme = ExtResource("1_5p8wc")
-theme_override_font_sizes/font_size = 25
-text = "SETTINGS_GAMEPLAY"
+theme_override_font_sizes/font_size = 84
+text = "MENU_SETTINGS"
 horizontal_alignment = 1
 
-[node name="ShowFPS" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1891374863]
+[node name="Header" type="HBoxContainer" parent="Menu/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="PromptLeft" type="HBoxContainer" parent="Menu/Margin/Layout/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_vertical = 4
+alignment = 2
+
+[node name="TabBar" type="TabBar" parent="Menu/Margin/Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+clip_tabs = false
+scrolling_enabled = false
+
+[node name="PromptRight" type="HBoxContainer" parent="Menu/Margin/Layout/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Gap" type="Control" parent="Menu/Margin/Layout"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+
+[node name="Tabs" type="TabContainer" parent="Menu/Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_pages")
+current_tab = 0
+tabs_visible = false
+script = ExtResource("2_vu5fi")
+
+[node name="General" type="ScrollContainer" parent="Menu/Margin/Layout/Tabs"]
+layout_mode = 2
+theme = ExtResource("1_5p8wc")
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Center" type="CenterContainer" parent="Menu/Margin/Layout/Tabs/General"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_sett")
+
+[node name="Rows" type="VBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center"]
+custom_minimum_size = Vector2(1300, 0)
+layout_mode = 2
+theme = ExtResource("4_sett")
+theme_override_constants/separation = 18
+
+[node name="ShowFPS" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows" unique_id=1891374863]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ShowFPS" unique_id=1923386268]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ShowFPS" unique_id=1923386268]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SHOW_FPS"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ShowFPS" unique_id=1677903130]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ShowFPS" unique_id=1677903130]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="SkipSplashScreen" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=340245799]
+[node name="SkipSplashScreen" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows" unique_id=340245799]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/SkipSplashScreen" unique_id=2119888476]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/SkipSplashScreen" unique_id=2119888476]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SKIP_SPLASH"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/SkipSplashScreen" unique_id=697722744]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/SkipSplashScreen" unique_id=697722744]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="AnimationSpeed" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="AnimationSpeed" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/AnimationSpeed"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/AnimationSpeed"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_ANIMATION_SPEED"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/AnimationSpeed"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/AnimationSpeed"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/AnimationSpeed/HBoxContainer"]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/AnimationSpeed/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -120,87 +168,87 @@ max_value = 2.0
 step = 0.25
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/AnimationSpeed/HBoxContainer"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/AnimationSpeed/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "1.00x"
 
-[node name="FastDice" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="FastDice" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/FastDice"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/FastDice"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_FAST_DICE"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/FastDice"]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/FastDice"]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="ScreenShake" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="ScreenShake" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ScreenShake"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ScreenShake"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SCREEN_SHAKE"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ScreenShake"]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ScreenShake"]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="ConfirmUnusedDice" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="ConfirmUnusedDice" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ConfirmUnusedDice"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ConfirmUnusedDice"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_CONFIRM_UNUSED_DICE"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ConfirmUnusedDice"]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ConfirmUnusedDice"]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="AutoSpendDefence" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="AutoSpendDefence" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/AutoSpendDefence"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/AutoSpendDefence"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_AUTO_SPEND_DEFENCE"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/AutoSpendDefence"]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/AutoSpendDefence"]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="TurnPlanSide" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="TurnPlanSide" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanSide"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/TurnPlanSide"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_TURN_PLAN_SIDE"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanSide"]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/TurnPlanSide"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -212,53 +260,96 @@ popup/item_0/id = 0
 popup/item_1/text = "SETTINGS_RIGHT"
 popup/item_1/id = 1
 
-[node name="Graphics" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=927966214]
-layout_mode = 2
-theme = ExtResource("1_5p8wc")
-theme_override_font_sizes/font_size = 25
-text = "SETTINGS_GRAPHICS"
-horizontal_alignment = 1
-
-[node name="Resolution" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1296864296]
+[node name="ControllerType" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Resolution" unique_id=1607466036]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ControllerType"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SETTINGS_CONTROLLER_TYPE"
+horizontal_alignment = 2
+
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ControllerType"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+alignment = 1
+selected = 0
+item_count = 3
+popup/item_0/text = "SETTINGS_AUTO"
+popup/item_0/id = 0
+popup/item_1/text = "SETTINGS_XBOX"
+popup/item_1/id = 1
+popup/item_2/text = "SETTINGS_PLAYSTATION"
+popup/item_2/id = 2
+
+[node name="Graphics" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs"]
+visible = false
+layout_mode = 2
+theme = ExtResource("1_5p8wc")
+theme_override_constants/separation = 48
+
+[node name="Scroll" type="ScrollContainer" parent="Menu/Margin/Layout/Tabs/Graphics"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.15
+theme = ExtResource("4_sett")
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Center" type="CenterContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_sett")
+
+[node name="Rows" type="VBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center"]
+custom_minimum_size = Vector2(980, 0)
+layout_mode = 2
+theme = ExtResource("4_sett")
+theme_override_constants/separation = 18
+
+[node name="Resolution" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=1296864296]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Resolution" unique_id=1607466036]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_RESOLUTION"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/Resolution" unique_id=887796038]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Resolution" unique_id=887796038]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 alignment = 1
 
-[node name="ResolutionScaling" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1727728857]
+[node name="ResolutionScaling" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=1727728857]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling" unique_id=884592057]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling" unique_id=884592057]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 text = "SETTINGS_RESOLUTION_SCALING"
 horizontal_alignment = 2
 
-[node name="ScalingSettings" type="VBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling" unique_id=558571692]
+[node name="ScalingSettings" type="VBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling" unique_id=558571692]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="ScaleLabel" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=522432628]
+[node name="ScaleLabel" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings" unique_id=522432628]
 layout_mode = 2
 text = "100% - 1920x1080"
 horizontal_alignment = 1
 
-[node name="ScaleSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=1862229725]
+[node name="ScaleSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings" unique_id=1862229725]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_vertical = 4
@@ -268,7 +359,7 @@ step = 5.0
 value = 100.0
 ticks_on_borders = true
 
-[node name="Scaler" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=1512564634]
+[node name="Scaler" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings" unique_id=1512564634]
 layout_mode = 2
 alignment = 1
 selected = 0
@@ -278,7 +369,7 @@ popup/item_0/id = 0
 popup/item_1/text = "AMD FSR 2.2"
 popup/item_1/id = 1
 
-[node name="FSROptions" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings" unique_id=1406646763]
+[node name="FSROptions" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings" unique_id=1406646763]
 layout_mode = 2
 alignment = 1
 selected = 0
@@ -292,18 +383,18 @@ popup/item_2/id = 2
 popup/item_3/text = "SETTINGS_QUALITY_ULTRA"
 popup/item_3/id = 3
 
-[node name="AntiAliasing" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=161983852]
+[node name="AntiAliasing" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=161983852]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/AntiAliasing" unique_id=16475869]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/AntiAliasing" unique_id=16475869]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_ANTI_ALIASING"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/AntiAliasing" unique_id=1804665060]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/AntiAliasing" unique_id=1804665060]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -319,18 +410,18 @@ popup/item_2/id = 2
 popup/item_3/text = "MSAA 8x"
 popup/item_3/id = 3
 
-[node name="ScreenSpaceAA" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=2001991610]
+[node name="ScreenSpaceAA" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=2001991610]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ScreenSpaceAA" unique_id=163097319]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ScreenSpaceAA" unique_id=163097319]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SSAA"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ScreenSpaceAA" unique_id=292823669]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ScreenSpaceAA" unique_id=292823669]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -344,66 +435,66 @@ popup/item_1/id = 1
 popup/item_2/text = "SMAA"
 popup/item_2/id = 2
 
-[node name="Fullscreen" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1582883471]
+[node name="Fullscreen" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=1582883471]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Fullscreen" unique_id=1315584026]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Fullscreen" unique_id=1315584026]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_FULL_SCREEN"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/Fullscreen" unique_id=1909949520]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Fullscreen" unique_id=1909949520]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="Borderless" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=229239340]
+[node name="Borderless" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=229239340]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Borderless" unique_id=654701984]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Borderless" unique_id=654701984]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_BORDERLESS"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/Borderless" unique_id=620280305]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Borderless" unique_id=620280305]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="VSync" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=800618098]
+[node name="VSync" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=800618098]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/VSync" unique_id=1872642039]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/VSync" unique_id=1872642039]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_VSYNC"
 horizontal_alignment = 2
 
-[node name="CheckButton" type="CheckButton" parent="Menu/SettingsScrollContainer/SettingsOptions/VSync" unique_id=621790747]
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/VSync" unique_id=621790747]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="MaxFPS" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="MaxFPS" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/MaxFPS"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/MaxFPS"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_MAX_FPS"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/MaxFPS"]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/MaxFPS"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -421,18 +512,18 @@ popup/item_3/id = 3
 popup/item_4/text = "144"
 popup/item_4/id = 4
 
-[node name="ShadowQuality" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions"]
+[node name="ShadowQuality" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/ShadowQuality"]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ShadowQuality"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SHADOW_QUALITY"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/ShadowQuality"]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ShadowQuality"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -446,40 +537,40 @@ popup/item_1/id = 1
 popup/item_2/text = "SETTINGS_HIGH"
 popup/item_2/id = 2
 
-[node name="Screen" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1585295992]
+[node name="Screen" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=1585295992]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Screen" unique_id=644169933]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Screen" unique_id=644169933]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SCREEN"
 horizontal_alignment = 2
 
-[node name="OptionButton" type="OptionButton" parent="Menu/SettingsScrollContainer/SettingsOptions/Screen" unique_id=1985076516]
+[node name="OptionButton" type="OptionButton" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Screen" unique_id=1985076516]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 alignment = 1
 
-[node name="Brightness" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1498861331]
+[node name="Brightness" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=1498861331]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Brightness" unique_id=1407880892]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Brightness" unique_id=1407880892]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_BRIGHTNESS"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/Brightness" unique_id=1926759233]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Brightness" unique_id=1926759233]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/Brightness/HBoxContainer" unique_id=1084105909]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Brightness/HBoxContainer" unique_id=1084105909]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -490,28 +581,28 @@ max_value = 2.0
 step = 0.01
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Brightness/HBoxContainer" unique_id=2137938001]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Brightness/HBoxContainer" unique_id=2137938001]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "1.00"
 
-[node name="Contrast" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1002856027]
+[node name="Contrast" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows" unique_id=1002856027]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Contrast" unique_id=851972111]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Contrast" unique_id=851972111]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_CONTRAST"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/Contrast" unique_id=517160151]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Contrast" unique_id=517160151]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/Contrast/HBoxContainer" unique_id=2039489461]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Contrast/HBoxContainer" unique_id=2039489461]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -522,35 +613,51 @@ max_value = 2.0
 step = 0.01
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/Contrast/HBoxContainer" unique_id=670879622]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Contrast/HBoxContainer" unique_id=670879622]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "1.00"
 
-[node name="Audio" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=463516577]
+[node name="Preview" type="Control" parent="Menu/Margin/Layout/Tabs/Graphics"]
+custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
-theme = ExtResource("1_5p8wc")
-theme_override_font_sizes/font_size = 25
-text = "SETTINGS_AUDIO"
-horizontal_alignment = 1
+size_flags_horizontal = 3
 
-[node name="MasterVolume" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=557589436]
+[node name="Audio" type="ScrollContainer" parent="Menu/Margin/Layout/Tabs"]
+layout_mode = 2
+visible = false
+theme = ExtResource("1_5p8wc")
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Center" type="CenterContainer" parent="Menu/Margin/Layout/Tabs/Audio"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_sett")
+
+[node name="Rows" type="VBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center"]
+custom_minimum_size = Vector2(1300, 0)
+layout_mode = 2
+theme = ExtResource("4_sett")
+theme_override_constants/separation = 18
+
+[node name="MasterVolume" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows" unique_id=557589436]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/MasterVolume" unique_id=375207967]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MasterVolume" unique_id=375207967]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_MASTER_VOLUME"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/MasterVolume" unique_id=1354301715]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MasterVolume" unique_id=1354301715]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/MasterVolume/HBoxContainer" unique_id=1931773377]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MasterVolume/HBoxContainer" unique_id=1931773377]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -560,28 +667,28 @@ max_value = 1.0
 step = 0.001
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/MasterVolume/HBoxContainer" unique_id=2118601135]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MasterVolume/HBoxContainer" unique_id=2118601135]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "100%"
 
-[node name="MusicVolume" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1186586621]
+[node name="MusicVolume" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows" unique_id=1186586621]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/MusicVolume" unique_id=1509466792]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MusicVolume" unique_id=1509466792]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_MUSIC_VOLUME"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/MusicVolume" unique_id=1192617178]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MusicVolume" unique_id=1192617178]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/MusicVolume/HBoxContainer" unique_id=347883590]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MusicVolume/HBoxContainer" unique_id=347883590]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -591,28 +698,28 @@ max_value = 1.0
 step = 0.001
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/MusicVolume/HBoxContainer" unique_id=1473203652]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MusicVolume/HBoxContainer" unique_id=1473203652]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "100%"
 
-[node name="SFXVolume" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=1445639602]
+[node name="SFXVolume" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows" unique_id=1445639602]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/SFXVolume" unique_id=925837655]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/SFXVolume" unique_id=925837655]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_SFX_VOLUME"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/SFXVolume" unique_id=1574684005]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/SFXVolume" unique_id=1574684005]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/SFXVolume/HBoxContainer" unique_id=544875507]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/SFXVolume/HBoxContainer" unique_id=544875507]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -622,28 +729,28 @@ max_value = 1.0
 step = 0.001
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/SFXVolume/HBoxContainer" unique_id=1406181226]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/SFXVolume/HBoxContainer" unique_id=1406181226]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "100%"
 
-[node name="UIVolume" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions" unique_id=8700338]
+[node name="UIVolume" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows" unique_id=8700338]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/UIVolume" unique_id=2005361214]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/UIVolume" unique_id=2005361214]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_UI_VOLUME"
 horizontal_alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Menu/SettingsScrollContainer/SettingsOptions/UIVolume" unique_id=2042910877]
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/UIVolume" unique_id=2042910877]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="HSlider" type="HSlider" parent="Menu/SettingsScrollContainer/SettingsOptions/UIVolume/HBoxContainer" unique_id=89329395]
+[node name="HSlider" type="HSlider" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/UIVolume/HBoxContainer" unique_id=89329395]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -653,84 +760,60 @@ max_value = 1.0
 step = 0.001
 value = 1.0
 
-[node name="Label" type="Label" parent="Menu/SettingsScrollContainer/SettingsOptions/UIVolume/HBoxContainer" unique_id=1401648826]
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/Audio/Center/Rows/UIVolume/HBoxContainer" unique_id=1401648826]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "100%"
 
-[node name="Label" type="Label" parent="Menu" unique_id=1974879000]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -138.0
-offset_top = -497.0
-offset_right = 138.0
-offset_bottom = -414.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("1_5p8wc")
-theme_override_font_sizes/font_size = 60
-text = "MENU_SETTINGS"
-horizontal_alignment = 1
+[node name="Footer" type="HBoxContainer" parent="Menu/Margin/Layout"]
+layout_mode = 2
+alignment = 2
+
+[node name="DoneButton" type="Button" parent="Menu/Margin/Layout/Footer" unique_id=1220412818]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/icon_max_width = 56
+theme_override_font_sizes/font_size = 42
+text = "BTN_DONE"
 
 [node name="FPSLabel" type="Label" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -80.0
+offset_left = -140.0
 offset_top = 10.0
 offset_right = -10.0
-offset_bottom = 33.0
+offset_bottom = 43.0
 grow_horizontal = 0
+theme = ExtResource("1_5p8wc")
 horizontal_alignment = 2
 script = ExtResource("3_fps")
 
-[node name="Button" type="Button" parent="Menu" unique_id=1220412818]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -75.0
-offset_top = 427.0
-offset_right = 75.0
-offset_bottom = 495.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("1_5p8wc")
-theme_override_font_sizes/font_size = 30
-text = "BTN_DONE"
-
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/ShowFPS/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_fps_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/SkipSplashScreen/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_skip_splash_toggled"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/Resolution/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_resolution_selected"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings/ScaleSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_resolution_scale_value_changed"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings/Scaler" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_resolution_scaler_selected"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/ResolutionScaling/ScalingSettings/FSROptions" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_fsr_profile_selected"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/AntiAliasing/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_aa_profile_selected"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/ScreenSpaceAA/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_sp_aa_selected"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/Fullscreen/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_fullscreen_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/Borderless/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_borderless_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/VSync/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_vsync_toggled"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/Screen/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_screen_selected"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/Brightness/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_brightness_value_changed"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/Contrast/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_contrast_value_changed"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/MasterVolume/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_master_volume_value_changed"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/MusicVolume/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_music_volume_value_changed"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/SFXVolume/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_sfx_volume_value_changed"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/UIVolume/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_ui_volume_value_changed"]
-[connection signal="pressed" from="Menu/Button" to="." method="_on_done_button_pressed"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/FastDice/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_fast_dice_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/ScreenShake/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_screen_shake_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/ConfirmUnusedDice/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_confirm_unused_dice_toggled"]
-[connection signal="toggled" from="Menu/SettingsScrollContainer/SettingsOptions/AutoSpendDefence/CheckButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_auto_spend_defence_toggled"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/TurnPlanSide/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_turn_plan_side_selected"]
-[connection signal="value_changed" from="Menu/SettingsScrollContainer/SettingsOptions/AnimationSpeed/HBoxContainer/HSlider" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_animation_speed_value_changed"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/MaxFPS/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_max_fps_selected"]
-[connection signal="item_selected" from="Menu/SettingsScrollContainer/SettingsOptions/ShadowQuality/OptionButton" to="Menu/SettingsScrollContainer/SettingsOptions" method="_on_shadow_quality_selected"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ShowFPS/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_fps_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/SkipSplashScreen/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_skip_splash_toggled"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Resolution/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_resolution_selected"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/ScaleSlider" to="Menu/Margin/Layout/Tabs" method="_on_resolution_scale_value_changed"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/Scaler" to="Menu/Margin/Layout/Tabs" method="_on_resolution_scaler_selected"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/FSROptions" to="Menu/Margin/Layout/Tabs" method="_on_fsr_profile_selected"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/AntiAliasing/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_aa_profile_selected"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ScreenSpaceAA/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_sp_aa_selected"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Fullscreen/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_fullscreen_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Borderless/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_borderless_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/VSync/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_vsync_toggled"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Screen/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_screen_selected"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Brightness/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_brightness_value_changed"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/Contrast/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_contrast_value_changed"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MasterVolume/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_master_volume_value_changed"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Audio/Center/Rows/MusicVolume/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_music_volume_value_changed"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Audio/Center/Rows/SFXVolume/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_sfx_volume_value_changed"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/Audio/Center/Rows/UIVolume/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_ui_volume_value_changed"]
+[connection signal="pressed" from="Menu/Margin/Layout/Footer/DoneButton" to="." method="_on_done_button_pressed"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/FastDice/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_fast_dice_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ScreenShake/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_screen_shake_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ConfirmUnusedDice/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_confirm_unused_dice_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/AutoSpendDefence/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_auto_spend_defence_toggled"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/General/Center/Rows/TurnPlanSide/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_turn_plan_side_selected"]
+[connection signal="value_changed" from="Menu/Margin/Layout/Tabs/General/Center/Rows/AnimationSpeed/HBoxContainer/HSlider" to="Menu/Margin/Layout/Tabs" method="_on_animation_speed_value_changed"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/MaxFPS/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_max_fps_selected"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/Graphics/Scroll/Center/Rows/ShadowQuality/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_shadow_quality_selected"]
+[connection signal="item_selected" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ControllerType/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_controller_scheme_selected"]

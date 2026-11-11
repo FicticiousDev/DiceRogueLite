@@ -151,6 +151,35 @@ shadow_offset = Vector2(4, 4)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3cr1a"]
 bg_color = Color(1, 1, 1, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tabsel"]
+content_margin_left = 32.0
+content_margin_top = 10.0
+content_margin_right = 32.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 4
+border_color = Color(0, 0.764706, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tabun"]
+content_margin_left = 32.0
+content_margin_top = 10.0
+content_margin_right = 32.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tabhov"]
+content_margin_left = 32.0
+content_margin_top = 10.0
+content_margin_right = 32.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 4
+border_color = Color(0.45, 0.5, 0.58, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabfocus"]
+
 [resource]
 default_font_size = 50
 Button/colors/font_focus_color = Color(0, 0.764706, 1, 1)
@@ -196,7 +225,7 @@ HSlider/icons/grabber_highlight = null
 HSlider/styles/grabber_area = SubResource("StyleBoxFlat_nu6un")
 HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_o5res")
 HSlider/styles/slider = SubResource("StyleBoxFlat_pkhon")
-Label/font_sizes/font_size = 16
+Label/font_sizes/font_size = 22
 OptionButton/colors/font_color = Color(0.875, 0.875, 0.875, 1)
 OptionButton/colors/font_focus_color = Color(0.95, 0.95, 0.95, 1)
 OptionButton/colors/font_hover_color = Color(0.95, 0.95, 0.95, 1)
@@ -204,7 +233,7 @@ OptionButton/colors/font_hover_pressed_color = Color(1, 1, 1, 1)
 OptionButton/colors/font_outline_color = Color(0, 0, 0, 1)
 OptionButton/colors/font_pressed_color = Color(1, 1, 1, 1)
 OptionButton/constants/arrow_margin = 10
-OptionButton/font_sizes/font_size = 16
+OptionButton/font_sizes/font_size = 22
 OptionButton/styles/disabled = SubResource("StyleBoxEmpty_l3ebx")
 OptionButton/styles/focus = SubResource("StyleBoxFlat_kjcvl")
 OptionButton/styles/hover = SubResource("StyleBoxFlat_wl16u")
@@ -212,7 +241,17 @@ OptionButton/styles/normal = SubResource("StyleBoxFlat_3ky20")
 OptionButton/styles/pressed = SubResource("StyleBoxFlat_s1sjv")
 Panel/styles/panel = SubResource("StyleBoxFlat_og68e")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_u2qju")
-PopupMenu/font_sizes/font_size = 16
+PopupMenu/font_sizes/font_size = 22
 ProgressBar/styles/background = SubResource("StyleBoxEmpty_lqa7g")
 ProgressBar/styles/fill = SubResource("StyleBoxFlat_3cr1a")
-TooltipLabel/font_sizes/font_size = 16
+TabBar/colors/font_hovered_color = Color(0.85, 0.92, 1, 1)
+TabBar/colors/font_selected_color = Color(1, 1, 1, 1)
+TabBar/colors/font_unselected_color = Color(0.6, 0.62, 0.68, 1)
+TabBar/constants/h_separation = 8
+TabBar/font_sizes/font_size = 44
+TabBar/styles/tab_disabled = SubResource("StyleBoxFlat_tabun")
+TabBar/styles/tab_focus = SubResource("StyleBoxEmpty_tabfocus")
+TabBar/styles/tab_hovered = SubResource("StyleBoxFlat_tabhov")
+TabBar/styles/tab_selected = SubResource("StyleBoxFlat_tabsel")
+TabBar/styles/tab_unselected = SubResource("StyleBoxFlat_tabun")
+TooltipLabel/font_sizes/font_size = 22

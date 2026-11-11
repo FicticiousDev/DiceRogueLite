@@ -39,7 +39,7 @@ static func create(type: DieType, view_size: float = 110.0, button_text: String 
 	var name_label := Label.new()
 	name_label.text = type.display_name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 17)
+	name_label.add_theme_font_size_override("font_size", 24)
 	name_label.add_theme_color_override("font_color", Rarity.COLORS[type.rarity].lightened(0.2))
 	name_label.custom_minimum_size.x = view_size
 	box.add_child(name_label)
@@ -47,7 +47,7 @@ static func create(type: DieType, view_size: float = 110.0, button_text: String 
 		card.button = Button.new()
 		card.button.text = button_text
 		card.button.custom_minimum_size = Vector2(0, 38)
-		card.button.add_theme_font_size_override("font_size", 16)
+		card.button.add_theme_font_size_override("font_size", 22)
 		card.button.pressed.connect(card.button_pressed.emit)
 		box.add_child(card.button)
 	else:

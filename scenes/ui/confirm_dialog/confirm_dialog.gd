@@ -55,7 +55,7 @@ func _build_skip_check() -> void:
 	_skip_check.offset_bottom = 190.0
 	_skip_check.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_skip_check.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_skip_check.add_theme_font_size_override("font_size", 18)
+	_skip_check.add_theme_font_size_override("font_size", 25)
 	_skip_check.toggled.connect(_on_skip_toggled)
 	panel.add_child(_skip_check)
 

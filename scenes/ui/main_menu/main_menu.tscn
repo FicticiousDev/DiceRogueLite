@@ -4,6 +4,7 @@
 [ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
 [ext_resource type="Texture2D" uid="uid://cqsleu83cdt8j" path="res://icon.svg" id="icon"]
 [ext_resource type="Script" uid="uid://584tivd4yo32" path="res://scenes/ui/main_menu/main_menu.gd" id="script"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [sub_resource type="StandardMaterial3D" id="hex_mat"]
 albedo_color = Color(0.43, 0.56, 0.36, 1)
@@ -55,10 +56,11 @@ offset_bottom = 305.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_constants/separation = 20
+theme = ExtResource("ui_theme")
 
 [node name="Title" type="Label" parent="UI/Menu" unique_id=710407791]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 67
 text = "GAME_TITLE"
 horizontal_alignment = 1
 
@@ -70,14 +72,14 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 42
 text = "MENU_NEW_RUN"
 
 [node name="ContinueButton" type="Button" parent="UI/Menu" unique_id=1274260996]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 42
 disabled = true
 text = "MENU_CONTINUE"
 
@@ -85,21 +87,21 @@ text = "MENU_CONTINUE"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 42
 text = "MENU_DICE"
 
 [node name="SettingsButton" type="Button" parent="UI/Menu" unique_id=890945139]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 42
 text = "MENU_SETTINGS"
 
 [node name="QuitButton" type="Button" parent="UI/Menu" unique_id=761591312]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 42
 text = "MENU_QUIT"
 
 [node name="ConfirmDialog" parent="." unique_id=366425612 instance=ExtResource("dialog")]

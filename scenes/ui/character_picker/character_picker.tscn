@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/character_picker/character_picker.gd" id="1"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [node name="CharacterPicker" type="CanvasLayer"]
 layer = 45
@@ -14,6 +15,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.03, 0.03, 0.05, 0.96)
+theme = ExtResource("ui_theme")
 
 [node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -21,6 +23,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("ui_theme")
 
 [node name="Content" type="VBoxContainer" parent="Center"]
 unique_name_in_owner = true
@@ -33,14 +36,14 @@ theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Center/Content/Heading"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 62
 text = "CHARACTER_PICKER_TITLE"
 horizontal_alignment = 1
 
 [node name="Explanation" type="Label" parent="Center/Content/Heading"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.75, 0.8, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "CHARACTER_PICKER_INFO"
 horizontal_alignment = 1
 
@@ -55,7 +58,7 @@ custom_minimum_size = Vector2(64, 120)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 56
 text = "<"
 
 [node name="Strip" type="Control" parent="Center/Content/Carousel"]
@@ -69,7 +72,7 @@ custom_minimum_size = Vector2(64, 120)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 56
 text = ">"
 
 [node name="BackButton" type="Button" parent="."]
@@ -78,5 +81,7 @@ offset_left = 24.0
 offset_top = 24.0
 offset_right = 184.0
 offset_bottom = 76.0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 31
 text = "BTN_BACK"
+theme = ExtResource("ui_theme")
+

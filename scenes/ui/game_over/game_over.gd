@@ -81,7 +81,7 @@ func _label(text: String, color: Color, align: HorizontalAlignment) -> Label:
 	label.text = text
 	label.horizontal_alignment = align
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_font_size_override("font_size", 31)
 	label.add_theme_color_override("font_color", color)
 	return label
 

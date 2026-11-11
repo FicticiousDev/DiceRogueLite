@@ -9,7 +9,7 @@ var icon: TextureRect
 var label: Label
 
 
-static func create(texture: Texture2D, color: Color, font_size: int = 18, icon_size: float = ICON_SIZE) -> StatIcon:
+static func create(texture: Texture2D, color: Color, font_size: int = 25, icon_size: float = ICON_SIZE) -> StatIcon:
 	var stat := StatIcon.new()
 	stat.add_theme_constant_override("separation", 3)
 	stat.mouse_filter = Control.MOUSE_FILTER_IGNORE

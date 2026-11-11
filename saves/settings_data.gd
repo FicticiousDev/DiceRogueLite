@@ -14,6 +14,8 @@ const SIDE_RIGHT: int = 1
 @export var auto_spend_defence: bool = false
 ## Side of the board the turn plan panel sits on (SIDE_LEFT / SIDE_RIGHT, the option button order)
 @export_enum("Left", "Right") var turn_plan_side: int = SIDE_RIGHT
+## Gamepad prompt icons: 0 follows the connected controller, 1 Xbox, 2 PlayStation (InputMode.PadScheme)
+@export_enum("Auto", "Xbox", "PlayStation") var controller_scheme: int = 0
 
 ## Graphics
 @export var resolution: Vector2 = Vector2i(1920, 1080)

@@ -34,6 +34,7 @@ var finish: DieFinish
 var trim_finish: DieFinish
 
 var _viewport: SubViewport
+var _environment: Environment
 var _pressed: bool = false
 var _dragging: bool = false
 var _press_position: Vector2
@@ -68,11 +69,11 @@ func _ready() -> void:
 	resized.connect(_fit_viewport)
 	_fit_viewport()
 
-	var environment: Environment = ENVIRONMENT.duplicate()
-	environment.background_mode = Environment.BG_CLEAR_COLOR
-	environment.ssao_enabled = false
+	_environment = ENVIRONMENT.duplicate()
+	_environment.background_mode = Environment.BG_CLEAR_COLOR
+	_environment.ssao_enabled = false
 	var world := WorldEnvironment.new()
-	world.environment = environment
+	world.environment = _environment
 	_viewport.add_child(world)
 	var camera := Camera3D.new()
 	camera.fov = 30.0
@@ -104,6 +105,15 @@ func _ready() -> void:
 	_viewport.add_child(die)
 	mouse_entered.connect(_set_hovered.bind(true))
 	mouse_exited.connect(_set_hovered.bind(false))
+
+
+## Mirrors the player's quality settings in this view, for the settings preview. [param msaa] and [param screen_space] are the
+## Viewport enum values.
+func mirror_settings(msaa: int, screen_space: int, brightness: float, contrast: float) -> void:
+	_viewport.msaa_3d = msaa as Viewport.MSAA
+	_viewport.screen_space_aa = screen_space as Viewport.ScreenSpaceAA
+	_environment.adjustment_brightness = brightness
+	_environment.adjustment_contrast = contrast
 
 
 ## Square render target matching the view's size.

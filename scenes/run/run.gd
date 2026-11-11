@@ -93,6 +93,7 @@ var _debug: DebugMenu
 
 
 func _ready() -> void:
+	UITheme.watch(hud)
 	exit_button.pressed.connect(_on_exit_pressed)
 	settings_button.pressed.connect(Settings.show_settings)
 	dice_tray.camera = camera_rig.camera
@@ -777,7 +778,7 @@ func _update_die_tip(delta: float) -> void:
 	if _die_tip == null and _die_tip_time >= DIE_TIP_DELAY:
 		var result := turn.results[index]
 		var title := "%s  ·  %s" % [result.die_type.display_name, Rarity.display_name(result.die_type.rarity)]
-		_die_tip = InfoPanel.create(title, HelpText.face_rows(result.display_face()), 340.0, 17)
+		_die_tip = InfoPanel.create(title, HelpText.face_rows(result.display_face()), 340.0, 24)
 		_die_tip_layer.add_child(_die_tip)
 	if _die_tip:
 		# Above and to the right of the mouse, kept on screen

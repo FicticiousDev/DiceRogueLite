@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/block_prompt/block_prompt.gd" id="1"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.1, 0.05, 0.05, 0.94)
@@ -30,6 +31,7 @@ anchor_bottom = 0.8
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("ui_theme")
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 unique_name_in_owner = true
@@ -44,21 +46,21 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.5, 0.3, 1)
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 56
 text = "BLOCK_ENEMY_ATTACKS"
 horizontal_alignment = 1
 
 [node name="Damage" type="Label" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 36
 text = "Hits you for 0 damage."
 horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.75, 0.8, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 24
 text = "BLOCK_INSTRUCTIONS"
 horizontal_alignment = 1
 
@@ -71,7 +73,7 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 34
 text = "BLOCK_BUTTON"
 
 [node name="AbilityButton" type="Button" parent="Center/Panel/VBox/Buttons"]
@@ -80,12 +82,12 @@ visible = false
 custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.45, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 34
 text = "BTN_ABILITY"
 
 [node name="TakeButton" type="Button" parent="Center/Panel/VBox/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 34
 text = "BLOCK_TAKE_HIT"

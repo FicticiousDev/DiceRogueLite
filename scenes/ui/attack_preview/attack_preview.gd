@@ -66,31 +66,31 @@ func show_attack(results: Array[DieResult], ctx: AttackContext, armed: Array[Abi
 	var line := _flow()
 	_rows.add_child(line)
 	if results.is_empty():
-		line.add_child(_text(tr("PREVIEW_ARMED") % " + ".join(armed.map(func(a: Ability): return a.display_name)), 22, GOLD))
+		line.add_child(_text(tr("PREVIEW_ARMED") % " + ".join(armed.map(func(a: Ability): return a.display_name)), 31, GOLD))
 	else:
 		for i in results.size():
 			if i > 0:
-				line.add_child(_text("+", 30, Color(0.7, 0.7, 0.75)))
+				line.add_child(_text("+", 42, Color(0.7, 0.7, 0.75)))
 			line.add_child(_die_part(results[i], ctx, i))
 		for chip in _modifier_chips(ctx, results):
 			line.add_child(chip)
 		for ability in armed:
-			line.add_child(_text("+ " + ability.display_name, 20, GOLD))
-		line.add_child(_text("=", 30, Color(0.7, 0.7, 0.75)))
-		line.add_child(_text(tr("PREVIEW_KILL") if ctx.insta_kill else str(ctx.raw()), 40, Color(1, 0.45, 0.35)))
+			line.add_child(_text("+ " + ability.display_name, 28, GOLD))
+		line.add_child(_text("=", 42, Color(0.7, 0.7, 0.75)))
+		line.add_child(_text(tr("PREVIEW_KILL") if ctx.insta_kill else str(ctx.raw()), 56, Color(1, 0.45, 0.35)))
 
 	if target and results.size() > 0:
 		var outcome := _flow()
 		_rows.add_child(outcome)
-		outcome.add_child(_text("vs %s:" % target.data.display_name, 20, Color(0.85, 0.85, 0.9)))
+		outcome.add_child(_text("vs %s:" % target.data.display_name, 28, Color(0.85, 0.85, 0.9)))
 		if not ctx.insta_kill:
 			if ctx.pierces() and target.data.defence > 0:
-				outcome.add_child(_text(tr("PREVIEW_BYPASSES_DEFENCE"), 20, Color(0.6, 0.8, 1.0)))
+				outcome.add_child(_text(tr("PREVIEW_BYPASSES_DEFENCE"), 28, Color(0.6, 0.8, 1.0)))
 		var damage := ctx.damage()
-		outcome.add_child(_text(tr("PREVIEW_DAMAGE") % ("all" if ctx.insta_kill else str(damage)), 22, Color(1, 0.5, 0.4)))
+		outcome.add_child(_text(tr("PREVIEW_DAMAGE") % ("all" if ctx.insta_kill else str(damage)), 31, Color(1, 0.5, 0.4)))
 		outcome.add_child(_icon(HEART, Color(1, 0.35, 0.35), 24))
 		var after := target_hp - damage
-		outcome.add_child(_text("%d → %s" % [target_hp, "dead" if after <= 0 else str(after)], 22, GOLD if after <= 0 else Color.WHITE))
+		outcome.add_child(_text("%d → %s" % [target_hp, "dead" if after <= 0 else str(after)], 31, GOLD if after <= 0 else Color.WHITE))
 
 	if not _panel.visible:
 		_panel.visible = true
@@ -145,7 +145,7 @@ func _die_part(result: DieResult, ctx: AttackContext, part: int) -> Control:
 	var text := tr("PREVIEW_KILL") if result.face().has(Symbol.Type.INSTA_KILL) and ctx.insta_kill else str(value)
 	if multiplier > 1:
 		text += " ×%d" % multiplier
-	var label := _text(text, 20, GOLD if multiplier > 1 else Color.WHITE)
+	var label := _text(text, 28, GOLD if multiplier > 1 else Color.WHITE)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(label)
 	return box
@@ -172,7 +172,7 @@ func _modifier_chips(ctx: AttackContext, results: Array[DieResult]) -> Array[Con
 	if range_lost:
 		chips.append(_chip(BOW, Color(0.6, 0.6, 0.65), tr("PREVIEW_RANGE_LOST"), false))
 	if ctx.aoe_tiles.size() > 0:
-		chips.append(_text(tr("PREVIEW_AREA"), 20, GOLD))
+		chips.append(_text(tr("PREVIEW_AREA"), 28, GOLD))
 	return chips
 
 
@@ -185,7 +185,7 @@ func _chip(texture: Texture2D, color: Color, text: String, mask: bool) -> Contro
 		material.shader = InfoPanel.MASK_SHADER
 		icon.material = material
 	box.add_child(icon)
-	box.add_child(_text(text, 18, color.lightened(0.4)))
+	box.add_child(_text(text, 25, color.lightened(0.4)))
 	return box
 
 

@@ -46,6 +46,7 @@ static func face_tile(face: DieFace, rarity: Rarity.Tier, tile_size: float, titl
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 60
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var dim := ColorRect.new()
@@ -81,10 +82,10 @@ func _ready() -> void:
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 10)
 	row.add_child(info)
-	var title := _label(die_type.display_name, 36, Rarity.COLORS[die_type.rarity].lightened(0.15))
+	var title := _label(die_type.display_name, 50, Rarity.COLORS[die_type.rarity].lightened(0.15))
 	info.add_child(title)
-	info.add_child(_label(tr("DICE_KIND") % Rarity.display_name(die_type.rarity), 20, Color(0.75, 0.75, 0.8)))
-	info.add_child(_label(tr("DICE_INSPECTOR_HINT"), 16, Color(0.6, 0.6, 0.66)))
+	info.add_child(_label(tr("DICE_KIND") % Rarity.display_name(die_type.rarity), 28, Color(0.75, 0.75, 0.8)))
+	info.add_child(_label(tr("DICE_INSPECTOR_HINT"), 22, Color(0.6, 0.6, 0.66)))
 	var faces := GridContainer.new()
 	faces.columns = 2
 	faces.add_theme_constant_override("h_separation", 14)
@@ -96,7 +97,7 @@ func _ready() -> void:
 	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(180, 48)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_END
-	close_button.add_theme_font_size_override("font_size", 20)
+	close_button.add_theme_font_size_override("font_size", 28)
 	close_button.pressed.connect(close)
 	info.add_child(close_button)
 	_close_button = close_button
@@ -151,7 +152,7 @@ func _face_entry(index: int) -> Control:
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	entry.add_child(line)
 	line.add_child(face_tile(face, die_type.rarity, FACE_SIZE))
-	var label := _label(HelpText.face_summary(face), 20, Color.WHITE)
+	var label := _label(HelpText.face_summary(face), 28, Color.WHITE)
 	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	line.add_child(label)
 	return entry

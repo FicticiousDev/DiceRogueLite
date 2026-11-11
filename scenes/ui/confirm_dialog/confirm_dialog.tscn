@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/cancelButton.png" id="4_2tqfx"]
 [ext_resource type="Texture2D" path="res://assets/ui/cancelButtonDisabled.png" id="5_pjw1s"]
 [ext_resource type="Texture2D" path="res://assets/ui/cancelButtonHover.png" id="6_2jycb"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [node name="ConfirmDialog" type="CanvasLayer" unique_id=68019965]
 layer = 50
@@ -20,6 +21,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 1, 1, 0)
+theme = ExtResource("ui_theme")
 
 [node name="Panel" type="Panel" parent="." unique_id=1363982923]
 anchors_preset = 8
@@ -33,6 +35,7 @@ offset_right = 365.0
 offset_bottom = 205.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("ui_theme")
 
 [node name="Title" type="Label" parent="Panel" unique_id=579215222]
 layout_mode = 1
@@ -47,7 +50,7 @@ offset_right = 340.0
 offset_bottom = -128.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 48
 text = "DIALOG_CONFIRM_TITLE"
 horizontal_alignment = 1
 
@@ -64,7 +67,7 @@ offset_right = 340.0
 offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "DIALOG_CONFIRM_MESSAGE"
 horizontal_alignment = 1
 vertical_alignment = 1

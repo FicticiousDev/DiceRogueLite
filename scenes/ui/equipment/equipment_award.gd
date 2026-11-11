@@ -25,6 +25,7 @@ var _taken: bool = false
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 52
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -66,9 +67,9 @@ func present(item: EquipmentData, source: String) -> bool:
 			free_slot = index
 			break
 
-	var title := _label(tr("ITEM_NEW_ITEM"), 56, TITLE_COLOR)
+	var title := _label(tr("ITEM_NEW_ITEM"), 78, TITLE_COLOR)
 	_content.add_child(title)
-	_content.add_child(_label(source, 20, Color(0.7, 0.7, 0.75)))
+	_content.add_child(_label(source, 28, Color(0.7, 0.7, 0.75)))
 	var stage := Control.new()
 	stage.custom_minimum_size = Vector2.ONE * ICON_SIZE * 1.4
 	stage.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -87,9 +88,9 @@ func present(item: EquipmentData, source: String) -> bool:
 	icon.pivot_offset = icon.size / 2.0
 	stage.add_child(icon)
 
-	_content.add_child(_label(item.display_name, 36, Rarity.COLORS[item.rarity].lightened(0.2)))
-	_content.add_child(_label(item.kind(), 18, Color(0.65, 0.65, 0.7)))
-	var rows := InfoPanel.content("", item.info_rows(), 560.0, 19)
+	_content.add_child(_label(item.display_name, 50, Rarity.COLORS[item.rarity].lightened(0.2)))
+	_content.add_child(_label(item.kind(), 25, Color(0.65, 0.65, 0.7)))
+	var rows := InfoPanel.content("", item.info_rows(), 560.0, 27)
 	rows.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_content.add_child(rows)
 
@@ -99,7 +100,7 @@ func present(item: EquipmentData, source: String) -> bool:
 	if free_slot != -1:
 		buttons.add_child(_button(tr("BTN_EQUIP"), _equip.bind(free_slot)))
 	else:
-		_content.add_child(_label(tr("ITEM_SLOTS_FULL_MANY" if _slots.size() > 1 else "ITEM_SLOT_FULL_ONE") % tr(EquipmentData.SLOT_NAMES_LOWER[item.slot]), 20, Color.WHITE))
+		_content.add_child(_label(tr("ITEM_SLOTS_FULL_MANY" if _slots.size() > 1 else "ITEM_SLOT_FULL_ONE") % tr(EquipmentData.SLOT_NAMES_LOWER[item.slot]), 28, Color.WHITE))
 		var current := HBoxContainer.new()
 		current.alignment = BoxContainer.ALIGNMENT_CENTER
 		current.add_theme_constant_override("separation", 14)
@@ -177,7 +178,7 @@ func _button(text: String, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(220, 54)
-	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_font_size_override("font_size", 31)
 	button.pressed.connect(action)
 	return button
 

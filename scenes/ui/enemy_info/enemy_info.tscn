@@ -1,7 +1,10 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/enemy_info/enemy_info.gd" id="1"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [node name="EnemyInfo" type="HBoxContainer"]
 mouse_filter = 2
 script = ExtResource("1")
+theme = ExtResource("ui_theme")
+

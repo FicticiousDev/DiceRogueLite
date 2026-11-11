@@ -1,49 +1,59 @@
-extends VBoxContainer
+extends TabContainer
 
-## Settings menu controls. Applies saved settings on startup and saves changes to SaveManager.settings_data.
+## Settings menu controls, one tab page each for General, Graphics and Audio. Applies saved settings on startup and saves
+## changes to SaveManager.settings_data.
 
 # Game settings
-@onready var show_fps_checkbutton = $ShowFPS/CheckButton
-@onready var skip_splash_checkbutton = $SkipSplashScreen/CheckButton
-@onready var animation_speed_slider = $AnimationSpeed/HBoxContainer/HSlider
-@onready var animation_speed_label = $AnimationSpeed/HBoxContainer/Label
-@onready var fast_dice_checkbutton = $FastDice/CheckButton
-@onready var screen_shake_checkbutton = $ScreenShake/CheckButton
-@onready var confirm_unused_dice_checkbutton = $ConfirmUnusedDice/CheckButton
-@onready var auto_spend_defence_checkbutton = $AutoSpendDefence/CheckButton
-@onready var turn_plan_side_options = $TurnPlanSide/OptionButton
+@onready var show_fps_checkbutton = $General/Center/Rows/ShowFPS/CheckButton
+@onready var skip_splash_checkbutton = $General/Center/Rows/SkipSplashScreen/CheckButton
+@onready var animation_speed_slider = $General/Center/Rows/AnimationSpeed/HBoxContainer/HSlider
+@onready var animation_speed_label = $General/Center/Rows/AnimationSpeed/HBoxContainer/Label
+@onready var fast_dice_checkbutton = $General/Center/Rows/FastDice/CheckButton
+@onready var screen_shake_checkbutton = $General/Center/Rows/ScreenShake/CheckButton
+@onready var confirm_unused_dice_checkbutton = $General/Center/Rows/ConfirmUnusedDice/CheckButton
+@onready var auto_spend_defence_checkbutton = $General/Center/Rows/AutoSpendDefence/CheckButton
+@onready var turn_plan_side_options = $General/Center/Rows/TurnPlanSide/OptionButton
+@onready var controller_scheme_options = $General/Center/Rows/ControllerType/OptionButton
 
 # Graphics settings
-@onready var resolution_options = $Resolution/OptionButton
-@onready var resolution_scale_label = $ResolutionScaling/ScalingSettings/ScaleLabel
-@onready var resolution_scale_slider = $ResolutionScaling/ScalingSettings/ScaleSlider
-@onready var resolution_scaler_options = $ResolutionScaling/ScalingSettings/Scaler
-@onready var resolution_fsr_options = $ResolutionScaling/ScalingSettings/FSROptions
-@onready var anti_aliasing_options = $AntiAliasing/OptionButton
-@onready var screen_space_aa_options = $ScreenSpaceAA/OptionButton
-@onready var full_screen_checkbutton = $Fullscreen/CheckButton
-@onready var borderless_checkbutton = $Borderless/CheckButton
-@onready var vsync_checkbutton = $VSync/CheckButton
-@onready var screen_options = $Screen/OptionButton
-@onready var max_fps_options = $MaxFPS/OptionButton
-@onready var shadow_quality_options = $ShadowQuality/OptionButton
-@onready var brightness_slider = $Brightness/HBoxContainer/HSlider
-@onready var brightness_label = $Brightness/HBoxContainer/Label
-@onready var contrast_slider = $Contrast/HBoxContainer/HSlider
-@onready var contrast_label = $Contrast/HBoxContainer/Label
+@onready var resolution_options = $Graphics/Scroll/Center/Rows/Resolution/OptionButton
+@onready var resolution_scale_label = $Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/ScaleLabel
+@onready var resolution_scale_slider = $Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/ScaleSlider
+@onready var resolution_scaler_options = $Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/Scaler
+@onready var resolution_fsr_options = $Graphics/Scroll/Center/Rows/ResolutionScaling/ScalingSettings/FSROptions
+@onready var anti_aliasing_options = $Graphics/Scroll/Center/Rows/AntiAliasing/OptionButton
+@onready var screen_space_aa_options = $Graphics/Scroll/Center/Rows/ScreenSpaceAA/OptionButton
+@onready var full_screen_checkbutton = $Graphics/Scroll/Center/Rows/Fullscreen/CheckButton
+@onready var borderless_checkbutton = $Graphics/Scroll/Center/Rows/Borderless/CheckButton
+@onready var vsync_checkbutton = $Graphics/Scroll/Center/Rows/VSync/CheckButton
+@onready var screen_options = $Graphics/Scroll/Center/Rows/Screen/OptionButton
+@onready var max_fps_options = $Graphics/Scroll/Center/Rows/MaxFPS/OptionButton
+@onready var shadow_quality_options = $Graphics/Scroll/Center/Rows/ShadowQuality/OptionButton
+@onready var brightness_slider = $Graphics/Scroll/Center/Rows/Brightness/HBoxContainer/HSlider
+@onready var brightness_label = $Graphics/Scroll/Center/Rows/Brightness/HBoxContainer/Label
+@onready var contrast_slider = $Graphics/Scroll/Center/Rows/Contrast/HBoxContainer/HSlider
+@onready var contrast_label = $Graphics/Scroll/Center/Rows/Contrast/HBoxContainer/Label
+
+# Graphics preview
+@onready var preview_holder: Control = $Graphics/Preview
 
 # Audio settings
-@onready var master_volume_slider = $MasterVolume/HBoxContainer/HSlider
-@onready var master_volume_label = $MasterVolume/HBoxContainer/Label
-@onready var music_volume_slider = $MusicVolume/HBoxContainer/HSlider
-@onready var music_volume_label = $MusicVolume/HBoxContainer/Label
-@onready var sfx_volume_slider = $SFXVolume/HBoxContainer/HSlider
-@onready var sfx_volume_label = $SFXVolume/HBoxContainer/Label
-@onready var ui_volume_slider = $UIVolume/HBoxContainer/HSlider
-@onready var ui_volume_label = $UIVolume/HBoxContainer/Label
+@onready var master_volume_slider = $Audio/Center/Rows/MasterVolume/HBoxContainer/HSlider
+@onready var master_volume_label = $Audio/Center/Rows/MasterVolume/HBoxContainer/Label
+@onready var music_volume_slider = $Audio/Center/Rows/MusicVolume/HBoxContainer/HSlider
+@onready var music_volume_label = $Audio/Center/Rows/MusicVolume/HBoxContainer/Label
+@onready var sfx_volume_slider = $Audio/Center/Rows/SFXVolume/HBoxContainer/HSlider
+@onready var sfx_volume_label = $Audio/Center/Rows/SFXVolume/HBoxContainer/Label
+@onready var ui_volume_slider = $Audio/Center/Rows/UIVolume/HBoxContainer/HSlider
+@onready var ui_volume_label = $Audio/Center/Rows/UIVolume/HBoxContainer/Label
+
+var _preview: DieView
 
 ## Shared by every 3D scene so brightness/contrast apply everywhere
 var environment: Environment = preload("res://assets/default_environment.tres")
+
+## Preview die: the first of these that exists
+const PREVIEW_DICE: Array[StringName] = [&"attack", &"all_rounder"]
 
 const MAX_FPS: Array[int] = [0, 30, 60, 120, 144]
 const SHADOW_ATLAS_SIZES: Array[int] = [1024, 2048, 4096]
@@ -140,9 +150,12 @@ func _ready() -> void:
 	confirm_unused_dice_checkbutton.set_pressed(SaveManager.settings_data.confirm_unused_dice)
 	auto_spend_defence_checkbutton.set_pressed(SaveManager.settings_data.auto_spend_defence)
 	turn_plan_side_options.select(SaveManager.settings_data.turn_plan_side)
+	controller_scheme_options.select(SaveManager.settings_data.controller_scheme)
+	_on_controller_scheme_selected(SaveManager.settings_data.controller_scheme)
 
 	# Prompts with a "Don't show this again" box change settings behind this menu's back
 	visibility_changed.connect(_sync_prompt_toggles)
+	preview_holder.visibility_changed.connect(_ensure_preview)
 
 	centre_window()
 
@@ -206,6 +219,45 @@ func _on_turn_plan_side_selected(index: int) -> void:
 	if SaveManager.settings_data.turn_plan_side != index:
 		SaveManager.settings_data.turn_plan_side = index
 		SaveManager.settings_data.emit_changed()
+
+
+## Reacting to controller icons options button press
+func _on_controller_scheme_selected(index: int) -> void:
+	InputMode.set_pad_scheme(index as InputMode.PadScheme)
+	SaveManager.settings_data.controller_scheme = index
+
+
+# ===========================================================================================================================================
+# Graphics preview
+# ===========================================================================================================================================
+
+
+## Builds the preview die the first time the Graphics tab is shown.
+func _ensure_preview() -> void:
+	if _preview or not preview_holder.is_visible_in_tree():
+		return
+	var type: DieType
+	for id in PREVIEW_DICE:
+		type = Database.get_content("dice", id)
+		if type:
+			break
+	if type == null and Database.get_all("dice").size() > 0:
+		type = Database.get_all("dice")[0]
+	if type == null:
+		return
+	_preview = DieView.create(type, 400.0)
+	_preview.inspect_on_click = false
+	_preview.set_anchors_preset(Control.PRESET_FULL_RECT)
+	preview_holder.add_child(_preview)
+	_apply_preview()
+
+
+## Shows the current anti-aliasing, brightness and contrast on the preview die.
+func _apply_preview() -> void:
+	if _preview == null:
+		return
+	var data := SaveManager.settings_data
+	_preview.mirror_settings(data.antialiasing, data.screen_space_aa, data.brightness, data.contrast)
 
 
 ## Reacting to resolution options button press
@@ -272,6 +324,7 @@ func _on_aa_profile_selected(index: int) -> void:
 			get_viewport().msaa_3d = Viewport.MSAA_8X
 
 	SaveManager.settings_data.antialiasing = index
+	_apply_preview()
 
 
 ## Reacting to screen space anti-aliasing profile options button press
@@ -285,6 +338,7 @@ func _on_sp_aa_selected(index: int) -> void:
 			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
 	
 	SaveManager.settings_data.screen_space_aa = index
+	_apply_preview()
 
 
 ## Reacting to fullscreen button press
@@ -338,6 +392,7 @@ func _on_brightness_value_changed(value: float) -> void:
 	environment.adjustment_brightness = value
 	brightness_label.set_text(str(value).pad_decimals(2))
 	SaveManager.settings_data.brightness = value
+	_apply_preview()
 
 
 ## Reacting to contrast slider change
@@ -345,6 +400,7 @@ func _on_contrast_value_changed(value: float) -> void:
 	environment.adjustment_contrast = value
 	contrast_label.set_text(str(value).pad_decimals(2))
 	SaveManager.settings_data.contrast = value
+	_apply_preview()
 
 
 ## Reacting to master volume slider change

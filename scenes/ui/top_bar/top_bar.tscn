@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/top_bar/top_bar.gd" id="1"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.06, 0.06, 0.09, 0.85)
@@ -22,6 +23,7 @@ grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("panel")
 script = ExtResource("1")
+theme = ExtResource("ui_theme")
 
 [node name="Stats" type="HBoxContainer" parent="."]
 unique_name_in_owner = true

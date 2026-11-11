@@ -1,0 +1,6 @@
+[gd_resource type="Theme" format=3]
+
+[resource]
+Label/font_sizes/font_size = 31
+OptionButton/font_sizes/font_size = 31
+PopupMenu/font_sizes/font_size = 31

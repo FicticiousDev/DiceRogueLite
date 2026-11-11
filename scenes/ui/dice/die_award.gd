@@ -28,6 +28,7 @@ var _taken: bool = false
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 52
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -64,9 +65,9 @@ func present(type: DieType, source: String, max_size: int) -> bool:
 	var run := SaveManager.run_data
 	var full := run.dice.size() >= max_size
 
-	var title := _label(tr("DICE_NEW_DIE"), 56, TITLE_COLOR)
+	var title := _label(tr("DICE_NEW_DIE"), 78, TITLE_COLOR)
 	_content.add_child(title)
-	_content.add_child(_label(source, 20, Color(0.7, 0.7, 0.75)))
+	_content.add_child(_label(source, 28, Color(0.7, 0.7, 0.75)))
 
 	var view_size := BIG_VIEW_FULL if full else BIG_VIEW
 	var stage := Control.new()
@@ -86,16 +87,16 @@ func present(type: DieType, source: String, max_size: int) -> bool:
 	view.size = Vector2.ONE * view_size
 	stage.add_child(view)
 
-	_content.add_child(_label(type.display_name, 36, Rarity.COLORS[type.rarity].lightened(0.2)))
+	_content.add_child(_label(type.display_name, 50, Rarity.COLORS[type.rarity].lightened(0.2)))
 	_content.add_child(_label(tr("DICE_KIND_HINT") % Rarity.display_name(type.rarity),
-		18, Color(0.65, 0.65, 0.7)))
+		25, Color(0.65, 0.65, 0.7)))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 20)
 	if full:
 		_content.add_child(_label(tr("DICE_POOL_FULL") % [run.dice.size(), max_size],
-			20, Color.WHITE))
+			28, Color.WHITE))
 		var types: Array[DieType] = []
 		for id in run.dice:
 			types.append(Database.get_content("dice", id))
@@ -180,7 +181,7 @@ func _button(text: String, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(220, 54)
-	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_font_size_override("font_size", 31)
 	button.pressed.connect(action)
 	return button
 

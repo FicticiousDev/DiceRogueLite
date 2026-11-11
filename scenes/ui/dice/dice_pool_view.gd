@@ -11,6 +11,7 @@ var _content: VBoxContainer
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 37
 	visible = false
 	var dim := ColorRect.new()
@@ -51,12 +52,12 @@ func open() -> void:
 	var title := Label.new()
 	title.text = tr("DICE_POOL_TITLE") % [dice.size(), SaveManager.run_data.max_dice]
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_font_size_override("font_size", 56)
 	_content.add_child(title)
 	var hint := Label.new()
 	hint.text = tr("DICE_POOL_HINT")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 18)
+	hint.add_theme_font_size_override("font_size", 25)
 	hint.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
 	_content.add_child(hint)
 	var grid := DieCard.grid(sorted_types(dice), COLUMNS, VIEW_SIZE)
@@ -66,7 +67,7 @@ func open() -> void:
 	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(200, 50)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	close_button.add_theme_font_size_override("font_size", 20)
+	close_button.add_theme_font_size_override("font_size", 28)
 	close_button.pressed.connect(close)
 	_content.add_child(close_button)
 	visible = true

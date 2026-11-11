@@ -6,7 +6,7 @@ extends PanelContainer
 const MOVE: Texture2D = preload("res://assets/ui/icons/move.png")
 ## Gap between the strip and the centre of the dice row, in pixels
 const ROW_CLEARANCE: float = 62.0
-const FONT_SIZE: int = 20
+const FONT_SIZE: int = 28
 
 ## Horizontal centre of the play area and the dice row's height, as screen fractions
 var center_x: float = 0.5

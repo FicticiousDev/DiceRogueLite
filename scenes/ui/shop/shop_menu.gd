@@ -18,6 +18,7 @@ var _content: VBoxContainer
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 38
 	visible = false
 	var dim := ColorRect.new()
@@ -49,12 +50,12 @@ func choose(stock: Array[Resource], sold: Array[bool]) -> int:
 	for child in _content.get_children():
 		child.queue_free()
 	var gold := SaveManager.run_data.gold
-	_content.add_child(_label(tr("SHOP_TITLE"), 48, Color.WHITE))
-	var purse := StatIcon.create(COIN, GOLD_COLOR, 26, 32.0)
+	_content.add_child(_label(tr("SHOP_TITLE"), 67, Color.WHITE))
+	var purse := StatIcon.create(COIN, GOLD_COLOR, 36, 32.0)
 	purse.set_value(tr("SHOP_GOLD_TO_SPEND") % gold)
 	purse.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_content.add_child(purse)
-	_content.add_child(_label(tr("SHOP_INFO"), 18, Color(0.65, 0.65, 0.7)))
+	_content.add_child(_label(tr("SHOP_INFO"), 25, Color(0.65, 0.65, 0.7)))
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -77,7 +78,7 @@ func choose(stock: Array[Resource], sold: Array[bool]) -> int:
 	close_button.text = tr("BTN_CLOSE")
 	close_button.custom_minimum_size = Vector2(200, 50)
 	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	close_button.add_theme_font_size_override("font_size", 20)
+	close_button.add_theme_font_size_override("font_size", 28)
 	close_button.pressed.connect(_chosen.emit.bind(-1))
 	_content.add_child(close_button)
 

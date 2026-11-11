@@ -22,6 +22,7 @@ var _content: HBoxContainer
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 36
 	visible = false
 	var dim := ColorRect.new()
@@ -62,7 +63,7 @@ func open(enemy: Enemy) -> void:
 	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(portrait)
-	_content.add_child(InfoPanel.create(data.display_name, rows(enemy), 560.0, 24))
+	_content.add_child(InfoPanel.create(data.display_name, rows(enemy), 560.0, 34))
 	visible = true
 	_content.pivot_offset = _content.size / 2.0
 	_content.modulate.a = 0.0

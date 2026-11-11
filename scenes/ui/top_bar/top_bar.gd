@@ -43,7 +43,7 @@ var _pool_shown: Array[String] = []
 
 func _ready() -> void:
 	_character = Label.new()
-	_character.add_theme_font_size_override("font_size", 24)
+	_character.add_theme_font_size_override("font_size", 34)
 	stats.add_child(_character)
 	_hp = _add(HEART, Color(1, 0.35, 0.35))
 	_range = _add(BOW, Color(0.95, 0.85, 0.6))
@@ -64,7 +64,7 @@ func _ready() -> void:
 	_pool_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	stats.add_child(_pool_box)
 	_pool_label = Label.new()
-	_pool_label.add_theme_font_size_override("font_size", 24)
+	_pool_label.add_theme_font_size_override("font_size", 34)
 	_pool_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_pool_label.gui_input.connect(func(event: InputEvent):
 		if event.is_action_pressed("select"):
@@ -118,7 +118,7 @@ func _update_equipment() -> void:
 			for ability in item.abilities:
 				if ability.active:
 					var label := Label.new()
-					label.add_theme_font_size_override("font_size", 16)
+					label.add_theme_font_size_override("font_size", 22)
 					label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
 					box.add_child(label)
 					_equipment_uses.append([ability, label])
@@ -163,7 +163,7 @@ func _update_abilities() -> void:
 	for ability in character.abilities:
 		if not _abilities.has(ability.id):
 			var label := Label.new()
-			label.add_theme_font_size_override("font_size", 18)
+			label.add_theme_font_size_override("font_size", 25)
 			label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45) if ability.active else Color(0.8, 0.85, 0.95))
 			label.tooltip_text = ability.description
 			label.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -194,6 +194,6 @@ func _status(texture: Texture2D, color: Color, title: String, explanation: Strin
 
 
 func _add(texture: Texture2D, color: Color) -> StatIcon:
-	var stat := StatIcon.create(texture, color, 24, 30)
+	var stat := StatIcon.create(texture, color, 34, 30)
 	stats.add_child(stat)
 	return stat

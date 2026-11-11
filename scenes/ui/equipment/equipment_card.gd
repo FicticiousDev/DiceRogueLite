@@ -38,20 +38,20 @@ static func create(equipment: EquipmentData, width: float = 420.0, button_text: 
 	row.add_child(info)
 	var name_label := Label.new()
 	name_label.text = equipment.display_name
-	name_label.add_theme_font_size_override("font_size", 20)
+	name_label.add_theme_font_size_override("font_size", 28)
 	name_label.add_theme_color_override("font_color", Rarity.COLORS[equipment.rarity].lightened(0.2))
 	info.add_child(name_label)
 	var kind := Label.new()
 	kind.text = equipment.kind()
-	kind.add_theme_font_size_override("font_size", 15)
+	kind.add_theme_font_size_override("font_size", 21)
 	kind.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
 	info.add_child(kind)
-	info.add_child(InfoPanel.content("", equipment.info_rows(), width - icon_size - 70.0, 15))
+	info.add_child(InfoPanel.content("", equipment.info_rows(), width - icon_size - 70.0, 21))
 	if button_text != "":
 		card.button = Button.new()
 		card.button.text = button_text
 		card.button.custom_minimum_size = Vector2(0, 38)
-		card.button.add_theme_font_size_override("font_size", 16)
+		card.button.add_theme_font_size_override("font_size", 22)
 		card.button.pressed.connect(card.button_pressed.emit)
 		info.add_child(card.button)
 	return card

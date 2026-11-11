@@ -22,6 +22,7 @@ var _status: Label
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 20
 	visible = false
 	_panel = PanelContainer.new()
@@ -50,11 +51,11 @@ func _ready() -> void:
 	text.add_theme_constant_override("separation", 0)
 	row.add_child(text)
 	_title = Label.new()
-	_title.add_theme_font_size_override("font_size", 22)
+	_title.add_theme_font_size_override("font_size", 31)
 	_title.modulate = GOLD
 	text.add_child(_title)
 	_status = Label.new()
-	_status.add_theme_font_size_override("font_size", 26)
+	_status.add_theme_font_size_override("font_size", 36)
 	text.add_child(_status)
 
 

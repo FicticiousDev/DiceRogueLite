@@ -13,8 +13,9 @@ static func row(icon: Texture2D, color: Color, text: String, mask: bool = false)
 
 
 ## A framed panel. [width] is the text column width; [font_size] scales icons too.
-static func create(title: String, rows: Array[Dictionary], width: float = 380.0, font_size: int = 18) -> InfoPanel:
+static func create(title: String, rows: Array[Dictionary], width: float = 380.0, font_size: int = 25) -> InfoPanel:
 	var panel := InfoPanel.new()
+	panel.theme = UITheme.BASE
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.07, 0.07, 0.1, 0.95)
 	style.border_color = Color(1, 1, 1, 0.25)
@@ -28,8 +29,9 @@ static func create(title: String, rows: Array[Dictionary], width: float = 380.0,
 
 
 ## The panel's contents without a frame (built-in tooltips supply their own).
-static func content(title: String, rows: Array[Dictionary], width: float = 380.0, font_size: int = 18) -> VBoxContainer:
+static func content(title: String, rows: Array[Dictionary], width: float = 380.0, font_size: int = 25) -> VBoxContainer:
 	var box := VBoxContainer.new()
+	box.theme = UITheme.BASE
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", int(font_size * 0.5))
 	if title != "":

@@ -25,6 +25,7 @@ var _trim_section: Control
 
 
 func _ready() -> void:
+	UITheme.watch(self)
 	layer = 40
 	visible = false
 	var dim := ColorRect.new()
@@ -44,21 +45,21 @@ func _ready() -> void:
 
 	var header := HBoxContainer.new()
 	column.add_child(header)
-	var title := _label(tr("DESIGNER_TITLE"), 40, GOLD)
+	var title := _label(tr("DESIGNER_TITLE"), 56, GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	if OS.is_debug_build():
 		var unlock_all := Button.new()
 		unlock_all.text = "DEBUG: UNLOCK ALL"
 		unlock_all.custom_minimum_size = Vector2(240, 50)
-		unlock_all.add_theme_font_size_override("font_size", 20)
+		unlock_all.add_theme_font_size_override("font_size", 28)
 		unlock_all.modulate = Color(1.0, 0.45, 0.85)
 		unlock_all.pressed.connect(_unlock_all)
 		header.add_child(unlock_all)
 	var close := Button.new()
 	close.text = tr("BTN_CLOSE")
 	close.custom_minimum_size = Vector2(160, 50)
-	close.add_theme_font_size_override("font_size", 22)
+	close.add_theme_font_size_override("font_size", 31)
 	close.pressed.connect(close_designer)
 	header.add_child(close)
 
@@ -154,7 +155,7 @@ func _rebuild() -> void:
 		var view := DieView.create(options.pick_random(), PREVIEW_SIZE)
 		view.design = design
 		box.add_child(view)
-		box.add_child(_label(Rarity.display_name(tier), 18, Rarity.COLORS[tier]))
+		box.add_child(_label(Rarity.display_name(tier), 25, Rarity.COLORS[tier]))
 		_previews.add_child(box)
 
 	var designs: Array[DieDesign] = []
@@ -213,7 +214,7 @@ func _row(parent: Control, title: String) -> HBoxContainer:
 	var section := VBoxContainer.new()
 	section.add_theme_constant_override("separation", 4)
 	parent.add_child(section)
-	section.add_child(_label(title, 20, Color(0.8, 0.8, 0.85), HORIZONTAL_ALIGNMENT_LEFT))
+	section.add_child(_label(title, 28, Color(0.8, 0.8, 0.85), HORIZONTAL_ALIGNMENT_LEFT))
 	var scroll := ScrollContainer.new()
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
@@ -260,7 +261,7 @@ func _card(title: String, design: DieDesign, main: DieFinish, trim: DieFinish, s
 	view.tooltip_text = tip
 	view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(view)
-	box.add_child(_label(title if unlocked else tr("DESIGNER_LOCKED_TITLE") % title, 17, GOLD if selected else Color.WHITE))
+	box.add_child(_label(title if unlocked else tr("DESIGNER_LOCKED_TITLE") % title, 24, GOLD if selected else Color.WHITE))
 	if unlocked:
 		view.clicked.connect(on_pick)
 		panel.gui_input.connect(func(event: InputEvent):

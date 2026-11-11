@@ -13,6 +13,8 @@ signal device_changed
 
 enum Device { KEYBOARD, GAMEPAD }
 enum Pad { XBOX, PLAYSTATION }
+## Which glyph set the player wants: follow the connected controller, or always one of the two
+enum PadScheme { AUTO, XBOX, PLAYSTATION }
 
 const GLYPHS: String = "res://assets/ui/input/"
 ## Cursor speed in viewport pixels per second at full stick, and the share of it while the left trigger is held
@@ -37,6 +39,7 @@ const DIRECTIONS: Dictionary = {
 
 var device: Device = Device.KEYBOARD
 var pad: Pad = Pad.XBOX
+var pad_scheme: PadScheme = PadScheme.AUTO
 
 var _pad_id: int = 0
 ## The virtual cursor in viewport pixels
@@ -79,7 +82,20 @@ func cursor_mode() -> bool:
 	return device == Device.GAMEPAD and _active() == null
 
 
+## Sets the glyph scheme (see [enum PadScheme]); prompts change at once.
+func set_pad_scheme(scheme: PadScheme) -> void:
+	pad_scheme = scheme
+	var new_pad := _pad_type(_pad_id)
+	if new_pad != pad:
+		pad = new_pad
+		device_changed.emit()
+
+
 func _pad_type(id: int) -> Pad:
+	if pad_scheme == PadScheme.XBOX:
+		return Pad.XBOX
+	if pad_scheme == PadScheme.PLAYSTATION:
+		return Pad.PLAYSTATION
 	var joy_name := Input.get_joy_name(id).to_lower()
 	for word in ["playstation", "ps3", "ps4", "ps5", "dualshock", "dualsense", "sony"]:
 		if joy_name.contains(word):

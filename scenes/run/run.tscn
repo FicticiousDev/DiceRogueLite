@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/quitButtonPressed.png" id="quit_pressed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonActive.png" id="settings_tex"]
 [ext_resource type="Texture2D" path="res://assets/ui/SettingsButtonPressed.png" id="settings_pressed_tex"]
+[ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]
 
 [node name="Run" type="Node3D"]
 script = ExtResource("script")
@@ -49,6 +50,7 @@ texture_normal = ExtResource("quit_tex")
 texture_pressed = ExtResource("quit_pressed_tex")
 ignore_texture_size = true
 stretch_mode = 4
+theme = ExtResource("ui_theme")
 
 [node name="SettingsButton" type="TextureButton" parent="HUD"]
 unique_name_in_owner = true
@@ -60,6 +62,7 @@ texture_normal = ExtResource("settings_tex")
 texture_pressed = ExtResource("settings_pressed_tex")
 ignore_texture_size = true
 stretch_mode = 4
+theme = ExtResource("ui_theme")
 
 [node name="ActionList" parent="HUD" instance=ExtResource("action_list")]
 unique_name_in_owner = true

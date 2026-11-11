@@ -360,6 +360,7 @@ func _build_stage(art: Array) -> bool:
 	container.stretch = true
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	UITheme.apply(container)
 	add_child(container)
 	_viewport = SubViewport.new()
 	_viewport.own_world_3d = true
