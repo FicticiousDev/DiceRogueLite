@@ -2,6 +2,7 @@ extends CanvasLayer
 class_name ConfirmDialog
 
 ## Yes/no prompt. Use: if await dialog.ask("Title", "Message"): ...
+## The accept action answers yes and cancel answers no, wherever the focus is (except on the checkbox, which accept ticks).
 ## Pass the name of a bool SettingsData flag (true = show this prompt) as the third argument to add a
 ## tr("DIALOG_DONT_SHOW_AGAIN") checkbox that flips that setting, so it stays in step with the settings scene.
 
@@ -21,9 +22,9 @@ var _skip_setting: StringName = &""
 func _ready() -> void:
 	confirm_button.pressed.connect(answered.emit.bind(true))
 	cancel_button.pressed.connect(answered.emit.bind(false))
-	# Starts on the safe answer
-	InputMode.register_menu(self, func() -> Control: return cancel_button)
-	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_SELECT", "PROMPT_NO"))
+	# Starts on yes, as the accept action answers it
+	InputMode.register_menu(self, func() -> Control: return confirm_button)
+	ButtonPrompt.footer(self, ButtonPrompt.standard("PROMPT_YES", "PROMPT_NO", false))
 	for button in [confirm_button, cancel_button]:
 		_highlight_on_focus(button)
 	_build_skip_check()
@@ -66,6 +67,13 @@ func _on_skip_toggled(toggled_on: bool) -> void:
 		return
 	SaveManager.settings_data.set(_skip_setting, not toggled_on)
 	SaveManager.save_data()
+
+
+## Before the GUI, so accept answers yes even with NO focused.
+func _input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_accept") and get_viewport().gui_get_focus_owner() != _skip_check:
+		get_viewport().set_input_as_handled()
+		answered.emit(true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
