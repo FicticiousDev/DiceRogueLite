@@ -870,10 +870,10 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 		dead.play_death()
 	if deaths.size() > 0:
 		await deaths[0].died
-	for dead in deaths:
-		await _dismiss_minions(dead)
+	await _dismiss_minions(deaths)
 	await _react_to_damage(before)
-	if not enemy.is_dead() and not enemy_first and not _stun_blocks(enemy):
+	# Freed already if it died and its minions' deaths were awaited
+	if is_instance_valid(enemy) and not enemy.is_dead() and not enemy_first and not _stun_blocks(enemy):
 		if await _strike_back(enemy):
 			_retaliated.append(enemy)
 	await get_tree().create_timer(Anim.t(0.25)).timeout
@@ -975,7 +975,7 @@ func _redirect_hit(target: Enemy, damage: int) -> void:
 		_reward_kill(target)
 		target.play_death()
 		await target.died
-		await _dismiss_minions(target)
+		await _dismiss_minions([target])
 	await _react_to_damage(before)
 
 
@@ -1089,8 +1089,7 @@ func resolve_dash(ability: DashAbility, target: int) -> void:
 			dead.play_death()
 		if deaths.size() > 0:
 			await deaths[0].died
-		for dead in deaths:
-			await _dismiss_minions(dead)
+		await _dismiss_minions(deaths)
 		await _react_to_damage(before)
 	if board.get_piece(target) != null:
 		target = board.nearest_free(target)
@@ -1311,8 +1310,7 @@ func _poison_tick() -> void:
 		dead.play_death()
 	if deaths.size() > 0:
 		await deaths[0].died
-	for dead in deaths:
-		await _dismiss_minions(dead)
+	await _dismiss_minions(deaths)
 	await _react_to_damage(before)
 
 
@@ -1333,8 +1331,7 @@ func _burn_tick() -> void:
 		dead.play_death()
 	if deaths.size() > 0:
 		await deaths[0].died
-	for dead in deaths:
-		await _dismiss_minions(dead)
+	await _dismiss_minions(deaths)
 	await _react_to_damage(before)
 
 
@@ -1584,12 +1581,16 @@ func _hit_enemy(victim: Enemy, damage: int) -> void:
 		await get_tree().create_timer(Anim.t(0.2)).timeout
 
 
-## A boss that dies takes the minions it summoned with it (no gold).
-func _dismiss_minions(boss: Enemy) -> void:
+## Bosses that die take the minions they summoned with them (no gold). All [bosses] are gathered before awaiting, as
+## each is freed once its death has played.
+func _dismiss_minions(bosses: Array[Enemy]) -> void:
 	var followers: Array[Enemy] = []
-	for follower in boss.minions():
-		if not follower.dying:
-			followers.append(follower)
+	for boss in bosses:
+		if not is_instance_valid(boss):
+			continue
+		for follower in boss.minions():
+			if not follower.dying and not followers.has(follower):
+				followers.append(follower)
 	for follower in followers:
 		follower.hp = 0
 		follower.preview_hp = 0
