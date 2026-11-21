@@ -5,6 +5,7 @@ extends Node3D
 ## Sequence: board dims, tray slides in, dice drop straight down into it from above the top of the screen (inside a
 ## tall invisible tube so none escape), settle, fly over the front rim to a grouped row along the bottom of the
 ## screen showing their results, and the tray slides out. Dice stay in the row until the next roll or clear().
+## With the quick dice setting the tray, dim and physics are skipped and the dice land straight in the row.
 ## The tray is authored in "tray units" (10 x 7 felt) and scaled so it always fills the same part of the screen.
 ## Dice and tray are on render layer 2 with their own light.
 
@@ -63,26 +64,26 @@ func roll(types: Array[DieType], design: DieDesign) -> Array[DieResult]:
 	rolling = true
 	await clear()
 	_place()
+	if SaveManager.settings_data.fast_dice:
+		var quick := await _roll_quick(types, design)
+		rolling = false
+		roll_finished.emit(quick)
+		return quick
+
 	_fade_dim(dim_alpha)
 	await _slide_tray(true)
 
-	var fast := SaveManager.settings_data.fast_dice
 	for i in types.size():
 		var die: Die3D = DIE_SCENE.instantiate()
 		die.setup(i, types[i], design, _scale)
 		# Positioned before entering the tree so it never appears in the tray first
-		if not fast:
-			die.position = _drop_position(i)
-			die.basis = Basis.from_euler(Vector3(randf() * TAU, randf() * TAU, randf() * TAU))
-			die.angular_velocity = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized() * randf_range(8.0, 16.0)
+		die.position = _drop_position(i)
+		die.basis = Basis.from_euler(Vector3(randf() * TAU, randf() * TAU, randf() * TAU))
+		die.angular_velocity = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized() * randf_range(8.0, 16.0)
 		dice_root.add_child(die)
 		dice.append(die)
 
-	if fast:
-		_place_fast()
-		await get_tree().create_timer(Anim.t(0.25)).timeout
-	else:
-		await _settle()
+	await _settle()
 
 	var results: Array[DieResult] = []
 	for die in dice:
@@ -225,15 +226,42 @@ func _all_still() -> bool:
 	return true
 
 
-## Fast dice setting: no physics, dice pop in already showing a random face.
-func _place_fast() -> void:
-	for i in dice.size():
-		var die := dice[i]
+## Quick dice setting: no tray, no dim, no physics. Each die picks a random face and lands straight in its row slot.
+func _roll_quick(types: Array[DieType], design: DieDesign) -> Array[DieResult]:
+	var results: Array[DieResult] = []
+	for i in types.size():
+		var die: Die3D = DIE_SCENE.instantiate()
+		die.setup(i, types[i], design, _scale)
 		die.freeze = true
-		die.position = _tray_point(Vector3((i % 5 - 2) * 1.6, 0.5, (i / 5) * 1.6 - 0.8))
-		die.basis = Basis(Vector3.UP, _tray_yaw) * Die3D.basis_facing(randi() % 6, Basis(Vector3.RIGHT, Vector3.FORWARD, Vector3.UP))
-		die.visual.scale = Vector3.ONE * 0.01
-		create_tween().tween_property(die.visual, "scale", Vector3.ONE * _scale, Anim.t(0.25)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		die.visible = false
+		dice_root.add_child(die)
+		dice.append(die)
+		results.append(DieResult.new(i, types[i], randi() % 6))
+
+	_sort_row(results)
+	var targets := _row_targets()
+	var last: Tween
+	for i in _row_order.size():
+		last = _land_in_row(get_die(_row_order[i].index), targets[i], i * 0.04)
+	if last:
+		await last.finished
+	return results
+
+
+## Drops [die] a short way onto its row slot, growing in as it falls, with the same squash landing as a flown die.
+func _land_in_row(die: Die3D, target: Transform3D, delay: float) -> Tween:
+	var size := Vector3.ONE * _scale
+	var start := target.origin + camera.global_basis.y * _scale * 1.2
+	die.global_transform = Transform3D(target.basis, start)
+	die.visual.scale = Vector3.ONE * 0.01
+	var tween := create_tween()
+	tween.tween_interval(Anim.t(delay))
+	tween.tween_callback(func(): die.visible = true)
+	tween.tween_property(die, "position", target.origin, Anim.t(0.18)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(die.visual, "scale", size, Anim.t(0.12)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(die.visual, "scale", size * Vector3(1.15, 0.85, 1.15), Anim.t(0.06))
+	tween.tween_property(die.visual, "scale", size, Anim.t(0.3)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	return tween
 
 
 # ===========================================================================================================================================
@@ -244,13 +272,7 @@ func _place_fast() -> void:
 ## Flies each die to its slot in the row, turning its result face to the camera. Grouped attack, defence,
 ## move, other; within a group, higher totals first.
 func _arrange_row(results: Array[DieResult]) -> void:
-	_row_order = results.duplicate()
-	_row_order.sort_custom(func(a: DieResult, b: DieResult):
-		if a.category() != b.category():
-			return a.category() < b.category()
-		if a.value() != b.value():
-			return a.value() > b.value()
-		return a.index < b.index)
+	_sort_row(results)
 	var targets := _row_targets()
 	var last: Tween
 	for i in _row_order.size():
@@ -258,6 +280,17 @@ func _arrange_row(results: Array[DieResult]) -> void:
 		last = _fly_to(die, targets[i].origin, targets[i].basis, i * 0.05)
 	if last:
 		await last.finished
+
+
+## Sets [_row_order] from [results]: grouped attack, defence, move, other; within a group, higher totals first.
+func _sort_row(results: Array[DieResult]) -> void:
+	_row_order = results.duplicate()
+	_row_order.sort_custom(func(a: DieResult, b: DieResult):
+		if a.category() != b.category():
+			return a.category() < b.category()
+		if a.value() != b.value():
+			return a.value() > b.value()
+		return a.index < b.index)
 
 
 ## Screen position of the right-most die in the row, or (-1, -1) if the row is empty.

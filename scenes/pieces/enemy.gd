@@ -42,6 +42,9 @@ var form: int = 0
 var bursts: int = 0
 var summoned: bool = false
 var damaged_this_round: bool = false
+## Sits out its turn in this round's enemy phase (it can still strike back): just summoned, or gone under from a hit.
+## Cleared at the end of the round
+var resting: bool = false
 ## Under water: off the board (its tile is free and it can't be targeted) until it resurfaces. [member tile_id] stays
 ## the tile it went under on
 var submerged: bool = false

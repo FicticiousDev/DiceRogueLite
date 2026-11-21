@@ -1240,6 +1240,8 @@ func _enemy_phase() -> void:
 			enemy.stunned = false
 			await get_tree().create_timer(Anim.t(0.3)).timeout
 			continue
+		if enemy.resting:
+			continue
 		if enemy.data.behaviour:
 			await enemy.data.behaviour.take_turn(self, enemy)
 		else:
@@ -1257,6 +1259,8 @@ func _end_round() -> void:
 		if enemy.data.behaviour:
 			await enemy.data.behaviour.end_of_round(self, enemy)
 		enemy.damaged_this_round = false
+	for enemy in board.get_enemies(true):
+		enemy.resting = false
 	await board.tick_terrain()
 
 
@@ -1272,7 +1276,7 @@ func standard_enemy_turn(enemy: Enemy) -> void:
 ## reach - see [method strikes_left].
 func enemy_strikes(enemy: Enemy) -> void:
 	for i in strikes_left(enemy):
-		if _player_dead() or not enemy.can_hit(player.tile_id):
+		if _player_dead() or enemy.submerged or not enemy.can_hit(player.tile_id):
 			return
 		await enemy_attack(enemy)
 
@@ -1591,11 +1595,12 @@ func _click_block_die(index: int) -> void:
 # ===========================================================================================================================================
 
 
-## Spawns [boss]'s minion on each of [tiles], popping in one after another. Awaitable.
+## Spawns [boss]'s minion on each of [tiles], popping in one after another. They sit out this round's enemy phase
+## (see [member Enemy.resting]). Awaitable.
 func summon(boss: Enemy, tiles: Array[int]) -> void:
 	boss.popup(tr("POPUP_SUMMON"), Color(0.75, 0.55, 1.0))
 	for tile_id in tiles:
-		board.spawn_minion(boss, tile_id)
+		board.spawn_minion(boss, tile_id).resting = true
 		await get_tree().create_timer(Anim.t(0.2)).timeout
 	_sync_enemies()
 	await get_tree().create_timer(Anim.t(0.3)).timeout
@@ -1911,7 +1916,7 @@ func _refresh_enemies(planning: bool) -> void:
 			enemy.preview_hp = enemy.hp
 			enemy.preview_shield = enemy.shield
 			enemy.preview_defence = enemy.defence
-			enemy.preview_skips_attack = state == State.ENEMY_TURN and _retaliated.count(enemy) >= enemy.data.attacks_per_turn
+			enemy.preview_skips_attack = state == State.ENEMY_TURN and (enemy.resting or _retaliated.count(enemy) >= enemy.data.attacks_per_turn)
 			enemy.preview_stunned = enemy.stunned
 			enemy.preview_poisoned = enemy.poisoned
 			enemy.preview_burning = enemy.burn > 0
@@ -1922,7 +1927,7 @@ func _refresh_enemies(planning: bool) -> void:
 		enemy.preview_shield = _end_state.enemy_shield.get(enemy, enemy.shield)
 		enemy.preview_defence = _end_state.enemy_defence.get(enemy, enemy.defence)
 		# No enemy turn follows once the enemies have gone first, so nothing is lost by retaliating
-		enemy.preview_skips_attack = not _enemies_acted and _end_state.retaliated.count(enemy) >= enemy.data.attacks_per_turn
+		enemy.preview_skips_attack = not _enemies_acted and (enemy.resting or _end_state.retaliated.count(enemy) >= enemy.data.attacks_per_turn)
 		enemy.preview_stunned = _end_state.stunned.has(enemy)
 		enemy.preview_poisoned = _end_state.poisoned.has(enemy)
 		enemy.preview_burning = _end_state.burning.has(enemy)

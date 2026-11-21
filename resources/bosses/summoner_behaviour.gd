@@ -4,7 +4,8 @@ extends BossBehaviour
 ## Lives in the arena's pools (connected water tiles) and never walks. If it can't hit the player from where it is, it
 ## dives and resurfaces on the pool tile furthest from them that it can hit them from; with none it calls up to
 ## [member count] minions beside it instead (while fewer than [member max_minions] are alive). Damage sends it under
-## straight away, leaving one minion where it was; it resurfaces in another pool on its next turn.
+## straight away, leaving one minion where it was, and ends its turn: it resurfaces in another pool in the next
+## round's enemy phase.
 
 @export var count: int = 2
 @export var max_minions: int = 4
@@ -37,6 +38,7 @@ func on_damaged(turn: TurnController, boss: Enemy, _hp_before: int) -> void:
 	if boss.is_dead() or boss.submerged:
 		return
 	var left: Array[int] = [boss.tile_id]
+	boss.resting = true
 	await boss.dive()
 	if boss.data.minion and turn.board.get_piece(left[0]) == null:
 		await turn.summon(boss, left)
