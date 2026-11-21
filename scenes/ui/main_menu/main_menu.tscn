@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog/confirm_dialog.tscn" id="dialog"]
 [ext_resource type="Environment" path="res://assets/default_environment.tres" id="env"]
-[ext_resource type="Texture2D" uid="uid://cqsleu83cdt8j" path="res://icon.svg" id="icon"]
+[ext_resource type="Texture2D" path="res://assets/ui/menu_highlight.svg" id="icon"]
 [ext_resource type="Script" path="res://scenes/ui/main_menu/dice_pile.gd" id="pile"]
 [ext_resource type="Script" uid="uid://584tivd4yo32" path="res://scenes/ui/main_menu/main_menu.gd" id="script"]
 [ext_resource type="Theme" path="res://themes/base_theme.tres" id="ui_theme"]

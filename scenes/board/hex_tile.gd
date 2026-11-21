@@ -16,6 +16,8 @@ const MARK_COLOR: Color = Color(0.7, 0.35, 1.0)
 const WARNING_COLOR: Color = Color(1.0, 0.2, 0.15, 0.6)
 ## Body radius as a fraction of the cell radius, leaving a small gap between tiles
 const BODY_SCALE: float = 0.95
+## Circumradius of the tile models in assets/tiles/models; bodies are scaled to fit the cell
+const MODEL_RADIUS: float = 0.55
 
 @export var intro_duration: float = 0.6
 @export var intro_drop: float = 1.5
@@ -30,26 +32,27 @@ var id: int
 var coords: Vector2i
 var terrain: Terrain.Type
 var radius: float
-var color: Color
+## Supplies the tile's model, texture and fallback colour. Null uses the Terrain defaults.
+var biome: BiomeData
 var highlight: Highlight = Highlight.NONE
 ## Piece standing on this tile, if any. Set by BoardPiece.
 var piece: BoardPiece
 var played: bool = false
 var _warning: MeshInstance3D
 
-# Shared between all tiles, keyed by terrain/highlight
-static var _body_meshes: Dictionary = {}
+# Shared between all tiles, keyed by biome/terrain/highlight
+static var _body_materials: Dictionary = {}
 static var _overlay_meshes: Dictionary = {}
 static var _materials: Dictionary = {}
 
 
 ## Call before adding to the tree.
-func setup(cell: Vector2i, type: Terrain.Type, cell_radius: float, tile_color: Color) -> void:
+func setup(cell: Vector2i, type: Terrain.Type, cell_radius: float, tile_biome: BiomeData) -> void:
 	coords = cell
 	id = Hex.id(cell)
 	terrain = type
 	radius = cell_radius
-	color = tile_color
+	biome = tile_biome
 
 
 func _ready() -> void:
@@ -61,21 +64,23 @@ func _ready() -> void:
 
 
 func _apply_terrain() -> void:
-	body.mesh = _get_body_mesh()
-	body.position.y = top_height() / 2.0
+	body.mesh = biome.terrain_mesh(terrain) if biome else Terrain.MESHES[terrain]
+	body.material_override = _get_body_material()
+	var fit := radius * BODY_SCALE / MODEL_RADIUS
+	body.scale = Vector3(fit, 1.0, fit)
 	highlight_mesh.position.y = top_height() + 0.01
 	selected_mesh.position.y = top_height() + 0.02
 	if _warning:
 		_warning.position.y = top_height() + 0.015
 
 
-## Turns the tile into [type] in [tile_color]: it pinches in, changes and springs back. Awaitable.
-func retile(type: Terrain.Type, tile_color: Color) -> void:
+## Turns the tile into [type] in [tile_biome]'s look: it pinches in, changes and springs back. Awaitable.
+func retile(type: Terrain.Type, tile_biome: BiomeData) -> void:
 	var pinch := create_tween()
 	pinch.tween_property(self, "scale", Vector3(0.7, 1.0, 0.7), Anim.t(retile_duration * 0.3)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await pinch.finished
 	terrain = type
-	color = tile_color
+	biome = tile_biome
 	_apply_terrain()
 	var spring := create_tween()
 	spring.tween_property(self, "scale", Vector3.ONE, Anim.t(retile_duration * 0.7)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
@@ -198,22 +203,20 @@ func play_outro(delay: float = 0.0) -> void:
 # ===========================================================================================================================================
 
 
-func _get_body_mesh() -> Mesh:
-	var key := "%d:%f:%s" % [terrain, radius, color]
-	if not _body_meshes.has(key):
-		# CylinderMesh with 6 segments has a corner on +Z, matching the pointy-top 2D layout (2D y -> 3D z)
-		var mesh := CylinderMesh.new()
-		mesh.radial_segments = 6
-		mesh.rings = 1
-		mesh.top_radius = radius * BODY_SCALE
-		mesh.bottom_radius = radius * BODY_SCALE
-		mesh.height = top_height()
+func _get_body_material() -> Material:
+	var key := "%s:%d" % [biome.id if biome else &"", terrain]
+	if not _body_materials.has(key):
 		var material := StandardMaterial3D.new()
-		material.albedo_color = color
 		material.roughness = 0.9
-		mesh.material = material
-		_body_meshes[key] = mesh
-	return _body_meshes[key]
+		var texture: Texture2D = biome.terrain_texture(terrain) if biome else null
+		if texture:
+			material.albedo_texture = texture
+		elif biome and terrain < biome.terrain_colors.size():
+			material.albedo_color = biome.terrain_colors[terrain]
+		else:
+			material.albedo_color = Terrain.COLORS[terrain]
+		_body_materials[key] = material
+	return _body_materials[key]
 
 
 func _get_overlay_mesh(size: float) -> Mesh:

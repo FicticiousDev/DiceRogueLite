@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
 [ext_resource type="Script" path="res://resources/abilities/cure_ability.gd" id="2_cure"]
 [ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+[ext_resource type="Texture2D" path="res://assets/equipment/charm/antidote_charm.png" id="tex"]
 
 [sub_resource type="Resource" id="Resource_antid0"]
 script = ExtResource("2_cure")
@@ -16,3 +17,4 @@ script = ExtResource("9_item")
 id = &"antidote_charm"
 slot = 2
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_antid0")])
+icon = ExtResource("tex")

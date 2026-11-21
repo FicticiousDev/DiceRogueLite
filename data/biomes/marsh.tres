@@ -5,6 +5,11 @@
 [ext_resource type="PackedScene" path="res://scenes/board/effects/marsh/mud_splat.tscn" id="fx_1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/marsh/bog_bubbles.tscn" id="fx_2"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/marsh/swamp_splash.tscn" id="fx_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/marsh/normal.png" id="tex_0"]
+[ext_resource type="Texture2D" path="res://assets/tiles/marsh/difficult.png" id="tex_1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/marsh/extreme.png" id="tex_2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/marsh/water.png" id="tex_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/marsh/wall.png" id="tex_4"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +17,7 @@ id = &"marsh"
 order = 3
 difficulty = 3
 color = Color(0.3, 0.9, 0.75, 1)
+terrain_textures = Array[Texture2D]([ExtResource("tex_0"), ExtResource("tex_1"), ExtResource("tex_2"), ExtResource("tex_3"), ExtResource("tex_4")])
 terrain_colors = Array[Color]([Color(0.36, 0.47, 0.3, 1), Color(0.3, 0.36, 0.22, 1), Color(0.33, 0.27, 0.3, 1), Color(0.25, 0.4, 0.34, 1), Color(0.35, 0.33, 0.3, 1)])
 terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"spitter", &"lurker", &"leech"])

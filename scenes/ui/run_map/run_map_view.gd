@@ -5,7 +5,7 @@ extends CanvasLayer
 ## symbol as in the exit choice, in its biome's colour. Choices not taken are greyed out; levels never offered are hidden.
 
 const DISC: Texture2D = preload("res://assets/ui/disc.png")
-const ARROW: Texture2D = preload("res://assets/ui/indicator_arrow.png")
+const ARROW: Texture2D = preload("res://assets/ui/map_arrow.png")
 const NODE_SIZE: float = 84.0
 const MAX_COLUMN: float = 190.0
 const MAX_ROW: float = 130.0

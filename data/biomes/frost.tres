@@ -5,6 +5,11 @@
 [ext_resource type="PackedScene" path="res://scenes/board/effects/frost/frost_crunch.tscn" id="fx_1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/frost/ice_shards.tscn" id="fx_2"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/frost/icy_splash.tscn" id="fx_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/frost/normal.png" id="tex_0"]
+[ext_resource type="Texture2D" path="res://assets/tiles/frost/difficult.png" id="tex_1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/frost/extreme.png" id="tex_2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/frost/water.png" id="tex_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/frost/wall.png" id="tex_4"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +17,7 @@ id = &"frost"
 order = 4
 difficulty = 4
 color = Color(0.55, 0.82, 1, 1)
+terrain_textures = Array[Texture2D]([ExtResource("tex_0"), ExtResource("tex_1"), ExtResource("tex_2"), ExtResource("tex_3"), ExtResource("tex_4")])
 terrain_colors = Array[Color]([Color(0.6, 0.68, 0.76, 1), Color(0.5, 0.57, 0.67, 1), Color(0.42, 0.47, 0.6, 1), Color(0.3, 0.52, 0.72, 1), Color(0.44, 0.48, 0.56, 1)])
 terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"sentinel", &"caster", &"howler"])

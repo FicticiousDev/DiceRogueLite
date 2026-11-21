@@ -25,13 +25,17 @@ const SCENES_3D: Array[String] = [
 
 
 ## Stand-ins for StandardMaterial3Ds that are created in code. Each combination of flags is its own shader, so these
-## mirror the flags used in game: lit opaque (tile bodies, tray), unshaded (tile mark ring), unshaded + alpha (tile
+## mirror the flags used in game: lit opaque (tray, untextured tiles), lit textured (tile bodies), unshaded (tile mark ring), unshaded + alpha (tile
 ## highlights, tray dim) and unshaded + alpha + no culling (attack arc).
 static func materials() -> Array[Material]:
 	var list: Array[Material] = []
 	var lit := StandardMaterial3D.new()
 	lit.roughness = 0.9
 	list.append(lit)
+	var lit_textured := StandardMaterial3D.new()
+	lit_textured.roughness = 0.9
+	lit_textured.albedo_texture = ImageTexture.create_from_image(Image.create(1, 1, false, Image.FORMAT_RGBA8))
+	list.append(lit_textured)
 	var unshaded := StandardMaterial3D.new()
 	unshaded.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	list.append(unshaded)

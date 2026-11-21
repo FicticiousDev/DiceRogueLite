@@ -22,13 +22,22 @@ const COLORS: Dictionary[Type, Color] = {
 	Type.WALL: Color(0.45, 0.45, 0.5),
 }
 
-## Height of the tile's top surface in world units.
+## Height of the tile's top surface in world units. Must match the height of the model in MESHES.
 const HEIGHTS: Dictionary[Type, float] = {
 	Type.NORMAL: 0.3,
 	Type.DIFFICULT: 0.35,
 	Type.EXTREME: 0.4,
 	Type.WATER: 0.18,
 	Type.WALL: 0.9,
+}
+
+## Default tile model per type; a biome can override it (BiomeData.terrain_meshes)
+const MESHES: Dictionary[Type, Mesh] = {
+	Type.NORMAL: preload("res://assets/tiles/models/normal.obj"),
+	Type.DIFFICULT: preload("res://assets/tiles/models/difficult.obj"),
+	Type.EXTREME: preload("res://assets/tiles/models/extreme.obj"),
+	Type.WATER: preload("res://assets/tiles/models/water.obj"),
+	Type.WALL: preload("res://assets/tiles/models/wall.obj"),
 }
 
 ## Effect played when a piece lands on the terrain

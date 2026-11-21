@@ -273,14 +273,14 @@ func _frame_points() -> PackedVector3Array:
 	return points
 
 
-## Turns [carried] into the new level's start tile (its terrain, in the new biome's colours), lifting or lowering the
+## Turns [carried] into the new level's start tile (its terrain, in the new biome's look), lifting or lowering the
 ## player with it.
 func _retile(carried: HexTile) -> void:
 	var start := board.get_tile(Hex.id(board.player_start))
 	var rise := start.top_height() - carried.top_height()
 	if not is_zero_approx(rise):
 		create_tween().tween_property(player, "position:y", player.position.y + rise, Anim.t(carried.retile_duration * 0.5)).set_delay(Anim.t(carried.retile_duration * 0.3))
-	await carried.retile(start.terrain, start.color)
+	await carried.retile(start.terrain, start.biome)
 
 
 ## Moves [carried] and the player from where they left the old level to the new level's start while the camera follows.

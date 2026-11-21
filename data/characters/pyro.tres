@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
 [ext_resource type="Script" path="res://resources/abilities/attack_modifier_ability.gd" id="3_attack_modifier_ability"]
 [ext_resource type="Script" path="res://resources/abilities/enemy_range_ability.gd" id="4_enemy_range_ability"]
+[ext_resource type="Texture2D" path="res://assets/pieces/characters/pyro.svg" id="tex"]
 
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_enemy_range_ability")
@@ -25,3 +26,4 @@ attack_range = 3
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"cinder", &"cinder"])
 starts_unlocked = false
+texture = ExtResource("tex")

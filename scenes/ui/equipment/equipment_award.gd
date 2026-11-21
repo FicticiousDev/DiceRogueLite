@@ -9,7 +9,7 @@ extends CanvasLayer
 
 signal _finished
 
-const GLOW: Texture2D = preload("res://assets/ui/disc.png")
+const GLOW: Texture2D = preload("res://assets/ui/award_glow.png")
 const TITLE_COLOR: Color = Color(1.0, 0.82, 0.35)
 const ICON_SIZE: float = 170.0
 const SCREEN_MARGIN: float = 40.0

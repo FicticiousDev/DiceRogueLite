@@ -21,7 +21,7 @@ const PICK_STEP: float = 0.005
 @export var world_scale: float = 1.0 / 128.0
 @export var intro_delay_per_ring: float = 0.06
 
-## Set before adding to the tree. Supplies the tile colours.
+## Set before adding to the tree. Supplies the tile models, textures and colours.
 var biome: BiomeData
 
 @onready var layout: TileMapLayer = $Layout
@@ -62,8 +62,7 @@ func _build() -> void:
 	for cell in layout.get_used_cells():
 		var tile: HexTile = HEX_TILE_SCENE.instantiate()
 		var terrain: Terrain.Type = layout.get_cell_tile_data(cell).get_custom_data("terrain")
-		var color: Color = biome.terrain_colors[terrain] if biome else Terrain.COLORS[terrain]
-		tile.setup(cell, terrain, cell_radius, color)
+		tile.setup(cell, terrain, cell_radius, biome)
 		tile.position = cell_to_local(cell)
 		tile.visible = false
 		tiles_root.add_child(tile)
@@ -329,14 +328,13 @@ func spawn_terrain_effect(tile_id: int) -> void:
 # ===========================================================================================================================================
 
 
-## Turns [tile_id] into [type] (in the biome's colour), raising or lowering whatever stands on it. Awaitable.
+## Turns [tile_id] into [type] (in the biome's look), raising or lowering whatever stands on it. Awaitable.
 func set_terrain(tile_id: int, type: Terrain.Type) -> void:
 	var tile := tiles[tile_id]
-	var color: Color = biome.terrain_colors[type] if biome else Terrain.COLORS[type]
 	var rise: float = Terrain.HEIGHTS[type] - tile.top_height()
 	if tile.piece and not is_zero_approx(rise):
 		create_tween().tween_property(tile.piece, "position:y", tile.piece.position.y + rise, Anim.t(tile.retile_duration * 0.5)).set_delay(Anim.t(tile.retile_duration * 0.3))
-	await tile.retile(type, color)
+	await tile.retile(type, biome)
 	if _astar.has_point(tile_id):
 		_astar.set_point_weight_scale(tile_id, move_cost(tile_id))
 	if not _top_heights.has(tile.top_height()):

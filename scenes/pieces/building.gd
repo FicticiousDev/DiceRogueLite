@@ -2,14 +2,18 @@ class_name Building
 extends BoardPiece
 
 ## A large piece the player uses by clicking it once the level is clear: a shop (the run opens the ShopMenu with its
-## [member stock]) or a bank (BankMenu). Placeholder art: the tinted Godot icon with the shop / bank symbol above it.
+## [member stock]) or a bank (BankMenu). Art: TEXTURES (the cut-out) with the ICONS symbol above it.
 ## A closed building is greyed out and can't be used - a bank closes after one deposit or withdrawal.
 
 enum Kind { SHOP, BANK }
 
+const TEXTURES: Dictionary[Kind, Texture2D] = {
+	Kind.SHOP: preload("res://assets/pieces/buildings/shop.svg"),
+	Kind.BANK: preload("res://assets/pieces/buildings/bank.svg"),
+}
 const ICONS: Dictionary[Kind, Texture2D] = {
-	Kind.SHOP: preload("res://assets/ui/icons/coin.png"),
-	Kind.BANK: preload("res://assets/ui/icons/bank.png"),
+	Kind.SHOP: preload("res://assets/pieces/buildings/shop_symbol.png"),
+	Kind.BANK: preload("res://assets/pieces/buildings/bank_symbol.png"),
 }
 const TINTS: Dictionary[Kind, Color] = {
 	Kind.SHOP: Color(0.45, 0.85, 0.78),
@@ -33,6 +37,7 @@ func setup(building_kind: Kind) -> void:
 
 
 func _ready() -> void:
+	cutout.texture = TEXTURES[kind]
 	symbol.texture = ICONS[kind]
 	_apply_look()
 

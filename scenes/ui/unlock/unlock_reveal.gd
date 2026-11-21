@@ -8,7 +8,7 @@ extends CanvasLayer
 
 signal _finished
 
-const GLOW: Texture2D = preload("res://assets/ui/disc.png")
+const GLOW: Texture2D = preload("res://assets/ui/award_glow.png")
 ## Soft glow for the halo and sparks
 var _soft: Texture2D = Mystery.soft_glow()
 const TITLE_COLOR: Color = Color(1.0, 0.82, 0.35)

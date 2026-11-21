@@ -4,7 +4,7 @@ extends CanvasLayer
 ## Challenge levels: announces the turn limit in the centre of the screen as the level starts, then sits under the
 ## top bar counting the turns. Gold once the level is cleared in time, red once the limit has passed.
 
-const STAR: Texture2D = preload("res://assets/ui/icons/star.png")
+const STAR: Texture2D = preload("res://assets/ui/icons/levels/challenge.png")
 const GOLD: Color = Color(1.0, 0.82, 0.3)
 const WARN: Color = Color(1.0, 0.6, 0.25)
 const FAIL: Color = Color(1.0, 0.35, 0.3)

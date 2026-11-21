@@ -9,7 +9,7 @@ extends CanvasLayer
 
 signal _finished
 
-const GLOW: Texture2D = preload("res://assets/ui/disc.png")
+const GLOW: Texture2D = preload("res://assets/ui/award_glow.png")
 const TITLE_COLOR: Color = Color(1.0, 0.82, 0.35)
 const BIG_VIEW: float = 280.0
 ## The new die is smaller when the pool is shown under it

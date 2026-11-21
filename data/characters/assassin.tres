@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
 [ext_resource type="Script" path="res://resources/abilities/double_attack_ability.gd" id="3_double_attack_ability"]
 [ext_resource type="Script" path="res://resources/abilities/strike_first_ability.gd" id="4_strike_first_ability"]
+[ext_resource type="Texture2D" path="res://assets/pieces/characters/assassin.svg" id="tex"]
 
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_strike_first_ability")
@@ -22,3 +23,4 @@ order = 1
 tint = Color(0.6, 1, 0.6, 1)
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"viper", &"viper"])
+texture = ExtResource("tex")

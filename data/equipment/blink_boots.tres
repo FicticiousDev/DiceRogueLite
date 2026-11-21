@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
 [ext_resource type="Script" path="res://resources/abilities/teleport_move_ability.gd" id="2_teleport"]
 [ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+[ext_resource type="Texture2D" path="res://assets/equipment/boots/blink_boots.png" id="tex"]
 
 [sub_resource type="Resource" id="Resource_blink0"]
 script = ExtResource("2_teleport")
@@ -14,3 +15,4 @@ id = &"blink_boots"
 slot = 1
 rarity = 3
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_blink0")])
+icon = ExtResource("tex")

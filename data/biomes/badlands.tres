@@ -5,6 +5,11 @@
 [ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/red_dust.tscn" id="fx_1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/clay_chunks.tscn" id="fx_2"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/oasis_splash.tscn" id="fx_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/badlands/normal.png" id="tex_0"]
+[ext_resource type="Texture2D" path="res://assets/tiles/badlands/difficult.png" id="tex_1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/badlands/extreme.png" id="tex_2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/badlands/water.png" id="tex_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/badlands/wall.png" id="tex_4"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +17,7 @@ id = &"badlands"
 order = 2
 difficulty = 2
 color = Color(1, 0.62, 0.2, 1)
+terrain_textures = Array[Texture2D]([ExtResource("tex_0"), ExtResource("tex_1"), ExtResource("tex_2"), ExtResource("tex_3"), ExtResource("tex_4")])
 terrain_colors = Array[Color]([Color(0.8, 0.66, 0.42, 1), Color(0.66, 0.45, 0.28, 1), Color(0.55, 0.3, 0.22, 1), Color(0.25, 0.55, 0.6, 1), Color(0.6, 0.42, 0.3, 1)])
 terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"brute", &"slinger", &"stalker"])

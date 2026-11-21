@@ -5,6 +5,11 @@
 [ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/cinders.tscn" id="fx_1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/magma_chunks.tscn" id="fx_2"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/lava_splash.tscn" id="fx_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/ashlands/normal.png" id="tex_0"]
+[ext_resource type="Texture2D" path="res://assets/tiles/ashlands/difficult.png" id="tex_1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/ashlands/extreme.png" id="tex_2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/ashlands/water.png" id="tex_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/ashlands/wall.png" id="tex_4"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +17,7 @@ id = &"ashlands"
 order = 5
 difficulty = 5
 color = Color(1, 0.32, 0.25, 1)
+terrain_textures = Array[Texture2D]([ExtResource("tex_0"), ExtResource("tex_1"), ExtResource("tex_2"), ExtResource("tex_3"), ExtResource("tex_4")])
 terrain_colors = Array[Color]([Color(0.35, 0.3, 0.3, 1), Color(0.45, 0.28, 0.22, 1), Color(0.6, 0.2, 0.12, 1), Color(0.95, 0.45, 0.1, 1), Color(0.2, 0.18, 0.2, 1)])
 terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"ember", &"juggernaut", &"scorcher"])

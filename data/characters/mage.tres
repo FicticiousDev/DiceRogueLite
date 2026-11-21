@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
 [ext_resource type="Script" path="res://resources/abilities/area_attack_ability.gd" id="3_area_attack_ability"]
 [ext_resource type="Script" path="res://resources/abilities/ignore_defence_ability.gd" id="4_ignore_defence_ability"]
+[ext_resource type="Texture2D" path="res://assets/pieces/characters/mage.svg" id="tex"]
 
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_ignore_defence_ability")
@@ -23,3 +24,4 @@ tint = Color(1, 0.7, 1, 1)
 attack_range = 3
 abilities = Array[ExtResource("1_ability")]([SubResource("Ability_passive"), SubResource("Ability_active")])
 starting_dice = Array[StringName]([&"movement", &"defence", &"attack", &"phase", &"phase"])
+texture = ExtResource("tex")

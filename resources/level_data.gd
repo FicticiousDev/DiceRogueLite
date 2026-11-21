@@ -8,11 +8,11 @@ enum Type { NORMAL, SHOP, SHOP_BANK, CHALLENGE, BOSS }
 
 ## Symbol shown on the exit choice and the run map for each level type
 const ICONS: Dictionary[Type, Texture2D] = {
-	Type.NORMAL: preload("res://assets/ui/icons/sword.png"),
-	Type.SHOP: preload("res://assets/ui/icons/coin.png"),
-	Type.SHOP_BANK: preload("res://assets/ui/icons/bank.png"),
-	Type.CHALLENGE: preload("res://assets/ui/icons/star.png"),
-	Type.BOSS: preload("res://assets/ui/icons/crown.png"),
+	Type.NORMAL: preload("res://assets/ui/icons/levels/battle.png"),
+	Type.SHOP: preload("res://assets/ui/icons/levels/shop.png"),
+	Type.SHOP_BANK: preload("res://assets/ui/icons/levels/shop_bank.png"),
+	Type.CHALLENGE: preload("res://assets/ui/icons/levels/challenge.png"),
+	Type.BOSS: preload("res://assets/ui/icons/levels/boss.png"),
 }
 ## Localisation keys of the level type names: wrap in tr() where shown
 const NAMES: Dictionary[Type, String] = {

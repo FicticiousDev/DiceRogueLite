@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
 [ext_resource type="Script" path="res://resources/abilities/extra_die_ability.gd" id="2_extra"]
 [ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+[ext_resource type="Texture2D" path="res://assets/equipment/armour/titan_plate.png" id="tex"]
 
 [sub_resource type="Resource" id="Resource_titan0"]
 script = ExtResource("2_extra")
@@ -17,3 +18,4 @@ id = &"titan_plate"
 slot = 0
 rarity = 4
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_titan0")])
+icon = ExtResource("tex")

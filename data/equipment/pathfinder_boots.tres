@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://resources/abilities/ability.gd" id="1_ability"]
 [ext_resource type="Script" path="res://resources/abilities/ignore_terrain_ability.gd" id="2_terrain"]
 [ext_resource type="Script" path="res://resources/equipment_data.gd" id="9_item"]
+[ext_resource type="Texture2D" path="res://assets/equipment/boots/pathfinder_boots.png" id="tex"]
 
 [sub_resource type="Resource" id="Resource_pathf0"]
 script = ExtResource("2_terrain")
@@ -14,3 +15,4 @@ id = &"pathfinder_boots"
 slot = 1
 rarity = 2
 abilities = Array[ExtResource("1_ability")]([SubResource("Resource_pathf0")])
+icon = ExtResource("tex")

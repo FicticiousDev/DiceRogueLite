@@ -5,6 +5,11 @@
 [ext_resource type="PackedScene" path="res://scenes/board/effects/abyss/shadow_dust.tscn" id="fx_1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/abyss/crystal_shards.tscn" id="fx_2"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/abyss/void_splash.tscn" id="fx_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/abyss/normal.png" id="tex_0"]
+[ext_resource type="Texture2D" path="res://assets/tiles/abyss/difficult.png" id="tex_1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/abyss/extreme.png" id="tex_2"]
+[ext_resource type="Texture2D" path="res://assets/tiles/abyss/water.png" id="tex_3"]
+[ext_resource type="Texture2D" path="res://assets/tiles/abyss/wall.png" id="tex_4"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +17,7 @@ id = &"abyss"
 order = 6
 difficulty = 6
 color = Color(0.78, 0.5, 1, 1)
+terrain_textures = Array[Texture2D]([ExtResource("tex_0"), ExtResource("tex_1"), ExtResource("tex_2"), ExtResource("tex_3"), ExtResource("tex_4")])
 terrain_colors = Array[Color]([Color(0.3, 0.25, 0.4, 1), Color(0.38, 0.25, 0.45, 1), Color(0.5, 0.2, 0.5, 1), Color(0.15, 0.1, 0.3, 1), Color(0.15, 0.12, 0.2, 1)])
 terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"shade", &"voidcaller", &"horror"])
