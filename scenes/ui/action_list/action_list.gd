@@ -7,6 +7,8 @@ signal rewind_requested(index: int)
 signal edit_requested(index: int)
 signal delete_requested(index: int)
 signal commit_pressed
+## LEAVE LEVEL, shown in place of COMMIT by [method show_leave]
+signal leave_pressed
 ## The [index]th button of [method set_abilities]
 signal ability_pressed(index: int)
 
@@ -25,10 +27,18 @@ var _warnings: Array[String] = []
 var _log_from: int = -1
 var _interactive: bool = true
 var _editing: int = -1
+var _leave_button: Button
 
 
 func _ready() -> void:
 	commit_button.pressed.connect(commit_pressed.emit)
+	_leave_button = Button.new()
+	_leave_button.text = tr("BTN_LEAVE_LEVEL")
+	_leave_button.custom_minimum_size = commit_button.custom_minimum_size
+	_leave_button.add_theme_font_size_override("font_size", 36)
+	_leave_button.visible = false
+	_leave_button.pressed.connect(leave_pressed.emit)
+	commit_button.add_sibling(_leave_button)
 	ability_button.visible = false
 	menu.add_item(tr("ACTION_REWIND"), Option.REWIND)
 	menu.add_item(tr("ACTION_EDIT"), Option.EDIT)
@@ -141,6 +151,12 @@ func entry_rect(index: int) -> Rect2:
 		return children[index].get_global_rect()
 	var bottom := entries.get_global_rect()
 	return Rect2(bottom.position + Vector2(0, bottom.size.y), Vector2(bottom.size.x, 40))
+
+
+## Swaps COMMIT for LEAVE LEVEL (a cleared level with a shop or bank, left when the player is done with them).
+func show_leave(shown: bool) -> void:
+	_leave_button.visible = shown
+	commit_button.visible = not shown
 
 
 func set_commit_enabled(enabled: bool) -> void:

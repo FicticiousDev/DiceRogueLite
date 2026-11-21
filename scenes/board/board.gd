@@ -6,13 +6,13 @@ extends Node3D
 
 signal intro_finished
 
+## EXIT is no longer placed (the exits are offered once the level is clear); it keeps the marker tileset's indices
 enum Marker { PLAYER_START, ENEMY, OBSTACLE, EXIT, LOOT, SHOP, BANK, BOSS_POINT }
 
 const HEX_TILE_SCENE: PackedScene = preload("res://scenes/board/hex_tile.tscn")
 const OBSTACLE_SCENE: PackedScene = preload("res://scenes/pieces/obstacle.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://scenes/pieces/enemy.tscn")
 const LOOT_SCENE: PackedScene = preload("res://scenes/pieces/loot.tscn")
-const EXIT_SCENE: PackedScene = preload("res://scenes/pieces/exit_gate.tscn")
 const BUILDING_SCENE: PackedScene = preload("res://scenes/pieces/building.tscn")
 ## Distance along the camera ray between picking samples, in world units
 const PICK_STEP: float = 0.005
@@ -43,6 +43,10 @@ var _selected: int = -1
 var _popups: Dictionary[int, Array] = {}
 var _popup_anchors: Dictionary[int, Vector3] = {}
 var _intro_played: bool = false
+## Terrain changed for a while: tile id -> [the terrain it goes back to, round ends left]
+var _temporary: Dictionary[int, Array] = {}
+## Tiles showing a danger overlay
+var _warned: Array[int] = []
 
 
 func _ready() -> void:
@@ -52,7 +56,7 @@ func _ready() -> void:
 	_build()
 
 
-## Builds tiles and obstacles. Enemies, loot, exits, shops and banks are placed by the run (see Run._populate).
+## Builds tiles and obstacles. Enemies, loot, shops and banks are placed by the run (see Run._populate).
 func _build() -> void:
 	var cell_radius := layout.tile_set.tile_size.y / 2.0 * world_scale
 	for cell in layout.get_used_cells():
@@ -166,13 +170,6 @@ func spawn_mystery(cell: Vector2i) -> Mystery:
 	return mystery
 
 
-func spawn_exit(target: int, icon: Texture2D, color: Color, cell: Vector2i) -> ExitGate:
-	var gate: ExitGate = EXIT_SCENE.instantiate()
-	gate.setup(target, icon, color)
-	add_piece(gate, cell)
-	return gate
-
-
 ## A shop or bank on [cell].
 func spawn_building(kind: Building.Kind, cell: Vector2i) -> Building:
 	var building: Building = BUILDING_SCENE.instantiate()
@@ -207,12 +204,6 @@ func clear_loot() -> void:
 		await get_tree().create_timer(Anim.t(0.08)).timeout
 	if chests.size() > 0:
 		await get_tree().create_timer(Anim.t(0.3)).timeout
-
-
-func get_exits() -> Array[ExitGate]:
-	var exits: Array[ExitGate] = []
-	exits.assign(pieces_root.get_children().filter(func(piece: Node): return piece is ExitGate))
-	return exits
 
 
 ## The level's shop and bank, if it has them.
@@ -283,11 +274,12 @@ func show_attack_arc(attacker: BoardPiece, target: BoardPiece) -> AttackArc:
 	return arc
 
 
-## Living enemies on the board.
-func get_enemies() -> Array[Enemy]:
+## Living enemies on the board. [include_submerged]: also those under water ([member Enemy.submerged]), which are
+## off the board until they resurface but still have to be beaten.
+func get_enemies(include_submerged: bool = false) -> Array[Enemy]:
 	var enemies: Array[Enemy] = []
 	for piece in pieces_root.get_children():
-		if piece is Enemy and not piece.is_dead() and not piece.is_queued_for_deletion():
+		if piece is Enemy and not piece.is_dead() and not piece.is_queued_for_deletion() and (include_submerged or not piece.submerged):
 			enemies.append(piece)
 	return enemies
 
@@ -318,14 +310,71 @@ func refresh_tile(tile_id: int) -> void:
 		_astar.set_point_disabled(tile_id, piece != null and piece.blocks_movement)
 
 
-## Plays the landing effect for the tile's terrain.
+## Plays the landing effect for the tile's terrain, in the biome's version.
 func spawn_terrain_effect(tile_id: int) -> void:
-	if not tiles.has(tile_id) or not Terrain.EFFECTS.has(tiles[tile_id].terrain):
+	if not tiles.has(tile_id):
 		return
-	var effect: TerrainEffect = Terrain.EFFECTS[tiles[tile_id].terrain].instantiate()
+	var terrain: Terrain.Type = tiles[tile_id].terrain
+	var scene: PackedScene = biome.terrain_effect(terrain) if biome else Terrain.EFFECTS.get(terrain)
+	if scene == null:
+		return
+	var effect: TerrainEffect = scene.instantiate()
 	add_child(effect)
 	effect.position = cell_top_local(Hex.coords(tile_id))
 	effect.play()
+
+
+# ===========================================================================================================================================
+# Terrain changes
+# ===========================================================================================================================================
+
+
+## Turns [tile_id] into [type] (in the biome's colour), raising or lowering whatever stands on it. Awaitable.
+func set_terrain(tile_id: int, type: Terrain.Type) -> void:
+	var tile := tiles[tile_id]
+	var color: Color = biome.terrain_colors[type] if biome else Terrain.COLORS[type]
+	var rise: float = Terrain.HEIGHTS[type] - tile.top_height()
+	if tile.piece and not is_zero_approx(rise):
+		create_tween().tween_property(tile.piece, "position:y", tile.piece.position.y + rise, Anim.t(tile.retile_duration * 0.5)).set_delay(Anim.t(tile.retile_duration * 0.3))
+	await tile.retile(type, color)
+	if _astar.has_point(tile_id):
+		_astar.set_point_weight_scale(tile_id, move_cost(tile_id))
+	if not _top_heights.has(tile.top_height()):
+		_top_heights.append(tile.top_height())
+		_top_heights.sort()
+		_top_heights.reverse()
+
+
+## Turns the tiles of [tile_ids] that are [from] into [type] for [rounds] round ends (see [method tick_terrain]), all at
+## once. Tiles already changed this way just have their time reset. Awaitable.
+func set_terrain_for(tile_ids: Array[int], from: Terrain.Type, type: Terrain.Type, rounds: int) -> void:
+	var changing: Array[int] = []
+	for tile_id in tile_ids:
+		if _temporary.has(tile_id):
+			_temporary[tile_id][1] = rounds
+		elif tiles.has(tile_id) and tiles[tile_id].terrain == from:
+			_temporary[tile_id] = [from, rounds]
+			changing.append(tile_id)
+	for tile_id in changing:
+		set_terrain(tile_id, type)
+	if changing.size() > 0:
+		await get_tree().create_timer(Anim.t(tiles[changing[0]].retile_duration)).timeout
+
+
+## End of a round: counts down terrain changed by [method set_terrain_for], turning tiles whose time is up back.
+## Awaitable.
+func tick_terrain() -> void:
+	var restoring: Array[int] = []
+	for tile_id in _temporary.keys():
+		_temporary[tile_id][1] -= 1
+		if _temporary[tile_id][1] <= 0:
+			restoring.append(tile_id)
+	for tile_id in restoring:
+		var type: Terrain.Type = _temporary[tile_id][0]
+		_temporary.erase(tile_id)
+		set_terrain(tile_id, type)
+	if restoring.size() > 0:
+		await get_tree().create_timer(Anim.t(tiles[restoring[0]].retile_duration)).timeout
 
 
 # ===========================================================================================================================================
@@ -519,6 +568,26 @@ func _find_teleport_targets(ctx: MoveContext) -> Array[int]:
 	return result
 
 
+## True if something moving up to [move] (terrain costs apply) from [from_id] could then have [target_id] within
+## [attack_range] with line of sight. Only fixed pieces block the way: enemies are taken to step aside.
+func can_threaten(from_id: int, target_id: int, move: int, attack_range: int) -> bool:
+	var costs: Dictionary[int, int] = { from_id: 0 }
+	var frontier: Array[int] = [from_id]
+	while frontier.size() > 0:
+		var current: int = frontier.pop_front()
+		if in_attack_range(current, target_id, attack_range):
+			return true
+		for next in get_neighbours(current):
+			var piece := get_piece(next)
+			if not is_walkable(next) or (piece and piece.blocks_movement and not (piece is Enemy)):
+				continue
+			var total: int = costs[current] + move_cost(next)
+			if total <= move and (not costs.has(next) or total < costs[next]):
+				costs[next] = total
+				frontier.append(next)
+	return false
+
+
 ## True if [to_id] is within [attack_range] hexes of [from_id] with line of sight.
 func in_attack_range(from_id: int, to_id: int, attack_range: int) -> bool:
 	return Hex.distance(Hex.coords(from_id), Hex.coords(to_id)) <= attack_range and has_line_of_sight(from_id, to_id)
@@ -591,3 +660,22 @@ func clear_highlights() -> void:
 		tiles[tile_id].set_highlight(HexTile.Highlight.NONE)
 	_highlighted.clear()
 	select(-1)
+
+
+## Shows (or hides) the danger overlay on [tile_ids]: an attack landing there. Unlike highlights it stays up through
+## planning until hidden.
+func warn(tile_ids: Array[int], on: bool = true) -> void:
+	for tile_id in tile_ids:
+		if not tiles.has(tile_id):
+			continue
+		tiles[tile_id].set_warning(on)
+		if on and not _warned.has(tile_id):
+			_warned.append(tile_id)
+		elif not on:
+			_warned.erase(tile_id)
+
+
+func clear_warnings() -> void:
+	var warned: Array[int] = []
+	warned.assign(_warned)
+	warn(warned, false)

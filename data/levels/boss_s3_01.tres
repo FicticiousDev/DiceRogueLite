@@ -8,5 +8,4 @@ script = ExtResource("1")
 id = &"boss_s3_01"
 type = 4
 scene = ExtResource("2")
-exit_count = 2
 stage = 3

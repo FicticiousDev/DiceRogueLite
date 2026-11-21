@@ -3,12 +3,13 @@ extends BossBehaviour
 
 ## Each time a health segment is emptied the boss teleports to the marked tile (Board.Marker.BOSS_POINT) furthest from
 ## the player, calls a minion onto the marked tile closest to them and swaps form. The first form is the one in its
-## [EnemyData]; the forms swap stats in place.
+## [EnemyData]; the forms swap stats in place. The ranged form's landed hits pull the player towards it; the melee
+## form's hits ignore some of the player's block.
 
 ## Stats each form sets, in the order the boss alternates through them
 const FORMS: Array[Dictionary] = [
-	{ "attack_range": 4, "attack": 3, "move": 2, "defence": 1 },
-	{ "attack_range": 1, "attack": 4, "move": 3, "defence": 2 },
+	{ "attack_range": 4, "attack": 3, "move": 2, "defence": 1, "pull": 1, "attack_pierce": 0 },
+	{ "attack_range": 1, "attack": 4, "move": 3, "defence": 2, "pull": 0, "attack_pierce": 1 },
 ]
 
 

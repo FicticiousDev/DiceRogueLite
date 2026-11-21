@@ -7,6 +7,9 @@ signal died
 ## Its stats changed during the fight (a boss changing form): the overhead info rebuilds
 signal stats_changed
 
+## How far it sinks when it dives
+const DIVE_DEPTH: float = 0.8
+
 ## This piece's own copy of its stats - bosses change them mid-fight - and the shared definition it came from
 var data: EnemyData
 var base: EnemyData
@@ -39,6 +42,12 @@ var form: int = 0
 var bursts: int = 0
 var summoned: bool = false
 var damaged_this_round: bool = false
+## Under water: off the board (its tile is free and it can't be targeted) until it resurfaces. [member tile_id] stays
+## the tile it went under on
+var submerged: bool = false
+## An avalanche marked to land at the start of its next turn, and the turns until it marks the next one (-1: not yet)
+var avalanche: Array[int] = []
+var avalanche_wait: int = -1
 ## True once play_death has started, so it can't run twice on the same piece
 var dying: bool = false
 ## Taken off a ranged attack range by the player's abilities (see TurnController._sync_enemies)
@@ -192,6 +201,34 @@ func charge_along(path: Array[int], on_pass: Callable) -> void:
 		await settle.finished
 	if landing != tile_id:
 		_set_tile(landing)
+	_land()
+
+
+## Sinks out of sight and leaves its tile (see [member submerged]). Awaitable.
+func dive() -> void:
+	submerged = true
+	popup(tr("POPUP_DIVE"), Color(0.45, 0.75, 0.9))
+	board.spawn_terrain_effect(tile_id)
+	var tween := create_tween()
+	tween.tween_property(self, "position:y", position.y - DIVE_DEPTH, Anim.t(0.25)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await tween.finished
+	visible = false
+	var tile := board.get_tile(tile_id)
+	if tile.piece == self:
+		tile.piece = null
+		board.refresh_tile(tile_id)
+
+
+## Comes back up on [target_id] after a [method dive]. Awaitable.
+func resurface(target_id: int) -> void:
+	_set_tile(target_id)
+	var rest := board.cell_top_local(Hex.coords(target_id))
+	position = rest + Vector3.DOWN * DIVE_DEPTH
+	visible = true
+	submerged = false
+	var tween := create_tween()
+	tween.tween_property(self, "position", rest, Anim.t(0.3)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tween.finished
 	_land()
 
 

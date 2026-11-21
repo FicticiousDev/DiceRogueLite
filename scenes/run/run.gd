@@ -1,16 +1,16 @@
 extends Node3D
 
 ## Root of a run. Loads the current level of the run map, populates it, places the player and hands over to the
-## turn controller. Once a level is clear its exit gates open; choosing one walks the player into it, folds the level
-## away around that tile and carries the tile (player and all) to the next level's start. The run is saved as
-## each level begins. A new run starts on the character select; death or clearing the final boss ends it with
-## the run summary. Streaks and the odd die fall through the void behind the board (Backdrop).
-## Clearing a level (shops aside) may award a die before the gates open; chests may hold one too. The pool is
+## turn controller. Once a level is clear it folds away around the player's tile and the levels the map leads on to
+## are offered (ExitChoice); the tile (player and all) takes on the chosen level's look and is carried to its start.
+## The run is saved as each level begins. A new run starts on the character select; death or clearing the final boss
+## ends it with the run summary. Streaks and the odd die fall through the void behind the board (Backdrop).
+## Clearing a level (shops aside) may award a die before it folds away; chests may hold one too. The pool is
 ## capped at RunData.max_dice: a die found with a full pool is swapped in for another or left (DieAward). Defeating
 ## a boss raises max health and the pool cap by one, fully heals, clears statuses and always awards a die.
 ## Items (EquipmentAward) come from chests, bosses and some challenge rooms (EquipmentLoot).
 ## Shop levels have a shop and maybe a bank (Building pieces): clicking one once the level is clear opens its menu
-## (ShopMenu, BankMenu).
+## (ShopMenu, BankMenu), and the level is only left when the player says so (the turn plan's LEAVE LEVEL button).
 ## Most biomes hide a Mystery piece on one of their levels (RunMap): moving onto or through it before the level is
 ## clear unlocks a locked loot die or item for good, celebrated by the UnlockReveal.
 ## Hovering a tile names it above the dice row (TileInfo). Developer commands live in the DebugMenu.
@@ -25,6 +25,8 @@ const EDGE_MARGIN: float = 0.04
 ## drawn than a melee one
 const MAX_RANGED_SHARE: float = 0.25
 const RANGED_WEIGHT: float = 0.5
+## Chance a normal level has two enemies that can reach the player on the first turn rather than one (challenges: two)
+const TWO_THREATS_CHANCE: float = 0.5
 const LOOT_SHARE: float = 0.2
 const LOOT_SHARE_PER_DEPTH: float = 0.04
 const CARRY_DURATION: float = 0.9
@@ -81,8 +83,9 @@ var _die_tip: InfoPanel
 var _die_tip_index: int = -1
 var _die_tip_time: float = 0.0
 var _shop_menu: ShopMenu
+var _exit_choice: ExitChoice
 var _bank_menu: BankMenu
-## The open gate, shop or bank under the mouse
+## The open shop or bank under the mouse
 var _hovered: BoardPiece
 ## Set once the run has ended (summary showing)
 var _ended: bool = false
@@ -133,6 +136,8 @@ func _ready() -> void:
 	add_child(_shop_menu)
 	_bank_menu = BankMenu.new()
 	add_child(_bank_menu)
+	_exit_choice = ExitChoice.new()
+	add_child(_exit_choice)
 	_pool_view = DicePoolView.new()
 	add_child(_pool_view)
 	top_bar.pool_pressed.connect(_toggle_pool_view)
@@ -191,8 +196,8 @@ func _apply_layout() -> void:
 # ===========================================================================================================================================
 
 
-## Builds the run's current level, saves the run and starts the first turn. [carried] is the exit tile from the
-## last level, with the player on it: it glides to the new start and the new level grows out from it.
+## Builds the run's current level, saves the run and starts the first turn. [carried] is the tile the player left the
+## last level on, with the player on it: it turns into the new start tile, glides there and the new level grows out from it.
 func load_level(carried: HexTile = null) -> void:
 	_loading = true
 	SaveManager.checkpoint_run()
@@ -208,6 +213,7 @@ func load_level(carried: HexTile = null) -> void:
 	_populate(index)
 
 	if carried:
+		await _retile(carried)
 		await _carry(carried)
 		old_board.queue_free()
 		player.reparent(board.pieces_root)
@@ -250,7 +256,7 @@ func _clear_hint(index: int) -> String:
 		return tr("HINT_CLEAR_SHOP")
 	if bank_open:
 		return tr("HINT_CLEAR_BANK")
-	return tr("HINT_LEVEL_CLEAR_GATES")
+	return tr("HINT_LEVEL_CLEAR")
 
 
 ## What the camera fits in the free space: every tile's outline at its top, and again raised by the headroom for
@@ -267,7 +273,17 @@ func _frame_points() -> PackedVector3Array:
 	return points
 
 
-## Moves [carried] and the player from the old level's exit to the new level's start while the camera follows.
+## Turns [carried] into the new level's start tile (its terrain, in the new biome's colours), lifting or lowering the
+## player with it.
+func _retile(carried: HexTile) -> void:
+	var start := board.get_tile(Hex.id(board.player_start))
+	var rise := start.top_height() - carried.top_height()
+	if not is_zero_approx(rise):
+		create_tween().tween_property(player, "position:y", player.position.y + rise, Anim.t(carried.retile_duration * 0.5)).set_delay(Anim.t(carried.retile_duration * 0.3))
+	await carried.retile(start.terrain, start.color)
+
+
+## Moves [carried] and the player from where they left the old level to the new level's start while the camera follows.
 func _carry(carried: HexTile) -> void:
 	var start := board.to_global(board.cell_to_local(board.player_start))
 	var from := carried.global_position
@@ -281,8 +297,7 @@ func _carry(carried: HexTile) -> void:
 
 
 ## Chooses which of the level's enemy and loot points are used - more the deeper the run and the harder the biome -
-## puts gates on as many exit points as the level has connections, and a shop / bank on their points. Seeded by the
-## map node, so a resumed level matches (the shop's stock included).
+## and puts a shop / bank on their points. Seeded by the map node, so a resumed level matches (the shop's stock included).
 func _populate(index: int) -> void:
 	var run := SaveManager.run_data
 	var rng := RandomNumberGenerator.new()
@@ -292,7 +307,7 @@ func _populate(index: int) -> void:
 	var depth := run.path.size() - 1
 
 	# Enemies per level come from the biome (BiomeData.enemy_count): a normal level rolls in that range, a boss level
-	# is the boss plus one fewer, a challenge level uses every enemy point (the range's top + 2)
+	# is the boss plus its minions, a challenge level uses every enemy point
 	var enemy_cells := _shuffled(board.get_marker_cells(Board.Marker.ENEMY), rng)
 	var count := rng.randi_range(biome.enemy_count.x, biome.enemy_count.y)
 	if level.type == LevelData.Type.BOSS:
@@ -301,15 +316,8 @@ func _populate(index: int) -> void:
 		enemy_cells.clear()
 	if level.type == LevelData.Type.CHALLENGE:
 		count = enemy_cells.size()
-	var chosen := _enemy_cells_for(enemy_cells, count)
-	var nearest := _nearest_to_start(chosen)
-	var ranged_left := ceili(chosen.size() * MAX_RANGED_SHARE)
-	for cell in chosen:
-		# The enemy nearest the start is always a melee one: it walks up to the player rather than shooting from afar
-		var data := _roll_enemy(biome, rng, ranged_left > 0 and cell != nearest)
-		if data.attack_range > 1:
-			ranged_left -= 1
-		board.spawn_enemy(data, cell)
+	var threats := 2 if level.type == LevelData.Type.CHALLENGE or rng.randf() < TWO_THREATS_CHANCE else 1
+	_spawn_enemies(biome, rng, enemy_cells, mini(count, enemy_cells.size()), threats)
 
 	var loot_cells := _shuffled(board.get_marker_cells(Board.Marker.LOOT), rng)
 	# Chest dice are fully random each time the level is played, and kept off the level's seeded generator
@@ -320,14 +328,6 @@ func _populate(index: int) -> void:
 		var die: DieType = DiceLoot.roll(dice_rng, biome.difficulty) if roll < chest_die_chance else null
 		var item: EquipmentData = EquipmentLoot.roll(dice_rng, biome.difficulty) if not die and roll < chest_die_chance + chest_item_chance else null
 		board.spawn_loot(rng.randi_range(2, 4) + biome.difficulty, cell, die.id if die else &"", item.id if item else &"")
-
-	# Gates top to bottom on screen match the next levels top to bottom on the map
-	var links := RunMap.next(run, index)
-	links.sort_custom(func(a: int, b: int): return float(RunMap.node(run, a).row) < float(RunMap.node(run, b).row))
-	var exit_cells := _shuffled(board.get_marker_cells(Board.Marker.EXIT), rng).slice(0, links.size())
-	exit_cells.sort_custom(func(a: Vector2i, b: Vector2i): return board.cell_to_local(a).z < board.cell_to_local(b).z)
-	for i in exit_cells.size():
-		board.spawn_exit(links[i], LevelData.ICONS[RunMap.level(run, links[i]).type], RunMap.biome(run, links[i]).color, exit_cells[i])
 
 	# Shop rarity rises with each biome visited; a bank used on this level stays closed if it's resumed
 	for cell in board.get_marker_cells(Board.Marker.SHOP):
@@ -348,26 +348,56 @@ func _populate(index: int) -> void:
 			board.spawn_mystery(cells[mystery_rng.randi() % cells.size()])
 
 
-## The first [count] of the shuffled enemy [cells], with the point nearest the player's start swapped in if the draw
-## missed it, so there is always a fight within reach on the first turn.
-func _enemy_cells_for(cells: Array[Vector2i], count: int) -> Array[Vector2i]:
-	var chosen: Array[Vector2i] = []
-	chosen.assign(cells.slice(0, count))
-	if chosen.is_empty() or chosen.size() == cells.size():
-		return chosen
-	var nearest := _nearest_to_start(cells)
-	if not chosen.has(nearest):
-		chosen[chosen.size() - 1] = nearest
-	return chosen
+## Spawns [count] of the biome's enemies on the enemy points [cells] (shuffled) so that only the first [threats] can
+## reach the player's start on the first turn: those go on the points nearest the start, the nearest always a melee
+## type (it walks up rather than shooting from afar). Each of the rest goes on a random point it can't reach the start
+## from - failing that it is swapped for the biome's slowest type, and left out if even that can't be placed. At most
+## [constant MAX_RANGED_SHARE] of them are ranged.
+func _spawn_enemies(biome: BiomeData, rng: RandomNumberGenerator, cells: Array[Vector2i], count: int, threats: int) -> void:
+	var start := Hex.id(board.player_start)
+	var near: Array[Vector2i] = cells.duplicate()
+	near.sort_custom(func(a: Vector2i, b: Vector2i): return Hex.distance(a, board.player_start) < Hex.distance(b, board.player_start))
+	var ranged_left := ceili(count * MAX_RANGED_SHARE)
+	var free: Array[Vector2i] = cells.duplicate()
+	for i in mini(threats, count):
+		var data := _roll_enemy(biome, rng, ranged_left > 0 and i > 0)
+		if data.attack_range > 1:
+			ranged_left -= 1
+		free.erase(near[i])
+		board.spawn_enemy(data, near[i])
+
+	var slowest := _slowest_enemy(biome)
+	for i in count - mini(threats, count):
+		var data := _roll_enemy(biome, rng, ranged_left > 0)
+		var cell := _safe_cell(data, free, start)
+		if cell == Vector2i.MAX and data != slowest:
+			data = slowest
+			cell = _safe_cell(data, free, start)
+		if cell == Vector2i.MAX:
+			continue
+		if data.attack_range > 1:
+			ranged_left -= 1
+		free.erase(cell)
+		board.spawn_enemy(data, cell)
 
 
-## The cell in [cells] closest to the player's start (the first of them on a tie).
-func _nearest_to_start(cells: Array[Vector2i]) -> Vector2i:
-	var nearest := cells[0] if cells.size() > 0 else board.player_start
+## The first of [cells] an enemy of type [data] couldn't reach [start] from on its first turn, or Vector2i.MAX.
+func _safe_cell(data: EnemyData, cells: Array[Vector2i], start: int) -> Vector2i:
 	for cell in cells:
-		if Hex.distance(cell, board.player_start) < Hex.distance(nearest, board.player_start):
-			nearest = cell
-	return nearest
+		if not board.can_threaten(Hex.id(cell), start, data.move, data.attack_range):
+			return cell
+	return Vector2i.MAX
+
+
+## The biome's regular enemy with the shortest reach (move + attack range), melee on a tie.
+func _slowest_enemy(biome: BiomeData) -> EnemyData:
+	var slowest: EnemyData
+	for id in biome.enemy_ids:
+		var data: EnemyData = Database.get_content("enemies", id)
+		var reach := data.move + data.attack_range
+		if not slowest or reach < slowest.move + slowest.attack_range or (reach == slowest.move + slowest.attack_range and data.attack_range == 1):
+			slowest = data
+	return slowest
 
 
 ## One of the biome's regular enemies. Ranged types are [constant RANGED_WEIGHT] as likely as melee ones, and left out
@@ -558,12 +588,12 @@ func _menu_open() -> bool:
 # ===========================================================================================================================================
 
 
-## Highlights the open gate, shop or bank under the mouse once the level is clear.
+## Highlights the open shop or bank under the mouse once the level is clear.
 func _update_hover() -> void:
 	var hovered: BoardPiece = null
 	if turn.state == TurnController.State.LEVEL_CLEAR and not _loading and not _map_view.visible:
 		var piece := board.get_piece(board.tile_at_screen(camera_rig.camera, get_viewport().get_mouse_position()))
-		if (piece is ExitGate and piece.unlocked) or (piece is Building and not piece.closed):
+		if piece is Building and not piece.closed:
 			hovered = piece
 	if hovered != _hovered:
 		if is_instance_valid(_hovered):
@@ -573,26 +603,19 @@ func _update_hover() -> void:
 			hovered.set_hovered(true)
 
 
-func _choose_exit(exit: ExitGate) -> void:
-	var run := SaveManager.run_data
-	var biome := RunMap.biome(run, exit.target)
-	var type := RunMap.level(run, exit.target).type
+## Folds the level away around the player's tile, offers the levels the map leads on to (top to bottom as on the map)
+## and carries the tile into the chosen one.
+func _leave_level() -> void:
 	_loading = true
-	if not await confirm_dialog.ask(tr("DIALOG_TRAVEL_TITLE"), tr("DIALOG_TRAVEL_MESSAGE") % [biome.display_name, tr(LevelData.NAMES[type])]):
-		_loading = false
-		return
-	var target := exit.target
-	var tile_id := exit.tile_id
-	exit.set_hovered(false)
+	if is_instance_valid(_hovered):
+		_hovered.set_hovered(false)
 	_hovered = null
-	exit.open()
-	var path := board.find_path(player.tile_id, tile_id)
-	if path.is_empty():
-		await player.teleport_to(tile_id)
-	else:
-		await player.move_along(path)
-	exit.vanish()
+	var run := SaveManager.run_data
+	var tile_id := player.tile_id
 	await board.play_outro(tile_id)
+	var links := RunMap.next(run, RunMap.current_index(run))
+	links.sort_custom(func(a: int, b: int): return float(RunMap.node(run, a).row) < float(RunMap.node(run, b).row))
+	var target := await _exit_choice.choose(links)
 	run.path.append(target)
 	load_level(board.get_tile(tile_id))
 
@@ -691,8 +714,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_map_view.toggle()
 	elif _map_view.visible:
 		return
-	elif event.is_action_pressed("select") and _hovered is ExitGate:
-		_choose_exit(_hovered)
 	elif event.is_action_pressed("select") and _hovered is Building:
 		_use_building(_hovered)
 	elif event.is_action_pressed("debug_menu"):
@@ -710,15 +731,23 @@ func _on_turn_state_changed(state: TurnController.State) -> void:
 		if RunMap.next(run, RunMap.current_index(run)).is_empty():
 			_end_run(ProgressionData.Outcome.VICTORY)
 			return
-		# Chests left behind are lost, and the gates stay shut until the award is dealt with
+		# Chests left behind are lost, and the level is left once the award is dealt with
 		_loading = true
 		await board.clear_loot()
 		if RunMap.level(run, RunMap.current_index(run)).type == LevelData.Type.BOSS:
 			await _boss_bonus()
 		await _level_award()
 		_loading = false
-		for exit in board.get_exits():
-			exit.unlock()
+		# Shops and banks stay open until the player chooses to move on
+		if not board.get_buildings().is_empty():
+			var cleared := board
+			action_list.show_leave(true)
+			await action_list.leave_pressed
+			action_list.show_leave(false)
+			# A debug restart while waiting builds a new level, which waits for its own press
+			if board != cleared:
+				return
+		await _leave_level()
 
 
 ## Defeating a boss (the final one aside - the run ends): +1 max health and a full heal, statuses cleared, and one
@@ -871,8 +900,8 @@ func _debug_shop() -> void:
 
 
 ## Turns the current level into a biome's boss level - the next biome's each press, in run order, starting with the
-## current biome's - for good in this run's map and its checkpoint, and restarts it at full health. The level's exits
-## may not match the boss level's, so it's only for trying a fight out.
+## current biome's - for good in this run's map and its checkpoint, and restarts it at full health. It still leads where
+## the replaced level did, so it's only for trying a fight out.
 func _debug_boss() -> void:
 	var run := SaveManager.run_data
 	var index := RunMap.current_index(run)
@@ -896,7 +925,7 @@ func _can_force_next() -> bool:
 
 
 ## Turns every level the current one leads to into a level of [type] (Shop or Shop & Bank), for good in this run's map
-## and its checkpoint (so it survives quitting), and changes the gates' symbols to match.
+## and its checkpoint (so it survives quitting).
 func _debug_next_shop(type: LevelData.Type) -> void:
 	var levels := Database.get_all("levels").filter(func(level: LevelData): return level.type == type)
 	var index := RunMap.current_index(SaveManager.run_data)
@@ -905,8 +934,6 @@ func _debug_next_shop(type: LevelData.Type) -> void:
 		for run: RunData in [SaveManager.run_data, SaveManager.run_checkpoint]:
 			if run:
 				RunMap.node(run, target).level = level_id
-	for exit in board.get_exits():
-		exit.set_icon(LevelData.ICONS[type])
 	player.popup(tr("POPUP_NEXT_LEVEL") % tr(LevelData.NAMES[type]), Color(1.0, 0.45, 0.85))
 
 

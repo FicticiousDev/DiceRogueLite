@@ -5,6 +5,7 @@
 
 void vertex() {
 	die_position = (pattern_transform * vec4(VERTEX, 1.0)).xyz;
+	die_normal = mat3(pattern_transform) * NORMAL;
 }
 
 void fragment() {

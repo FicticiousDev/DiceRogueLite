@@ -107,7 +107,7 @@ static func _ensure_alternative(nodes: Array[Dictionary], layers: Array[Array], 
 
 
 ## Joins two layers with a random non-crossing staircase, so every level has a way in and a way out. Levels after
-## the entry get at most two ways on (shops have two exits).
+## the entry get at most two ways on.
 static func _connect(rng: RandomNumberGenerator, nodes: Array[Dictionary], from: Array, to: Array) -> void:
 	var max_out := 3 if from.size() == 1 else 2
 	var edges: Array[Vector2i] = []
@@ -133,8 +133,8 @@ static func _connect(rng: RandomNumberGenerator, nodes: Array[Dictionary], from:
 		nodes[from[edge.x]].next.append(to[edge.y])
 
 
-## Picks a level of each node's type, sized for its biome's stage (shops fit any), with enough exits, using each
-## level once before any repeats.
+## Picks a level of each node's type, sized for its biome's stage (shops fit any), using each level once before any
+## repeats.
 static func _choose_levels(nodes: Array[Dictionary]) -> void:
 	var unused: Dictionary[String, Array] = {}
 	for node in nodes:
@@ -147,11 +147,10 @@ static func _choose_levels(nodes: Array[Dictionary]) -> void:
 			continue
 		var stage := 0 if type in [LevelData.Type.SHOP, LevelData.Type.SHOP_BANK] else biome.stage()
 		var key := "%d:%d" % [type, stage]
-		var fits := func(level: LevelData): return level.exit_count >= node.next.size()
-		var candidates: Array = unused.get(key, []).filter(fits)
+		var candidates: Array = unused.get(key, [])
 		if candidates.is_empty():
 			unused[key] = Database.get_all("levels").filter(func(level: LevelData): return level.type == type and (stage == 0 or level.stage == stage))
-			candidates = unused[key].filter(fits)
+			candidates = unused[key]
 		var pick: LevelData = candidates.pick_random()
 		unused[key].erase(pick)
 		node.level = String(pick.id)

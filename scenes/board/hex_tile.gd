@@ -13,12 +13,14 @@ const HIGHLIGHT_COLORS: Dictionary[Highlight, Color] = {
 }
 const SELECTED_COLOR: Color = Color(1.0, 1.0, 1.0, 0.45)
 const MARK_COLOR: Color = Color(0.7, 0.35, 1.0)
+const WARNING_COLOR: Color = Color(1.0, 0.2, 0.15, 0.6)
 ## Body radius as a fraction of the cell radius, leaving a small gap between tiles
 const BODY_SCALE: float = 0.95
 
 @export var intro_duration: float = 0.6
 @export var intro_drop: float = 1.5
 @export var outro_duration: float = 0.35
+@export var retile_duration: float = 0.5
 
 @onready var body: MeshInstance3D = $Body
 @onready var highlight_mesh: MeshInstance3D = $Highlight
@@ -33,6 +35,7 @@ var highlight: Highlight = Highlight.NONE
 ## Piece standing on this tile, if any. Set by BoardPiece.
 var piece: BoardPiece
 var played: bool = false
+var _warning: MeshInstance3D
 
 # Shared between all tiles, keyed by terrain/highlight
 static var _body_meshes: Dictionary = {}
@@ -50,14 +53,33 @@ func setup(cell: Vector2i, type: Terrain.Type, cell_radius: float, tile_color: C
 
 
 func _ready() -> void:
-	body.mesh = _get_body_mesh()
-	body.position.y = top_height() / 2.0
 	highlight_mesh.mesh = _get_overlay_mesh(0.8)
-	highlight_mesh.position.y = top_height() + 0.01
 	selected_mesh.mesh = _get_overlay_mesh(0.95)
 	selected_mesh.material_override = _get_overlay_material(SELECTED_COLOR)
-	selected_mesh.position.y = top_height() + 0.02
+	_apply_terrain()
 	clear_highlights()
+
+
+func _apply_terrain() -> void:
+	body.mesh = _get_body_mesh()
+	body.position.y = top_height() / 2.0
+	highlight_mesh.position.y = top_height() + 0.01
+	selected_mesh.position.y = top_height() + 0.02
+	if _warning:
+		_warning.position.y = top_height() + 0.015
+
+
+## Turns the tile into [type] in [tile_color]: it pinches in, changes and springs back. Awaitable.
+func retile(type: Terrain.Type, tile_color: Color) -> void:
+	var pinch := create_tween()
+	pinch.tween_property(self, "scale", Vector3(0.7, 1.0, 0.7), Anim.t(retile_duration * 0.3)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await pinch.finished
+	terrain = type
+	color = tile_color
+	_apply_terrain()
+	var spring := create_tween()
+	spring.tween_property(self, "scale", Vector3.ONE, Anim.t(retile_duration * 0.7)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	await spring.finished
 
 
 ## World-space height of the tile's top surface, relative to the board.
@@ -84,6 +106,30 @@ func set_selected(selected: bool) -> void:
 func clear_highlights() -> void:
 	set_highlight(Highlight.NONE)
 	set_selected(false)
+
+
+## Shows or hides a pulsing red overlay: an attack will land on this tile.
+func set_warning(on: bool) -> void:
+	if not on:
+		if _warning:
+			_warning.queue_free()
+			_warning = null
+		return
+	if _warning:
+		return
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = WARNING_COLOR
+	_warning = MeshInstance3D.new()
+	_warning.mesh = _get_overlay_mesh(0.9)
+	_warning.material_override = material
+	_warning.position.y = top_height() + 0.015
+	_warning.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_warning)
+	var pulse := _warning.create_tween().set_loops()
+	pulse.tween_property(material, "albedo_color:a", WARNING_COLOR.a * 0.35, Anim.t(0.6)).set_trans(Tween.TRANS_SINE)
+	pulse.tween_property(material, "albedo_color:a", WARNING_COLOR.a, Anim.t(0.6)).set_trans(Tween.TRANS_SINE)
 
 
 # ===========================================================================================================================================

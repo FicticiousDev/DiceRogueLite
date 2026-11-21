@@ -3,8 +3,14 @@ extends BossBehaviour
 
 ## Doesn't walk: each turn it charges up to its move in tiles along one of the six hex lines - the one closest to the
 ## direction of the player - stopping before a wall or anything else it can't pass. Every piece it passes through
-## takes its attack. At half health it calls its minion onto each side of the arena (the points of the arena's six
-## sides, [member EnemyData.minion]).
+## takes its attack and is knocked aside and dragged along up to [member drag] tiles ([method TurnController.charge]).
+## If it ends next to the player it hits them again for [member follow_up_damage]. The tiles it charged through turn
+## difficult for [member dust_rounds] round ends. At half health it calls its minion onto each side of the arena (the
+## points of the arena's six sides, [member EnemyData.minion]).
+
+@export var drag: int = 2
+@export var follow_up_damage: int = 3
+@export var dust_rounds: int = 2
 
 
 func setup(boss: Enemy, _board: Board) -> void:
@@ -16,7 +22,11 @@ func take_turn(turn: TurnController, boss: Enemy) -> void:
 	if path.is_empty():
 		return
 	boss.popup(tr("POPUP_CHARGE"), Color(1.0, 0.6, 0.25))
-	await turn.charge(boss, path)
+	await turn.charge(boss, path, drag)
+	if dust_rounds > 0:
+		await turn.board.set_terrain_for(path, Terrain.Type.NORMAL, Terrain.Type.DIFFICULT, dust_rounds)
+	if follow_up_damage > 0:
+		await turn.enemy_follow_up(boss, follow_up_damage)
 
 
 func on_damaged(turn: TurnController, boss: Enemy, _hp_before: int) -> void:

@@ -1,6 +1,10 @@
 [gd_resource type="Resource" script_class="BiomeData" format=3]
 
 [ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/ash_puff.tscn" id="fx_0"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/cinders.tscn" id="fx_1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/magma_chunks.tscn" id="fx_2"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/ashlands/lava_splash.tscn" id="fx_3"]
 
 [resource]
 script = ExtResource("1")
@@ -9,6 +13,7 @@ order = 5
 difficulty = 5
 color = Color(1, 0.32, 0.25, 1)
 terrain_colors = Array[Color]([Color(0.35, 0.3, 0.3, 1), Color(0.45, 0.28, 0.22, 1), Color(0.6, 0.2, 0.12, 1), Color(0.95, 0.45, 0.1, 1), Color(0.2, 0.18, 0.2, 1)])
+terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"ember", &"juggernaut", &"scorcher"])
 boss_id = &"tyrant"
 boss_level = &"boss_ashlands"

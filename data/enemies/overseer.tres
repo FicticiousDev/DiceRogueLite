@@ -6,6 +6,9 @@
 
 [sub_resource type="Resource" id="Resource_behaviour"]
 script = ExtResource("2")
+drag = 2
+follow_up_damage = 3
+dust_rounds = 2
 
 [resource]
 script = ExtResource("1")

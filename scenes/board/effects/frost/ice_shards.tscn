@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/board/effects/terrain_effect.gd" id="1_effect"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+transparency = 1
+cull_mode = 2
+vertex_color_use_as_albedo = true
+
+[sub_resource type="PrismMesh" id="PrismMesh_2"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(0.06, 0.16, 0.03)
+
+[sub_resource type="Curve" id="Curve_3"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[node name="IceShards" type="Node3D"]
+script = ExtResource("1_effect")
+
+[node name="Chips" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 12
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("PrismMesh_2")
+emission_shape = 1
+emission_sphere_radius = 0.15
+direction = Vector3(0.0, 1.0, 0.0)
+spread = 45.0
+gravity = Vector3(0.0, -12.0, 0.0)
+initial_velocity_min = 1.8
+initial_velocity_max = 2.8
+angular_velocity_min = -720.0
+angular_velocity_max = 720.0
+scale_amount_min = 0.6
+scale_amount_max = 1.4
+scale_amount_curve = SubResource("Curve_3")
+color = Color(0.7, 0.85, 1.0, 0.9)

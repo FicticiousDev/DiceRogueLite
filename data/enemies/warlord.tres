@@ -5,9 +5,8 @@
 
 [sub_resource type="Resource" id="Resource_behaviour"]
 script = ExtResource("2")
-slam_damage = 3
-player_push = 2
-self_push = 1
+knockback = 1
+throw_range = 3
 
 [resource]
 script = ExtResource("1")
@@ -19,6 +18,7 @@ attack = 2
 defence = 1
 gold = 15
 attacks_per_turn = 2
+free_retaliation = true
 is_boss = true
 stun_immune = true
 size = 1.6

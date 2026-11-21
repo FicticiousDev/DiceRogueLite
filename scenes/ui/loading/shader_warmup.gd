@@ -1,7 +1,8 @@
 class_name ShaderWarmup
 extends Node
 
-## Draws everything in ShaderList, and every die design in an opaque and a glass finish, out of sight so the renderer
+## Draws everything in ShaderList, every terrain landing effect (emitting), and every die design in an opaque and a
+## glass finish, out of sight so the renderer
 ## compiles its pipelines now rather than the first time they appear on screen. Two hidden 3D views are drawn side by
 ## side: one set up like the dice views in menus (own world, transparent background, 4x MSAA, two unshadowed lights) and
 ## one like the game (shadowed lights, SSAO, the project's MSAA). Items are drawn in batches so progress can be reported.
@@ -29,7 +30,7 @@ func run(canvas_host: Control, progress: Callable) -> void:
 	_world_content = _make_view(true)
 	_collect_finishes()
 
-	var batches: Array[Callable] = [_fill_shaders, _fill_materials, _fill_scenes]
+	var batches: Array[Callable] = [_fill_shaders, _fill_materials, _fill_scenes, _fill_effects]
 	for design: DieDesign in Database.get_all("die_designs"):
 		batches.append(_fill_dice.bind(design))
 	var total := batches.size() + 1
@@ -70,6 +71,16 @@ func _fill_scenes(content: Node3D) -> void:
 			content.add_child(scene.instantiate())
 		else:
 			push_warning("ShaderWarmup: can't load " + path)
+
+
+## Every terrain landing effect, emitting. Board only, so just the game-like view.
+func _fill_effects(content: Node3D) -> void:
+	if content != _world_content:
+		return
+	for scene in ShaderList.terrain_effects():
+		var effect: TerrainEffect = scene.instantiate()
+		content.add_child(effect)
+		effect.start()
 
 
 ## One die in each finish kind with [design]'s mesh.

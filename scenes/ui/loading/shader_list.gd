@@ -5,6 +5,7 @@ extends RefCounted
 ##
 ## Dice need no entry: every design in data/die_designs is drawn in an opaque and a glass finish, which covers the
 ## die_body*/die_face* shaders. A new die shader only has to be wired into Die3D.
+## Terrain landing effects need no entry either: [method terrain_effects] collects them from Terrain and every biome.
 
 ## Spatial shaders; each is drawn on a quad
 const SPATIAL_SHADERS: Array[String] = [
@@ -43,4 +44,18 @@ static func materials() -> Array[Material]:
 	arc.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	arc.cull_mode = BaseMaterial3D.CULL_DISABLED
 	list.append(arc)
+	return list
+
+
+## Every terrain landing effect: the defaults in Terrain.EFFECTS and each biome's own. Particles draw through a
+## MultiMesh with their own material flags (billboard, vertex colour), so they need drawing as themselves.
+static func terrain_effects() -> Array[PackedScene]:
+	var list: Array[PackedScene] = []
+	for scene: PackedScene in Terrain.EFFECTS.values():
+		if not list.has(scene):
+			list.append(scene)
+	for biome: BiomeData in Database.get_all("biomes"):
+		for scene in biome.terrain_effects:
+			if scene and not list.has(scene):
+				list.append(scene)
 	return list

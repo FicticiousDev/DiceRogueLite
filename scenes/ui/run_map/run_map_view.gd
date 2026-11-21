@@ -1,8 +1,8 @@
 class_name RunMapView
 extends CanvasLayer
 
-## The run map, toggled with [M]: every level entered, plus the levels their exits offered. Each shows the same
-## symbol as its exit gate, in its biome's colour. Choices not taken are greyed out; levels never offered are hidden.
+## The run map, toggled with [M]: every level entered, plus the levels each one offered on. Each shows the same
+## symbol as in the exit choice, in its biome's colour. Choices not taken are greyed out; levels never offered are hidden.
 
 const DISC: Texture2D = preload("res://assets/ui/disc.png")
 const ARROW: Texture2D = preload("res://assets/ui/indicator_arrow.png")

@@ -5,6 +5,9 @@
 
 [sub_resource type="Resource" id="Resource_behaviour"]
 script = ExtResource("2")
+avalanche_damage = 5
+avalanche_reach = 3
+avalanche_every = 3
 
 [resource]
 script = ExtResource("1")

@@ -1,19 +1,26 @@
 class_name WarlordBehaviour
 extends BossBehaviour
 
-## Moves and attacks like an ordinary enemy, but its second attack each turn is a slam: [member slam_damage] damage,
-## shoving the player [member player_push] tiles directly away and the boss itself [member self_push] tiles directly
-## back (each only as far as there is free floor). Its first attack, and its retaliation, is a plain swing for
-## [member EnemyData.attack].
+## Closes in like an ordinary enemy, then every attack in its own turn knocks the player [member knockback] tiles
+## directly away (blocked hits too) and, while its move lasts, it steps in after them to strike again
+## ([method TurnController.enemy_knockback_strikes]). A player with no room behind them is pinned and takes more. If it
+## can't reach the player at all it throws a single attack from up to [member throw_range] tiles instead.
 
 
-@export var slam_damage: int = 3
-@export var player_push: int = 2
-@export var self_push: int = 1
+@export var knockback: int = 1
+@export var throw_range: int = 3
 
 
 func take_turn(turn: TurnController, boss: Enemy) -> void:
 	var path := EnemyAI.find_path(boss, turn.board, turn.player.tile_id)
+	var spent := 0
+	for tile_id in path:
+		spent += turn.board.move_cost(tile_id)
 	if path.size() > 0:
 		await boss.move_along(path)
-	await turn.enemy_slam_strikes(boss, slam_damage, player_push, self_push)
+	var strikes := turn.strikes_left(boss)
+	if strikes == 0:
+		return
+	var made := await turn.enemy_knockback_strikes(boss, strikes, knockback, boss.data.move - spent)
+	if made == 0:
+		await turn.enemy_throw(boss, throw_range)

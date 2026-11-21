@@ -29,6 +29,9 @@ const SELECTED_LIFT: float = 0.45
 const HOVER_LIFT: float = 0.15
 ## Kill gold grows by this share of the enemy's gold per level entered
 const GOLD_PER_DEPTH: float = 0.04
+## Extra damage for a hit whose knockback has nowhere to go (a wall, an obstacle, another piece or the board's edge)
+const PIN_BONUS: int = 1
+const PIN_COLOR: Color = Color(1.0, 0.7, 0.4)
 
 var state: State = State.IDLE
 var turn_number: int = 0
@@ -168,7 +171,7 @@ func start_turn(new_turn: bool = true) -> void:
 	_dashing = null
 	_attacks_made = 0
 	# Levels without enemies are clear from the start
-	if board.get_enemies().is_empty():
+	if board.get_enemies(true).is_empty():
 		_set_state(State.LEVEL_CLEAR)
 		_refresh()
 		return
@@ -714,7 +717,7 @@ func _finish_turn() -> void:
 	# A stun lasts until the end of the stunned piece's own turn, a freeze until the end of the turn it slowed
 	player.stunned = false
 	player.frozen = false
-	if board.get_enemies().is_empty():
+	if board.get_enemies(true).is_empty():
 		await _clear_level()
 		return
 	# Unused defence dice are held for the enemy turn; everything else is discarded (all of it if the enemies already
@@ -744,6 +747,7 @@ func _finish_turn() -> void:
 func _clear_level() -> void:
 	player.frozen_next = false
 	player.burn = 0
+	board.clear_warnings()
 	await dice_tray.clear()
 	if _damage_taken == 0 or _regenerates():
 		await heal_player(1)
@@ -810,14 +814,14 @@ func _stun_blocks(piece: BoardPiece) -> bool:
 func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> void:
 	if not is_instance_valid(enemy) or enemy.is_dead():
 		return
-	# The target can have gone out of reach since the plan was made (a boss teleporting away)
-	if not board.in_attack_range(player.tile_id, enemy.tile_id, attack_range(dice)):
+	# The target can have gone out of reach since the plan was made (a boss teleporting away or diving)
+	if enemy.submerged or not board.in_attack_range(player.tile_id, enemy.tile_id, attack_range(dice)):
 		player.popup(tr("POPUP_OUT_OF_RANGE"), Color(0.8, 0.8, 0.85))
 		await get_tree().create_timer(Anim.t(0.3)).timeout
 		return
 	var enemy_first := enemy.data.attacks_first and not player_strikes_first()
 	if enemy_first and not _stun_blocks(enemy):
-		if await _strike_back(enemy):
+		if await _strike_back(enemy) and not enemy.data.free_retaliation:
 			_retaliated.append(enemy)
 		if _player_dead():
 			return
@@ -874,15 +878,15 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 	await _react_to_damage(before)
 	# Freed already if it died and its minions' deaths were awaited
 	if is_instance_valid(enemy) and not enemy.is_dead() and not enemy_first and not _stun_blocks(enemy):
-		if await _strike_back(enemy):
+		if await _strike_back(enemy) and not enemy.data.free_retaliation:
 			_retaliated.append(enemy)
 	await get_tree().create_timer(Anim.t(0.25)).timeout
 
 
 ## False if [enemy] already attacked this round in a turn taken before the player's, so it has nothing left to strike
-## back with. (Stun is checked separately.)
+## back with, or it's under water. (Stun is checked separately.)
 func can_retaliate(enemy: Enemy) -> bool:
-	return not _attacked_first.has(enemy)
+	return not _attacked_first.has(enemy) and not enemy.submerged
 
 
 ## [enemy] strikes back at the player's attack (retaliation or first strike) - the hits a redirect can be used on.
@@ -900,8 +904,17 @@ func _strike_back(enemy: Enemy) -> bool:
 func enemy_attack(enemy: Enemy) -> bool:
 	if not enemy.can_hit(player.tile_id):
 		return false
-	await hit_player(enemy, AttackContext.roll_enemy(enemy, player, 0, _miss_scale()))
+	var ctx := AttackContext.roll_enemy(enemy, player, 0, _miss_scale())
+	await hit_player(enemy, ctx)
+	if enemy.data.pull > 0 and landed(ctx):
+		await push(player, away_offset(Hex.coords(player.tile_id), Hex.coords(enemy.tile_id)), enemy.data.pull)
 	return true
+
+
+## True if [ctx], just resolved by [method hit_player], reached the player: not a miss, dodged or negated, and they're
+## still standing. Blocked hits count (for knockbacks and pulls).
+func landed(ctx: AttackContext) -> bool:
+	return not ctx.miss and not ctx.negated and not _dodged and not _player_dead()
 
 
 ## How much likelier enemy attacks are to miss, from the player's abilities.
@@ -913,8 +926,8 @@ func _miss_scale() -> float:
 
 
 ## [enemy]'s [ctx] lands on the player: through their abilities, then the block decision with held defence dice, then
-## the damage and any status the hit gives. [swing]: draws a ranged arc and lunges - off for charges and flames, which
-## aren't a swing at the player.
+## the damage and any status the hit gives. [swing]: draws a ranged arc and lunges - off for charges, flames and
+## avalanches, which aren't a swing at the player.
 func hit_player(enemy: Enemy, ctx: AttackContext, swing: bool = true) -> void:
 	if _enemies_acted and state == State.ENEMY_TURN and not _striking_back and not _attacked_first.has(enemy):
 		_attacked_first.append(enemy)
@@ -929,7 +942,7 @@ func hit_player(enemy: Enemy, ctx: AttackContext, swing: bool = true) -> void:
 	_redirect_to = null
 	if not ctx.miss and ctx.damage() > 0:
 		var rolled := ctx.damage()
-		ctx.defence += await _choose_block(enemy, rolled, log_index)
+		ctx.defence += await _choose_block(enemy, rolled, log_index, ctx.penetrate)
 		if _redirect_to:
 			ctx.defence -= AttackContext.BLOCK_ALL
 			ctx.negated = true
@@ -1079,10 +1092,13 @@ func resolve_dash(ability: DashAbility, target: int) -> void:
 		var deaths: Array[Enemy] = []
 		for enemy in dash_victims(player.tile_id, target):
 			before[enemy] = Vector2i(enemy.hp, enemy.shield)
-			_damage_enemy(enemy, dash_damage(ability, enemy), 2 if ability.ignore_defence else 1)
+			var pinned := ability.knockback and knock_aside_tile(enemy, line, [target]) == -1
+			if pinned:
+				enemy.popup(tr("POPUP_PINNED"), PIN_COLOR)
+			_damage_enemy(enemy, dash_damage(ability, enemy) + (PIN_BONUS if pinned else 0), 2 if ability.ignore_defence else 1)
 			if enemy.is_dead():
 				deaths.append(enemy)
-			elif ability.knockback:
+			elif ability.knockback and not pinned:
 				await knock_aside(enemy, line, [target])
 		for dead in deaths:
 			_reward_kill(dead)
@@ -1100,23 +1116,39 @@ func resolve_dash(ability: DashAbility, target: int) -> void:
 	await get_tree().create_timer(Anim.t(0.2)).timeout
 
 
-## Shoves [piece] (on [line]) onto a free tile beside the line - ahead and to the side first - avoiding [keep_clear].
-## Stays put if there's no room. Awaitable.
-func knock_aside(piece: BoardPiece, line: Array[int], keep_clear: Array[int] = []) -> void:
-	var at := line.find(piece.tile_id)
-	if at < 0:
-		return
-	var cell := Hex.coords(piece.tile_id)
-	var ahead := (Hex.coords(line[at + 1]) - cell) if at + 1 < line.size() else (cell - Hex.coords(line[at - 1]))
-	var forward := Hex.NEIGHBOUR_OFFSETS.find(ahead)
+## Where [piece] (on [line]) would be knocked aside to: a free tile beside the line - ahead and to the side first -
+## avoiding [keep_clear]. -1 if there's no room (it's pinned) or it isn't on the line.
+func knock_aside_tile(piece: BoardPiece, line: Array[int], keep_clear: Array[int] = []) -> int:
+	var forward := Hex.NEIGHBOUR_OFFSETS.find(_line_direction(piece.tile_id, line))
 	if forward < 0:
-		return
+		return -1
+	var cell := Hex.coords(piece.tile_id)
 	for side in [1, 5, 2, 4]:
 		var tile_id := Hex.id(cell + Hex.NEIGHBOUR_OFFSETS[(forward + side) % 6])
 		if board.is_walkable(tile_id) and board.get_piece(tile_id) == null and not line.has(tile_id) and not keep_clear.has(tile_id):
-			piece.popup(tr("POPUP_KNOCKED_ASIDE"), Color(0.85, 0.85, 0.9))
-			await piece.shove_to(tile_id)
-			return
+			return tile_id
+	return -1
+
+
+## Shoves [piece] (on [line]) onto the tile [method knock_aside_tile] picks; stays put if there's no room. Returns true
+## if it went ahead and to the side (so it can be dragged on along the line). Awaitable.
+func knock_aside(piece: BoardPiece, line: Array[int], keep_clear: Array[int] = []) -> bool:
+	var tile_id := knock_aside_tile(piece, line, keep_clear)
+	if tile_id == -1:
+		return false
+	var next_cell := Hex.coords(piece.tile_id) + _line_direction(piece.tile_id, line)
+	piece.popup(tr("POPUP_KNOCKED_ASIDE"), Color(0.85, 0.85, 0.9))
+	await piece.shove_to(tile_id)
+	return Hex.distance(Hex.coords(tile_id), next_cell) == 1
+
+
+## The hex offset [line] runs in at [tile_id] (one of its tiles), or Vector2i.ZERO if it isn't on it.
+func _line_direction(tile_id: int, line: Array[int]) -> Vector2i:
+	var at := line.find(tile_id)
+	if at < 0 or line.size() < 2:
+		return Vector2i.ZERO
+	var cell := Hex.coords(tile_id)
+	return (Hex.coords(line[at + 1]) - cell) if at + 1 < line.size() else (cell - Hex.coords(line[at - 1]))
 
 
 ## Lethal hit: offer to sacrifice a die from the pool instead. Returns true if one was sacrificed. A die
@@ -1183,7 +1215,7 @@ func _enemies_go_first() -> bool:
 	if _player_dead():
 		await _game_over()
 		return false
-	if board.get_enemies().is_empty():
+	if board.get_enemies(true).is_empty():
 		await _clear_level()
 		return false
 	_enemy_log.clear()
@@ -1217,13 +1249,15 @@ func _enemy_phase() -> void:
 		await get_tree().create_timer(Anim.t(0.15)).timeout
 
 
-## Every enemy gets a defence segment back; bosses get their end-of-round rules (an ice shield recovering, say).
+## Every enemy gets a defence segment back; bosses get their end-of-round rules (an ice shield recovering, say), and
+## terrain changed for a while counts down.
 func _end_round() -> void:
 	for enemy in board.get_enemies():
 		enemy.recover_defence()
 		if enemy.data.behaviour:
 			await enemy.data.behaviour.end_of_round(self, enemy)
 		enemy.damaged_this_round = false
+	await board.tick_terrain()
 
 
 ## The usual enemy turn: move into position (Gloomhaven rules), then attack.
@@ -1235,40 +1269,77 @@ func standard_enemy_turn(enemy: Enemy) -> void:
 
 
 ## The enemy's attacks for its turn ([member EnemyData.attacks_per_turn], each blocked separately) if the player is in
-## reach - each strike it made back this round used up one.
+## reach - see [method strikes_left].
 func enemy_strikes(enemy: Enemy) -> void:
-	for i in maxi(enemy.data.attacks_per_turn - _retaliated.count(enemy), 0):
+	for i in strikes_left(enemy):
 		if _player_dead() or not enemy.can_hit(player.tile_id):
 			return
 		await enemy_attack(enemy)
 
 
-## Like [method enemy_strikes], but the last attack of the turn is a slam ([method enemy_slam]) instead of a plain
-## swing. Strikes it made back this round use up the first ones.
-func enemy_slam_strikes(enemy: Enemy, damage: int, player_push: int, self_push: int) -> void:
-	for i in range(_retaliated.count(enemy), enemy.data.attacks_per_turn):
+## Attacks [enemy] has left for its own turn: each strike it made back this round used up one (unless it strikes back
+## for free, [member EnemyData.free_retaliation]).
+func strikes_left(enemy: Enemy) -> int:
+	return maxi(enemy.data.attacks_per_turn - _retaliated.count(enemy), 0)
+
+
+## [enemy] makes up to [strikes] attacks, each knocking the player [knockback] tiles directly away unless it misses or
+## is dodged / negated (a blocked hit still knocks them back). A player with no room behind them is pinned and takes
+## [constant PIN_BONUS] more. Knocked out of reach, the enemy follows along the tiles the player was pushed off while
+## [move_left] covers their cost. Returns how many attacks it made.
+func enemy_knockback_strikes(enemy: Enemy, strikes: int, knockback: int, move_left: int) -> int:
+	var made := 0
+	var trail: Array[int] = []
+	for i in strikes:
+		while not _player_dead() and not enemy.can_hit(player.tile_id) and trail.size() > 0:
+			var next: int = trail.pop_front()
+			if board.get_piece(next) != null or board.move_cost(next) > move_left:
+				trail.clear()
+				break
+			move_left -= board.move_cost(next)
+			var step: Array[int] = [next]
+			await enemy.move_along(step)
 		if _player_dead() or not enemy.can_hit(player.tile_id):
-			return
-		if i == enemy.data.attacks_per_turn - 1:
-			await enemy_slam(enemy, damage, player_push, self_push)
-		else:
-			await enemy_attack(enemy)
+			break
+		var away := away_offset(Hex.coords(enemy.tile_id), Hex.coords(player.tile_id))
+		var ctx := AttackContext.roll_enemy(enemy, player, 0, _miss_scale())
+		var pinned := not can_push(player, away)
+		if pinned:
+			pin(ctx)
+		await hit_player(enemy, ctx)
+		made += 1
+		trail.clear()
+		if landed(ctx) and not pinned:
+			trail = await push(player, away, knockback)
+	return made
 
 
-## [enemy] slams the player for [damage] (they may block it). Unless it misses or is dodged / negated, the player is
-## pushed up to [player_push] tiles directly away from it and the enemy recoils up to [self_push] tiles directly
-## away from the player - each only as far as there is free floor. Awaitable.
-func enemy_slam(enemy: Enemy, damage: int, player_push: int, self_push: int) -> void:
-	var from_cell := Hex.coords(enemy.tile_id)
-	var to_cell := Hex.coords(player.tile_id)
-	var ctx := AttackContext.roll_enemy(enemy, player, 0, _miss_scale(), damage)
-	ctx.source_note = tr("NOTE_SLAM")
+## [enemy] throws one attack at the player from up to [reach] tiles (line of sight needed, less any range the player's
+## abilities take off), for a melee enemy that couldn't get to them. Returns true if it threw.
+func enemy_throw(enemy: Enemy, reach: int) -> bool:
+	if _player_dead() or not board.in_attack_range(enemy.tile_id, player.tile_id, maxi(reach - enemy.range_reduction, 1)):
+		return false
+	enemy.popup(tr("POPUP_THROW"), Color(1.0, 0.6, 0.25))
+	var ctx := AttackContext.roll_enemy(enemy, player, 0, _miss_scale())
+	ctx.source_note = tr("NOTE_THROW")
 	await hit_player(enemy, ctx)
-	if ctx.miss or ctx.negated or _dodged or _player_dead():
+	return true
+
+
+## A follow-up blow of [damage] from [enemy] (rolled like any attack, blockable) if the player stands next to it.
+func enemy_follow_up(enemy: Enemy, damage: int) -> void:
+	if _player_dead() or enemy.is_dead() or Hex.distance(Hex.coords(enemy.tile_id), Hex.coords(player.tile_id)) != 1:
 		return
-	var away := away_offset(from_cell, to_cell)
-	await push(player, away, player_push)
-	await push(enemy, -away, self_push)
+	var ctx := AttackContext.roll_enemy(enemy, player, 0, _miss_scale(), damage)
+	ctx.source_note = tr("NOTE_FOLLOW_UP")
+	await hit_player(enemy, ctx)
+
+
+## Marks [ctx] as a pinned hit: its knockback has nowhere to go, so it deals [constant PIN_BONUS] more.
+func pin(ctx: AttackContext) -> void:
+	ctx.bonus += PIN_BONUS
+	ctx.source_note = tr("NOTE_PINNED")
+	ctx.target.popup(tr("POPUP_PINNED"), PIN_COLOR)
 
 
 ## The hex direction pointing from [from_cell] most nearly towards [to_cell].
@@ -1285,14 +1356,22 @@ func away_offset(from_cell: Vector2i, to_cell: Vector2i) -> Vector2i:
 	return best
 
 
+## True if [piece] can be shoved at least one tile along [offset] (walkable floor with nothing on it).
+func can_push(piece: BoardPiece, offset: Vector2i) -> bool:
+	var next := Hex.id(Hex.coords(piece.tile_id) + offset)
+	return board.is_walkable(next) and board.get_piece(next) == null
+
+
 ## Shoves [piece] up to [tiles] tiles along [offset], one tile at a time, stopping before a wall, a gap or any other
-## piece (no room: it stays put). Awaitable.
-func push(piece: BoardPiece, offset: Vector2i, tiles: int) -> void:
+## piece (no room: it stays put). Returns the tiles it was pushed off, in order. Awaitable.
+func push(piece: BoardPiece, offset: Vector2i, tiles: int) -> Array[int]:
+	var left: Array[int] = []
 	for i in tiles:
-		var next := Hex.id(Hex.coords(piece.tile_id) + offset)
-		if not board.is_walkable(next) or board.get_piece(next) != null:
-			return
-		await piece.shove_to(next)
+		if not can_push(piece, offset):
+			break
+		left.append(piece.tile_id)
+		await piece.shove_to(Hex.id(Hex.coords(piece.tile_id) + offset))
+	return left
 
 
 ## Poisoned enemies take 1 damage each.
@@ -1367,7 +1446,7 @@ func _reward_kill(enemy: Enemy) -> void:
 
 ## Turn order: nearest to the player first (sortable, so initiative can be added later).
 func _enemy_order() -> Array[Enemy]:
-	var order := board.get_enemies()
+	var order := board.get_enemies(true)
 	var from := Hex.coords(player.tile_id)
 	order.sort_custom(func(a: Enemy, b: Enemy): return Hex.distance(Hex.coords(a.tile_id), from) < Hex.distance(Hex.coords(b.tile_id), from))
 	return order
@@ -1383,15 +1462,15 @@ func _held_dice() -> Array[int]:
 
 
 ## Lets the player pick held defence dice against [enemy]'s rolled [damage] (or spends them automatically, if
-## set), shown as entry [log_index] in the turn plan. Returns the total defence chosen; sets [_dodged] if a dodge
-## face was among them.
-func _choose_block(enemy: Enemy, damage: int, log_index: int) -> int:
+## set), shown as entry [log_index] in the turn plan. [pierce]: block the hit ignores (automatic spending covers it).
+## Returns the total defence chosen; sets [_dodged] if a dodge face was among them.
+func _choose_block(enemy: Enemy, damage: int, log_index: int, pierce: int = 0) -> int:
 	var held := _held_dice()
 	if held.is_empty() and _block_actives(enemy).is_empty():
 		return 0
 	var chosen: Array[int] = []
 	if SaveManager.settings_data.auto_spend_defence and held.size() > 0:
-		chosen = _auto_block(held, damage)
+		chosen = _auto_block(held, damage + pierce)
 	else:
 		_blocking = enemy
 		_blocking_damage = damage
@@ -1522,16 +1601,37 @@ func summon(boss: Enemy, tiles: Array[int]) -> void:
 	await get_tree().create_timer(Anim.t(0.3)).timeout
 
 
-## [boss] charges through [path]; every piece along it takes an attack of its attack value and is knocked aside onto a
-## free tile beside the path. It ends on the last free tile of the path (or stays put if there is none). Awaitable.
-func charge(boss: Enemy, path: Array[int]) -> void:
+## [boss] charges through [path]. Every piece along it takes an attack of its attack value and is knocked aside onto a
+## free tile beside the path, then dragged along beside it as the charge goes on: [drag] tiles in all, fewer if the
+## charge ends sooner, but always at least the knock aside. A piece with no room beside the path is pinned and takes
+## [constant PIN_BONUS] more. The boss ends on the last free tile of the path (or stays put if there is none). Awaitable.
+func charge(boss: Enemy, path: Array[int], drag: int = 1) -> void:
 	var line: Array[int] = [boss.tile_id]
 	line.append_array(path)
+	var forward := Hex.coords(path[0]) - Hex.coords(boss.tile_id)
+	# Pieces still being swept along beside the path: [piece, tiles of drag left]
+	var dragging: Array[Array] = []
 	await boss.charge_along(path, func(tile_id: int):
+		for entry in dragging.duplicate():
+			# Untyped: the piece may have been freed since
+			var swept = entry[0]
+			if is_instance_valid(swept) and not (swept is Enemy and swept.is_dead()):
+				await push(swept, forward, 1)
+			entry[1] -= 1
+			if entry[1] <= 0:
+				dragging.erase(entry)
 		var piece := board.get_piece(tile_id)
-		await _hit_piece(boss, tile_id, boss.data.attack, "charge")
-		if is_instance_valid(piece) and piece == board.get_piece(tile_id) and not _player_dead() and not (piece is Enemy and (piece as Enemy).is_dead()):
-			await knock_aside(piece, line))
+		if piece == null or piece == boss:
+			return
+		var pinned := knock_aside_tile(piece, line) == -1
+		if pinned:
+			piece.popup(tr("POPUP_PINNED"), PIN_COLOR)
+		await _hit_piece(boss, tile_id, boss.data.attack + (PIN_BONUS if pinned else 0), tr("NOTE_PINNED") if pinned else tr("NOTE_CHARGE"))
+		if pinned or not is_instance_valid(piece) or piece != board.get_piece(tile_id) or _player_dead() or (piece is Enemy and (piece as Enemy).is_dead()):
+			return
+		var steps := clampi(path.size() - 1 - path.find(tile_id), 1, drag)
+		if await knock_aside(piece, line) and steps > 1:
+			dragging.append([piece, steps - 1]))
 
 
 ## [boss] bursts into flames: [damage] to every piece on the tiles up to [reach] along the six straight lines from it,
@@ -1554,8 +1654,30 @@ func flame_burst(boss: Enemy, reach: int, damage: int) -> void:
 	for tile_id in tiles:
 		if _player_dead():
 			break
-		await _hit_piece(boss, tile_id, damage, "flames")
+		await _hit_piece(boss, tile_id, damage, tr("NOTE_FLAMES"))
 	board.clear_highlights()
+
+
+## [boss] marks [tiles] for an avalanche that lands at the start of its next turn ([method avalanche]). Awaitable.
+func mark_avalanche(boss: Enemy, tiles: Array[int]) -> void:
+	boss.avalanche = tiles
+	boss.popup(tr("POPUP_AVALANCHE"), Color(0.6, 0.85, 1.0))
+	board.warn(tiles)
+	await get_tree().create_timer(Anim.t(0.5)).timeout
+
+
+## The avalanche [boss] marked lands: [damage] to every piece still on its tiles. Awaitable.
+func avalanche(boss: Enemy, damage: int) -> void:
+	var tiles: Array[int] = []
+	tiles.assign(boss.avalanche)
+	boss.avalanche.clear()
+	board.warn(tiles, false)
+	for tile_id in tiles:
+		board.spawn_terrain_effect(tile_id)
+	for tile_id in tiles:
+		if _player_dead():
+			break
+		await _hit_piece(boss, tile_id, damage, tr("NOTE_AVALANCHE"))
 
 
 ## An attack of [damage] by [attacker] on whatever stands on [tile_id]: the player (who may block) or another enemy.

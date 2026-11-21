@@ -16,6 +16,7 @@ move = 2
 attack = 3
 attack_range = 4
 defence = 1
+pull = 1
 gold = 40
 segments = 6
 is_boss = true

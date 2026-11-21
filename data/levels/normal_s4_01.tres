@@ -7,5 +7,4 @@
 script = ExtResource("1")
 id = &"normal_s4_01"
 scene = ExtResource("2")
-exit_count = 2
 stage = 4

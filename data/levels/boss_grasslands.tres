@@ -8,4 +8,3 @@ script = ExtResource("1")
 id = &"boss_grasslands"
 type = 4
 scene = ExtResource("2")
-exit_count = 2

@@ -26,6 +26,8 @@ enum Outcome { DEFEAT, VICTORY, ABANDONED }
 ## Counts for unlock challenges, added from each finished run (RunData.counters), plus "flawless_victory" (runs won
 ## without taking damage from a boss)
 @export var counters: Dictionary = {}
+## Per character id, the ids of the bosses (EnemyData) it has defeated, shown as gems on its card (CharacterPicker)
+@export var bosses_defeated_by: Dictionary = {}
 
 ## Unlocks
 @export var unlocked_characters: Array[String] = []
@@ -38,6 +40,17 @@ enum Outcome { DEFEAT, VICTORY, ABANDONED }
 @export var die_finish: String = "plastic"
 @export var die_trim_finish: String = "brass"
 @export var unlocked_die_designs: Array[String] = ["classic", "sharp"]
+
+## Order of the designs and finishes in the dice designer, least impressive first; designs unlocked last go last.
+## Ids not listed follow, by id.
+const DIE_DESIGN_ORDER: Array[StringName] = [
+	&"classic", &"sharp", &"chamfer", &"pebble", &"ember", &"venom", &"thunder", &"blink", &"gilded",
+	&"bog", &"glacier", &"sandstorm", &"iron", &"inferno", &"void", &"crowned",
+]
+const DIE_FINISH_ORDER: Array[StringName] = [
+	&"plastic", &"wood", &"flecked", &"rust", &"marble", &"metal", &"brass", &"pearl", &"glass",
+	&"obsidian", &"galaxy",
+]
 
 ## Bank
 @export var gold_in_bank: int = 0
@@ -66,6 +79,23 @@ func record_run(run: RunData, outcome: Outcome) -> void:
 		counters[key] = int(counters.get(key, 0)) + int(run.counters[key])
 	if outcome == Outcome.VICTORY and int(run.counters.get("boss_damage", 0)) == 0:
 		counters["flawless_victory"] = int(counters.get("flawless_victory", 0)) + 1
+	_record_bosses(run)
+
+
+## Adds the bosses [run] defeated (its "boss_defeated:<boss id>" counters) to its character's.
+func _record_bosses(run: RunData) -> void:
+	var beaten: Array = bosses_defeated_by.get(run.character_id, [])
+	for key in run.counters:
+		var boss := String(key).trim_prefix("boss_defeated:")
+		if boss != String(key) and boss not in beaten:
+			beaten.append(boss)
+	if not beaten.is_empty():
+		bosses_defeated_by[run.character_id] = beaten
+
+
+## True if [character_id] has defeated the boss [boss_id] in a finished run.
+func has_defeated(character_id: StringName, boss_id: StringName) -> bool:
+	return String(boss_id) in bosses_defeated_by.get(String(character_id), [])
 
 
 ## True if [type] can drop as loot: unlocked from the start, or unlocked since.
@@ -111,6 +141,19 @@ func _ids(category: String) -> Array[String]:
 	for content in Database.get_all(category):
 		ids.append(String(content.id))
 	return ids
+
+
+## [items] (resources with an id) sorted as listed in [order]; ids not listed go last, by id.
+static func sorted_by_order(items: Array, order: Array[StringName]) -> Array:
+	var sorted := items.duplicate()
+	var rank := func(item: Resource) -> int:
+		var index := order.find(item.id)
+		return index if index != -1 else order.size()
+	sorted.sort_custom(func(a: Resource, b: Resource):
+		var ra: int = rank.call(a)
+		var rb: int = rank.call(b)
+		return ra < rb if ra != rb else String(a.id) < String(b.id))
+	return sorted
 
 
 ## True if [character] can be picked: unlocked from the start, or unlocked since.

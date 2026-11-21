@@ -1,6 +1,10 @@
 [gd_resource type="Resource" script_class="BiomeData" format=3]
 
 [ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/grass_blades.tscn" id="fx_0"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/dust_puff.tscn" id="fx_1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/stone_chips.tscn" id="fx_2"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/water_splash.tscn" id="fx_3"]
 
 [resource]
 script = ExtResource("1")
@@ -9,6 +13,7 @@ order = 1
 difficulty = 1
 color = Color(0.45, 0.9, 0.35, 1)
 terrain_colors = Array[Color]([Color(0.45, 0.62, 0.35, 1), Color(0.59, 0.47, 0.31, 1), Color(0.47, 0.31, 0.41, 1), Color(0.31, 0.51, 0.75, 1), Color(0.45, 0.45, 0.5, 1)])
+terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"grunt", &"archer", &"runt"])
 boss_id = &"warlord"
 boss_level = &"boss_grasslands"

@@ -25,6 +25,8 @@ uniform float glow = 0.0;
 uniform float dim = 0.0;
 
 varying vec3 die_position;
+// Surface normal in die space, for patterns laid flat on the surface (flecks)
+varying vec3 die_normal;
 
 float hash13(vec3 p) {
 	p = fract(p * 0.1031);
@@ -56,6 +58,29 @@ float spots(vec3 p, float density, float chance, float radius) {
 	vec3 cell = floor(p * density);
 	float on = step(1.0 - chance, hash13(cell + 13.7));
 	return on * (1.0 - smoothstep(radius * 0.5, radius, length(fract(p * density) - 0.5)));
+}
+
+// Spots laid flat on the surface: a 2D grid on the plane of the die face the surface mostly faces, so every spot is
+// cut through its middle whatever the surface's depth. (3D spots are only whole where the surface crosses a cell's
+// centre, so designs with recessed faces - face_offset not 0.5 - showed few or none.)
+float flat_spots(vec3 p, vec3 normal, float density, float chance, float radius) {
+	vec3 a = abs(normal);
+	vec2 uv;
+	float side;
+	if (a.x >= a.y && a.x >= a.z) {
+		uv = p.yz;
+		side = sign(normal.x);
+	} else if (a.y >= a.z) {
+		uv = p.xz;
+		side = 2.0 + sign(normal.y);
+	} else {
+		uv = p.xy;
+		side = 4.0 + sign(normal.z);
+	}
+	vec2 cell = floor(uv * density);
+	// [side] gives each face its own spots
+	float on = step(1.0 - chance, hash13(vec3(cell, side * 17.0) + 13.7));
+	return on * (1.0 - smoothstep(radius * 0.5, radius, length(fract(uv * density) - 0.5)));
 }
 
 // [border] pushes the glow towards the edge colour regardless of view angle (used for face borders)
@@ -112,7 +137,7 @@ void die_finish(vec3 position, vec3 normal, vec3 view, float time, out vec3 albe
 		emission = nebula * 0.55 + vec3(spots(p, 26.0, 0.06, 0.22) * 1.6 * twinkle);
 	} else if (pattern == 7) {
 		// Flecked: speckles of the detail colour
-		albedo = mix(base, detail_color.rgb, spots(p, 45.0, 0.18, 0.4));
+		albedo = mix(base, detail_color.rgb, flat_spots(p, die_normal, 45.0, 0.18, 0.4));
 	} else if (pattern == 8) {
 		// Wood: growth rings bent by noise
 		float rings = fract(length(p.xz + vec2(0.7, 0.3)) * 9.0 + fbm(p * 3.0) * 1.6);

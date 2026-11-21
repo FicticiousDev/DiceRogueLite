@@ -30,12 +30,18 @@ var display_name: String:
 ## Its damaging hits freeze the player (next turn's movement halved) / set them on fire (half the damage again next turn)
 @export var applies_freeze: bool = false
 @export var applies_fire: bool = false
+## Armour piercing on its hits: ignores this much of the player's block
+@export var attack_pierce: int = 0
+## A landed hit (blocked or not) drags the player this many tiles towards it
+@export var pull: int = 0
 
 @export_group("Boss")
 ## Scale of the cut-out; the piece still stands on one tile
 @export var size: float = 1.0
 ## Attacks in its own turn, each rolled and blocked separately. Retaliating is always a single attack
 @export var attacks_per_turn: int = 1
+## Striking back (retaliation or first strike) doesn't use up any of its attacks for its own turn
+@export var free_retaliation: bool = false
 ## Stun has no effect on it
 @export var stun_immune: bool = false
 ## Ice shield: takes damage before health (the rest carries over), and recovers [member shield_regen] in any round the

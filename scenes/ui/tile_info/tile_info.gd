@@ -94,9 +94,6 @@ static func piece_name(board: Board, tile_id: int) -> String:
 		return piece.data.display_name
 	if piece is Building:
 		return (TranslationServer.translate("PIECE_SHOP") if piece.kind == Building.Kind.SHOP else TranslationServer.translate("PIECE_BANK")) + ("  " + TranslationServer.translate("PIECE_CLOSED_SUFFIX") if piece.closed else "")
-	if piece is ExitGate:
-		var run := SaveManager.run_data
-		return TranslationServer.translate("PIECE_GATE") % [RunMap.biome(run, piece.target).display_name, TranslationServer.translate(LevelData.NAMES[RunMap.level(run, piece.target).type])]
 	if piece:
 		return TranslationServer.translate("PIECE_" + piece.scene_file_path.get_file().get_basename().to_upper())
 	# Chests and Mystery pieces don't occupy their tile

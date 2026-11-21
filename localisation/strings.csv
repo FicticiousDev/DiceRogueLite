@@ -14,6 +14,7 @@ BTN_CONTINUE,CONTINUE,
 BTN_DONE,DONE,
 BTN_ENEMIES_FIRST,ENEMIES GO FIRST,
 BTN_EQUIP,EQUIP,
+BTN_LEAVE_LEVEL,LEAVE LEVEL,
 BTN_LEAVE_IT,LEAVE IT,
 BTN_MAIN_MENU,MAIN MENU,
 BTN_PLAY,PLAY,
@@ -27,6 +28,7 @@ PROMPT_BROWSE,Browse,
 PROMPT_CLOSE,Close,
 PROMPT_CONTINUE,Continue,
 PROMPT_INSPECT,Inspect,
+PROMPT_MAP,Map,
 PROMPT_MAIN_MENU,Main menu,
 PROMPT_NAVIGATE,Navigate,
 PROMPT_NO,No,
@@ -90,8 +92,6 @@ DIALOG_QUIT_MESSAGE,Are you sure you want to quit?,
 DIALOG_QUIT_TITLE,QUIT,
 DIALOG_STUNNED_MESSAGE,"You're stunned and will lose this turn.
 Use %s to shake it off?",Placeholders: %s
-DIALOG_TRAVEL_MESSAGE,Head to the %s: %s?,Placeholders: %s %s
-DIALOG_TRAVEL_TITLE,TRAVEL,
 DIALOG_UNUSED_DICE_MANY,"%d dice will be discarded.
 Commit anyway?",
 DIALOG_UNUSED_DICE_ONE,"1 die will be discarded.
@@ -116,9 +116,9 @@ HINT_ARMED_NOTE,%s will be used on this attack.,
 HINT_ATTACK,Attack %d (range %d): click a highlighted enemy.  Click more attack dice to combine them.%s%s  Right-click to cancel.,Placeholders: %d %d %s %s
 HINT_BLOCK_OR_TAKE_HIT,%s hits you for %d.  Block with held defence dice or TAKE HIT.,Placeholders: %s %d
 HINT_CHOOSE_REDIRECT_TARGET,Click a highlighted enemy to send the hit to.,
-HINT_CLEAR_BANK,"Click the bank to use it, or an open gate to move on.  [M] map  [P] dice",
-HINT_CLEAR_SHOP,"Click the shop to use it, or an open gate to move on.  [M] map  [P] dice",
-HINT_CLEAR_SHOP_BANK,"Click the shop or the bank to use them, or an open gate to move on.  [M] map  [P] dice",
+HINT_CLEAR_BANK,"Click the bank to use it, then LEAVE LEVEL to move on.  [M] map  [P] dice",
+HINT_CLEAR_SHOP,"Click the shop to use it, then LEAVE LEVEL to move on.  [M] map  [P] dice",
+HINT_CLEAR_SHOP_BANK,"Click the shop or the bank to use them, then LEAVE LEVEL to move on.  [M] map  [P] dice",
 HINT_DASH,"%s: click a highlighted tile (up to %d away, in line of sight).  Right-click to cancel.",Placeholders: %s %d
 HINT_DEFEATED,Defeated.,
 HINT_DEFENCE_NOT_PLANNED,Defence dice aren't planned: they're kept to block hits this turn.,
@@ -127,7 +127,6 @@ HINT_ENEMIES_ACTED,"The enemies have acted.  Click dice to plan moves and attack
 HINT_ENEMY_TURN,Enemy turn...,
 HINT_FROZEN_NOTE,(frozen: half of %d),
 HINT_LEVEL_CLEAR,Level clear!,
-HINT_LEVEL_CLEAR_GATES,Level clear!  Click an open gate to choose your next level.  [M] map  [P] dice,
 HINT_MOVE,Move %d%s: click a highlighted tile.  Click more movement dice to combine them.  Right-click to cancel.,Placeholders: %d %s
 HINT_MOVE_TELEPORT_LOST,Move %d: teleport lost by combining with normal movement.  Click a highlighted tile.  Right-click to cancel.,Placeholders: %d
 HINT_PLAN,"Click dice to plan moves and attacks, then COMMIT.  Defence dice are kept to block hits.",
@@ -138,6 +137,10 @@ HINT_ROLLING,Rolling...,
 HINT_RUN_COMPLETE,Run complete!,
 HINT_STUNNED_LOSE_TURN,You are stunned and lose this turn.,
 HINT_TELEPORT,Teleport %d: click a highlighted tile in line of sight.  Right-click to cancel.,Placeholders: %d
+POPUP_AVALANCHE,AVALANCHE,
+POPUP_DIVE,DIVE,
+POPUP_PINNED,PINNED,
+POPUP_THROW,THROW,
 POPUP_BANKED,%d banked,Placeholders: %d
 POPUP_BLOCKED,BLOCKED,
 POPUP_BURNING,BURNING,
@@ -182,7 +185,12 @@ LOG_HIT_YOU,%s hit you for %d,
 LOG_MISSED_YOU,%s missed you,Placeholders: %s
 LOG_REDIRECTED_TO,Redirected to %s,Placeholders: %s
 NOTE_ALREADY_ATTACKED_NO_STRIKE,Already attacked: no %s,Placeholders: %s
-NOTE_SLAM,slam,
+NOTE_AVALANCHE,avalanche,
+NOTE_CHARGE,charge,
+NOTE_FLAMES,flames,
+NOTE_FOLLOW_UP,follow-up,
+NOTE_PINNED,pinned,
+NOTE_THROW,thrown,
 NOTE_BLOCKED_BY_SUFFIX,", blocked by %s",
 NOTE_BOSS_RESISTS_INSTA_KILL,Boss resists insta-kill,
 NOTE_CRIT,Crit,
@@ -362,12 +370,13 @@ CHARACTER_MELEE,Melee,
 CHARACTER_LOCKED_HEADING,LOCKED,
 CHARACTER_TO_UNLOCK,To unlock: %s,Placeholders: %s
 CHARACTER_PROGRESS,Progress: %s,Placeholders: %s
+CHARACTER_BOSS_DEFEATED,%s (%s) - defeated,"Placeholders: %s boss name, %s biome name"
+CHARACTER_BOSS_UNDEFEATED,%s (%s) - not yet defeated,"Placeholders: %s boss name, %s biome name"
 TILE_IMPASSABLE,Impassable,
 TILE_MOVE_COST,Move cost %d,Placeholders: %d
 PIECE_BANK,Bank,
 PIECE_CHEST,Chest,
 PIECE_CLOSED_SUFFIX,(closed),
-PIECE_GATE,Gate to the %s: %s,Placeholders: %s %s
 PIECE_MYSTERY,Mystery,
 PIECE_OBSTACLE,Obstacle,Key is built from the piece scene file name
 PIECE_PLAYER,Player,
@@ -389,6 +398,7 @@ RARITY_MYTHIC,Mythic,
 RARITY_RARE,Rare,
 RARITY_UNCOMMON,Uncommon,
 MAP_TITLE,MAP,
+EXIT_CHOICE_TITLE,Choose your path,
 LOADING_COMPILING_SHADERS,Compiling shaders,
 SACRIFICE_ACCEPT_DEFEAT,ACCEPT DEFEAT,
 SACRIFICE_INFO,That hit would kill you. Sacrifice a die to survive it - the die is gone for the rest of the run.,
@@ -413,8 +423,9 @@ CHARACTER_TANK_NAME,Tank,
 CHARACTER_VOID_DANCER_NAME,Void Dancer,
 ENEMY_ARCHER_NAME,Archer,
 ENEMY_BROOD_MINION_NAME,Brood Spawn,
-ENEMY_BROOD_MOTHER_DESC,"Steps back to the furthest tile still in range before attacking
-Calls 2 Brood Spawn beside it whenever none are alive; attacks instead if there is no room",
+ENEMY_BROOD_MOTHER_DESC,"Never walks: dives from pool to pool, coming up wherever it can hit you from furthest away
+No pool to hit you from: calls 2 Brood Spawn beside it instead (at most 4 at a time)
+Damage sends it under at once, leaving a Brood Spawn behind; it comes up in another pool on its next turn",
 ENEMY_BROOD_MOTHER_NAME,Brood Mother,
 ENEMY_BRUTE_NAME,Brute,
 ENEMY_CASTER_NAME,Caster,
@@ -422,7 +433,9 @@ ENEMY_COLOSSUS_DESC,"An ice shield takes damage before its health and recovers 3
 Armour piercing attacks deal double damage to the shield
 Shield up: closes in and attacks from adjacent
 Shield broken: keeps away and attacks from range
-A landed hit freezes you: half movement next turn",
+A landed hit freezes you: half movement next turn
+Once its shield first breaks, every 3 turns it marks an avalanche 3 tiles wide and 3 deep towards you
+The avalanche lands at the start of its next turn: 5 damage to everything still on it",
 ENEMY_COLOSSUS_NAME,Colossus,
 ENEMY_EMBER_NAME,Ember,
 ENEMY_GRUNT_NAME,Grunt,
@@ -432,11 +445,15 @@ ENEMY_JUGGERNAUT_NAME,Juggernaut,
 ENEMY_LEECH_NAME,Leech,
 ENEMY_LURKER_NAME,Lurker,
 ENEMY_OVERLORD_DESC,"Emptying a health segment teleports it to the marked tile furthest from you and calls a Void Husk on the closest
-Alternates form after each teleport: ranged (range 4, attack 3, def 1) and melee (attack 4, move 3, def 2)",
+Alternates form after each teleport: ranged (range 4, attack 3, def 1) and melee (attack 4, move 3, def 2)
+Ranged form: a landed hit, even a blocked one, pulls you 1 tile towards it
+Melee form: its hits ignore 1 of your block",
 ENEMY_OVERLORD_MINION_NAME,Void Husk,
 ENEMY_OVERLORD_NAME,Overlord,
 ENEMY_OVERSEER_DESC,"Never walks: charges up to 5 tiles in a straight line towards you, ending at a wall
-Every piece in the way takes an attack and is knocked aside
+Every piece in the way takes an attack, is knocked aside and dragged along beside the charge for up to 2 tiles (no room to the side: pinned, +1 damage)
+Ends the charge next to you: hits you again for 3
+The tiles it charges through turn to difficult terrain until the end of the next round
 At half health calls 6 Dust Raiders, one on each side of the arena",
 ENEMY_OVERSEER_MINION_NAME,Dust Raider,
 ENEMY_OVERSEER_NAME,Overseer,
@@ -452,8 +469,10 @@ Emptying a health segment sends flame bursts down all 6 lines (range 4) on its n
 Damage it deals sets the target on fire: half again next turn",
 ENEMY_TYRANT_NAME,Tyrant,
 ENEMY_VOIDCALLER_NAME,Voidcaller,
-ENEMY_WARLORD_DESC,"Attacks twice each turn
-Its second attack hits harder (3) and shoves you 2 tiles away; the Warlord recoils 1 tile",
+ENEMY_WARLORD_DESC,"Attacks twice each turn; striking back doesn't use up either attack
+Each attack in its own turn knocks you back 1 tile, even when blocked, and it steps into the gap to strike again while it has movement left
+Knocked back with no room behind you: pinned, +1 damage
+Can't reach you: throws a single attack from up to 3 tiles instead",
 ENEMY_WARLORD_NAME,Warlord,
 BIOME_ABYSS_NAME,Abyss,
 BIOME_ASHLANDS_NAME,Ashlands,
@@ -515,7 +534,7 @@ ABILITY_SCALE_ARMOUR_DIE_DESC,Passive: rolls an extra die every turn showing 3 s
 ABILITY_SCALE_ARMOUR_DIE_NAME,Defence 3 die,
 ABILITY_SHIELD_BLOCK_DESC,Every 3 turns: completely block one attack.,
 ABILITY_SHIELD_BLOCK_NAME,Shield Block,
-ABILITY_SHIELD_CHARGE_DESC,"Every 3 turns: charge up to 3 tiles (like a teleport), dealing 3 damage that ignores defence to every enemy in the way and knocking them aside.",
+ABILITY_SHIELD_CHARGE_DESC,"Every 3 turns: charge up to 3 tiles (like a teleport), dealing 3 damage that ignores defence to every enemy in the way and knocking them aside (+1 damage to any with no room to go).",
 ABILITY_SHIELD_CHARGE_NAME,Shield Charge,
 ABILITY_SMOKE_DESC,Passive: ranged enemies have 1 less range.,
 ABILITY_SMOKE_NAME,Smoke,
@@ -569,7 +588,6 @@ DIE_FINISH_FLECKED_NAME,Flecked,
 DIE_FINISH_GALAXY_NAME,Galaxy,
 DIE_FINISH_GLASS_NAME,Glass,
 DIE_FINISH_MARBLE_NAME,Marble,
-DIE_FINISH_MATTE_NAME,Matte,
 DIE_FINISH_METAL_NAME,Metal,
 DIE_FINISH_OBSIDIAN_NAME,Obsidian,
 DIE_FINISH_PEARL_NAME,Pearl,

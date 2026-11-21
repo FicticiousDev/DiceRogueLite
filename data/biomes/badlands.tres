@@ -1,6 +1,10 @@
 [gd_resource type="Resource" script_class="BiomeData" format=3]
 
 [ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/sand_spray.tscn" id="fx_0"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/red_dust.tscn" id="fx_1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/clay_chunks.tscn" id="fx_2"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/badlands/oasis_splash.tscn" id="fx_3"]
 
 [resource]
 script = ExtResource("1")
@@ -9,6 +13,7 @@ order = 2
 difficulty = 2
 color = Color(1, 0.62, 0.2, 1)
 terrain_colors = Array[Color]([Color(0.8, 0.66, 0.42, 1), Color(0.66, 0.45, 0.28, 1), Color(0.55, 0.3, 0.22, 1), Color(0.25, 0.55, 0.6, 1), Color(0.6, 0.42, 0.3, 1)])
+terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"brute", &"slinger", &"stalker"])
 boss_id = &"overseer"
 boss_level = &"boss_badlands"

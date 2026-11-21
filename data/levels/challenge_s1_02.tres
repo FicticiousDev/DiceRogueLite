@@ -8,6 +8,5 @@ script = ExtResource("1")
 id = &"challenge_s1_02"
 type = 3
 scene = ExtResource("2")
-exit_count = 3
 stage = 1
 turn_limit = 6

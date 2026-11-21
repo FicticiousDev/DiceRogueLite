@@ -1,8 +1,8 @@
 class_name CharacterPicker
 extends CanvasLayer
 
-## Character select at the start of a new run. One card per character (by [member CharacterData.order]): its
-## cut-out on a tile, health and range, passive and active, and its unique starting die - turnable, click it for the
+## Character select at the start of a new run. One card per character (by [member CharacterData.order]): a gem
+## socket per boss (BossGem, filled once the character has defeated it), its cut-out on a tile, health and range, passive and active, and its unique starting die - turnable, click it for the
 ## inspector - with its six faces (every character also starts with the shared dice, explained under the title).
 ## The cards sit in a carousel that wraps around: [constant SHOWN] at full size in the middle, and the ones beyond cascading
 ## away to each side, smaller, darker and tucked behind. The arrows either side (the left / right prompts of the active
@@ -36,6 +36,7 @@ const FACE_SIZE: float = 44.0
 const DIE_VIEW_SIZE: float = 100.0
 ## Distance of the PLAY / BACK prompts from the bottom-right corner
 const PROMPT_MARGIN: float = 28.0
+const GEM_GAP: int = 10
 
 @onready var strip: Control = %Strip
 @onready var content: Control = %Content
@@ -395,6 +396,7 @@ func _card(character: CharacterData) -> Control:
 	box.add_theme_constant_override("separation", 6)
 	panel.add_child(box)
 
+	box.add_child(_boss_gems(character))
 	var portrait := _portrait(character, unlocked)
 	box.add_child(portrait[0])
 	box.add_child(_label(character.display_name, 42, HORIZONTAL_ALIGNMENT_CENTER))
@@ -447,6 +449,24 @@ func _card(character: CharacterData) -> Control:
 	panel.gui_input.connect(_on_card_input.bind(character.id))
 	_cards[character.id] = [panel, button, style, portrait[1]]
 	return panel
+
+
+## A socket per biome's boss, in run order, holding a gem in the biome's colour once [character] has defeated that boss.
+func _boss_gems(character: CharacterData) -> Control:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", GEM_GAP)
+	var biomes: Array[BiomeData] = []
+	biomes.assign(Database.get_all("biomes"))
+	biomes.sort_custom(func(a: BiomeData, b: BiomeData): return a.order < b.order)
+	for i in biomes.size():
+		var biome := biomes[i]
+		var boss: EnemyData = Database.get_content("enemies", biome.boss_id)
+		var boss_name := boss.display_name if boss else String(biome.boss_id)
+		var beaten := SaveManager.progression_data.has_defeated(character.id, biome.boss_id)
+		var tooltip := tr("CHARACTER_BOSS_DEFEATED" if beaten else "CHARACTER_BOSS_UNDEFEATED") % [boss_name, biome.display_name]
+		row.add_child(BossGem.create(biome.color, beaten, tooltip, float(i) / biomes.size()))
+	return row
 
 
 ## The character's cut-out standing on a tile, in its own small 3D world. Returns [container, cut-out].

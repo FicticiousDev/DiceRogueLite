@@ -1,6 +1,10 @@
 [gd_resource type="Resource" script_class="BiomeData" format=3]
 
 [ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/frost/snow_puff.tscn" id="fx_0"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/frost/frost_crunch.tscn" id="fx_1"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/frost/ice_shards.tscn" id="fx_2"]
+[ext_resource type="PackedScene" path="res://scenes/board/effects/frost/icy_splash.tscn" id="fx_3"]
 
 [resource]
 script = ExtResource("1")
@@ -9,6 +13,7 @@ order = 4
 difficulty = 4
 color = Color(0.55, 0.82, 1, 1)
 terrain_colors = Array[Color]([Color(0.6, 0.68, 0.76, 1), Color(0.5, 0.57, 0.67, 1), Color(0.42, 0.47, 0.6, 1), Color(0.3, 0.52, 0.72, 1), Color(0.44, 0.48, 0.56, 1)])
+terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), ExtResource("fx_2"), ExtResource("fx_3")])
 enemy_ids = Array[StringName]([&"sentinel", &"caster", &"howler"])
 boss_id = &"colossus"
 boss_level = &"boss_frost"

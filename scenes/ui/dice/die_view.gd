@@ -28,7 +28,7 @@ var die: Die3D
 var inspect_on_click: bool = true
 ## Turns slowly until the player first drags it
 var idle_spin: bool = true
-## Look overrides (set before it enters the tree); the player's design and finishes if not set
+## Look overrides (set before it enters the tree, or later with [method set_look]); the player's design and finishes if not set
 var design: DieDesign
 var finish: DieFinish
 var trim_finish: DieFinish
@@ -88,6 +88,30 @@ func _ready() -> void:
 	fill.light_energy = 0.3
 	_viewport.add_child(fill)
 
+	_add_die()
+	# Three-quarter view: top, front and right faces
+	die.basis = Basis(Vector3.RIGHT, deg_to_rad(25)) * Basis(Vector3.UP, deg_to_rad(-30))
+	mouse_entered.connect(_set_hovered.bind(true))
+	mouse_exited.connect(_set_hovered.bind(false))
+
+
+## Shows the die in another look (null: the player's), keeping its turn. Does nothing if the look is unchanged.
+func set_look(new_design: DieDesign, new_finish: DieFinish, new_trim: DieFinish) -> void:
+	if new_design == design and new_finish == finish and new_trim == trim_finish:
+		return
+	design = new_design
+	finish = new_finish
+	trim_finish = new_trim
+	if not die:
+		return
+	var turn := die.basis
+	_viewport.remove_child(die)
+	die.queue_free()
+	_add_die()
+	die.basis = turn
+
+
+func _add_die() -> void:
 	if design == null:
 		design = Database.get_content("die_designs", SaveManager.progression_data.die_design)
 	if design == null:
@@ -100,11 +124,7 @@ func _ready() -> void:
 	die.collision_layer = 0
 	die.collision_mask = 0
 	die.input_ray_pickable = false
-	# Three-quarter view: top, front and right faces
-	die.basis = Basis(Vector3.RIGHT, deg_to_rad(25)) * Basis(Vector3.UP, deg_to_rad(-30))
 	_viewport.add_child(die)
-	mouse_entered.connect(_set_hovered.bind(true))
-	mouse_exited.connect(_set_hovered.bind(false))
 
 
 ## Mirrors the player's quality settings in this view, for the settings preview. [param msaa] and [param screen_space] are the
