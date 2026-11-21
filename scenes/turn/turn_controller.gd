@@ -884,9 +884,16 @@ func resolve_attack(enemy: Enemy, dice: Array[int], wanted: Array[Ability]) -> v
 
 
 ## False if [enemy] already attacked this round in a turn taken before the player's, so it has nothing left to strike
-## back with, or it's under water. (Stun is checked separately.)
+## back with, or it's under water, or it needs an attack to strike back and has none left
+## ([member EnemyData.retaliation_needs_attack]). (Stun is checked separately.)
 func can_retaliate(enemy: Enemy) -> bool:
-	return not _attacked_first.has(enemy) and not enemy.submerged
+	return not _attacked_first.has(enemy) and not enemy.submerged and has_attack_to_strike_back(enemy, _retaliated)
+
+
+## False if [enemy] spends an attack to strike back ([member EnemyData.retaliation_needs_attack]) and [retaliated]
+## (one entry per strike back so far this round) has used up all of them.
+static func has_attack_to_strike_back(enemy: Enemy, retaliated: Array[Enemy]) -> bool:
+	return not enemy.data.retaliation_needs_attack or retaliated.count(enemy) < enemy.data.attacks_per_turn
 
 
 ## [enemy] strikes back at the player's attack (retaliation or first strike) - the hits a redirect can be used on.
@@ -1950,6 +1957,9 @@ func _refresh_enemies(planning: bool) -> void:
 func _update_retaliation(enemy: Enemy) -> void:
 	enemy.show_retaliation = not results.is_empty() and (state == State.ROLL or state == State.PLAN or state == State.RESOLVE)
 	enemy.can_retaliate = not (enemy.stunned or enemy.preview_stunned) and can_retaliate(enemy)
+	# While planning, attacks the plan already draws a strike back from count too
+	if enemy.can_retaliate and state == State.PLAN and _end_state != null:
+		enemy.can_retaliate = has_attack_to_strike_back(enemy, _end_state.retaliated)
 
 
 ## Takes [amount] off the planned defence, shield ([shield_multiplier] per point) and health shown for [enemy].

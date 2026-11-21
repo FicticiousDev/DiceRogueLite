@@ -198,6 +198,7 @@ NOTE_IMMUNE_TO_STUN,Immune to stun,
 NOTE_KILLED,killed,
 NOTE_KILLS_IT,Kills it (+%d gold),Placeholders: %d
 NOTE_NOUN_FIRST_STRIKE,first strike,
+NOTE_NO_ATTACKS_LEFT_NO_STRIKE,No attacks left: no %s,Placeholders: %s
 NOTE_NOUN_RETALIATION,retaliation,
 NOTE_NO_USES_LEFT,No %s uses left,Placeholders: %s
 NOTE_PIERCE,Pierce,
@@ -469,7 +470,7 @@ Emptying a health segment sends flame bursts down all 6 lines (range 4) on its n
 Damage it deals sets the target on fire: half again next turn",
 ENEMY_TYRANT_NAME,Tyrant,
 ENEMY_VOIDCALLER_NAME,Voidcaller,
-ENEMY_WARLORD_DESC,"Attacks twice each turn; striking back doesn't use up either attack
+ENEMY_WARLORD_DESC,"Attacks twice each turn; each strike back uses up one of them, and with none left it can't strike back
 Each attack in its own turn knocks you back 1 tile, even when blocked, and it steps into the gap to strike again while it has movement left
 Knocked back with no room behind you: pinned, +1 damage
 Can't reach you: throws a single attack from up to 3 tiles instead",

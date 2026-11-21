@@ -85,6 +85,9 @@ func _add_strike_note(state: TurnState, turn: TurnController, verb: String) -> v
 	if not turn.can_retaliate(enemy):
 		_notes.append(tr("NOTE_ALREADY_ATTACKED_NO_STRIKE") % noun)
 		return
+	if not TurnController.has_attack_to_strike_back(enemy, state.retaliated):
+		_notes.append(tr("NOTE_NO_ATTACKS_LEFT_NO_STRIKE") % noun)
+		return
 	state.retaliated.append(enemy)
 	var strike := AttackContext.new(enemy, turn.player, enemy.data.attack, 0)
 	turn.apply_incoming(strike)

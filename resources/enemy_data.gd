@@ -42,6 +42,9 @@ var display_name: String:
 @export var attacks_per_turn: int = 1
 ## Striking back (retaliation or first strike) doesn't use up any of its attacks for its own turn
 @export var free_retaliation: bool = false
+## Striking back (retaliation or first strike) spends one of its [member attacks_per_turn]: once they're all used up
+## this round it can't strike back any more (and has nothing left for its own turn)
+@export var retaliation_needs_attack: bool = false
 ## Stun has no effect on it
 @export var stun_immune: bool = false
 ## Ice shield: takes damage before health (the rest carries over), and recovers [member shield_regen] in any round the
