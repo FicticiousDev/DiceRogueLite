@@ -32,6 +32,11 @@ const GOLD_PER_DEPTH: float = 0.04
 ## Extra damage for a hit whose knockback has nowhere to go (a wall, an obstacle, another piece or the board's edge)
 const PIN_BONUS: int = 1
 const PIN_COLOR: Color = Color(1.0, 0.7, 0.4)
+## Localisation keys saying when each kind of active can be used, for the ability buttons' tooltips
+const USE_HINTS: Dictionary[Ability.Use, String] = {
+	Ability.Use.ATTACK: "TIP_ABILITY_USE_ATTACK", Ability.Use.BLOCK: "TIP_ABILITY_USE_BLOCK",
+	Ability.Use.ACTION: "TIP_ABILITY_USE_ACTION", Ability.Use.MOVE: "TIP_ABILITY_USE_MOVE",
+}
 
 var state: State = State.IDLE
 var turn_number: int = 0
@@ -111,6 +116,7 @@ var _attacked_first: Array[Enemy] = []
 ## True once the enemies have taken this round's turn before the player's, so there isn't another after it
 var _enemies_acted: bool = false
 var _order_prompt: TurnOrderPrompt
+var _ability_bar: AbilityBar
 var _editing: PlannedAction
 var _edit_index: int = -1
 var _ghost: Cutout
@@ -132,10 +138,8 @@ func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionLis
 	if not block_prompt.block_pressed.is_connected(_block_confirmed.emit):
 		block_prompt.block_pressed.connect(_block_confirmed.emit)
 		block_prompt.take_pressed.connect(_take_hit)
-		block_prompt.ability_pressed.connect(_block_with_ability)
 	if not action_list.commit_pressed.is_connected(commit):
 		action_list.commit_pressed.connect(commit)
-		action_list.ability_pressed.connect(func(index: int): use_active(plan_actives()[index]))
 		action_list.rewind_requested.connect(rewind_to)
 		action_list.edit_requested.connect(edit)
 		action_list.delete_requested.connect(delete)
@@ -143,6 +147,12 @@ func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionLis
 		_order_prompt = TurnOrderPrompt.new()
 		add_child(_order_prompt)
 		_order_prompt.pressed.connect(_enemies_first_pressed)
+		_ability_bar = AbilityBar.new()
+		add_child(_ability_bar)
+		_ability_bar.pressed.connect(_ability_pressed)
+		state_changed.connect(func(_s: State): _refresh_controls())
+	_order_prompt.row_y = dice_tray.row_screen_y
+	_ability_bar.row_y = dice_tray.row_screen_y
 	_create_previews()
 
 
@@ -439,13 +449,7 @@ func apply_incoming(ctx: AttackContext) -> void:
 		ability.modify_incoming_attack(ctx)
 
 
-## Actives that can be pressed in the turn plan: attack actives (armed for the next attack) and action actives
-## (added to the plan). Block actives are used from the block prompt.
-func plan_actives() -> Array[Ability]:
-	return actives().filter(func(a: Ability): return a.use != Ability.Use.BLOCK)
-
-
-## Turn plan button for [ability]: arms / disarms an attack active, or adds an action active to the plan.
+## Ability button for [ability] while planning: arms / disarms an attack active, or adds an action active to the plan.
 func use_active(ability: Ability) -> void:
 	if state != State.PLAN:
 		return
@@ -1200,14 +1204,56 @@ func _enemies_first_pressed() -> void:
 		_replan()
 
 
-## Shows the "enemies go first" button beside the dice row while the turn is untouched - nothing planned or edited, and
-## the enemies haven't gone yet.
-func _refresh_order_button() -> void:
-	var row_end := dice_tray.row_end_screen()
-	if state == State.PLAN and _end_state != null and actions.is_empty() and not _editing and not _enemies_acted and row_end.x >= 0.0:
-		_order_prompt.show_at(row_end)
-	else:
+## Shows the round controls beside the dice row while a level is being fought: the abilities on the left, "enemies go
+## first" on the right. They stay up all round and are greyed out while they can't be used.
+func _refresh_controls() -> void:
+	if state == State.IDLE or state == State.LEVEL_CLEAR or state == State.GAME_OVER:
 		_order_prompt.hide_button()
+		_ability_bar.hide_bar()
+		return
+	_order_prompt.show_button(state == State.PLAN and _end_state != null and actions.is_empty() and not _editing and not _enemies_acted)
+	var entries: Array[Dictionary] = []
+	for ability in actives():
+		entries.append(_ability_entry(ability))
+	_ability_bar.set_abilities(entries)
+	_ability_bar.show_bar()
+
+
+## [AbilityBar] entry for [ability]: block actives can be used while the block prompt offers them, the rest while planning.
+func _ability_entry(ability: Ability) -> Dictionary:
+	var left: int = uses_preview().get(ability.id, 0)
+	var armed := _armed.has(ability) or _dashing == ability
+	var offered := _blocking != null and _block_offer.has(ability)
+	var enabled := offered if ability.use == Ability.Use.BLOCK else state == State.PLAN and (left > 0 or armed)
+	# Uses left for items, turns to wait for a cooldown active that isn't ready
+	var badge := ""
+	if ability.cooldown <= 0:
+		badge = str(left)
+	elif left <= 0:
+		var ready_on: int = _ready_on.get(ability.id, turn_number + ability.cooldown)
+		badge = str(maxi(ready_on - turn_number, 1))
+	var rows: Array[Dictionary] = [InfoPanel.row(ability.get_icon(), Color.WHITE, ability.description)]
+	rows.append(InfoPanel.row(ability.get_icon(), CircleButton.HIGHLIGHT, tr(USE_HINTS[ability.use])))
+	return {
+		"ability": ability,
+		"title": tr("TIP_ABILITY_TITLE") % [ability.display_name, active_status(ability)],
+		"rows": rows,
+		"badge": badge,
+		"enabled": enabled,
+		"highlighted": armed or offered,
+		"pulse": offered,
+	}
+
+
+## An ability button was pressed: a block active answers the hit being blocked, the others are armed or planned.
+func _ability_pressed(ability: Ability) -> void:
+	if ability.use == Ability.Use.BLOCK:
+		if _blocking and _block_offer.has(ability):
+			_block_selected.clear()
+			_block_with = ability
+			_block_confirmed.emit()
+	elif state == State.PLAN:
+		use_active(ability)
 
 
 ## The player let the enemies go first: they take their turn now, with the dice just rolled held to block. Those that
@@ -1486,17 +1532,18 @@ func _choose_block(enemy: Enemy, damage: int, log_index: int, pierce: int = 0) -
 		_blocking = enemy
 		_blocking_damage = damage
 		_block_selected.clear()
+		_block_with = null
+		_block_offer = _block_actives(enemy)
 		_enemy_log[log_index] = [tr("LOG_HITS_YOU") % [enemy.data.display_name, damage], tr("LOG_BLOCK_OR_TAKE")]
 		_refresh()
 		enemy.popup("!", Color(1.0, 0.6, 0.2))
-		var blockers := _block_actives(enemy)
-		block_prompt.show_prompt(enemy.data.display_name, damage, blockers.map(func(a: Ability): return a.display_name))
-		_block_with = null
-		_block_offer = blockers
+		block_prompt.show_prompt(enemy.data.display_name, damage, _block_offer.map(func(a: Ability): return a.display_name))
 		await _block_confirmed
 		chosen = _block_selected.duplicate()
 		_blocking = null
+		_block_offer.clear()
 		_block_selected.clear()
+		_refresh_controls()
 		await block_prompt.hide_prompt()
 		if _block_with and _block_with.redirects():
 			var target := await _pick_redirect(enemy)
@@ -1550,13 +1597,6 @@ func _pick_redirect(striker: Enemy) -> Enemy:
 	board.clear_highlights()
 	_refresh()
 	return picked
-
-
-## Block prompt: the player chose the [index]th block active offered.
-func _block_with_ability(index: int) -> void:
-	_block_selected.clear()
-	_block_with = _block_offer[index] if index < _block_offer.size() else null
-	_block_confirmed.emit()
 
 
 ## Fewest dice that cover [needed]: all of them if they can't, else the smallest single die that does,
@@ -1843,7 +1883,7 @@ func _refresh() -> void:
 	_refresh_dice()
 	_refresh_board()
 	_refresh_list()
-	_refresh_order_button()
+	_refresh_controls()
 
 
 func _refresh_dice() -> void:
@@ -2062,17 +2102,6 @@ func _refresh_list() -> void:
 	action_list.show_actions(lines, warnings, _edit_index if _editing else -1, listed.size(), state == State.PLAN)
 	action_list.set_header(tr("HUD_TURN_HEADER") % [turn_number, tr(STATE_NAMES[state])])
 	action_list.set_commit_enabled(state == State.PLAN)
-	var buttons: Array[Dictionary] = []
-	for ability in plan_actives():
-		var left: int = uses_preview().get(ability.id, 0)
-		var armed := _armed.has(ability) or _dashing == ability
-		buttons.append({
-			"text": "%s  (%s)" % [ability.display_name.to_upper(), active_status(ability)],
-			"tooltip": ability.description,
-			"enabled": state == State.PLAN and (left > 0 or armed),
-			"armed": armed,
-		})
-	action_list.set_abilities(buttons)
 	action_list.set_hint(_hint())
 	_refresh_attack_preview()
 

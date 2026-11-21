@@ -10,6 +10,10 @@ extends Resource
 ## How an active ability is used
 enum Use { ATTACK, BLOCK, ACTION, MOVE }
 
+## Button icons for actives are found by id: ICON_DIR/<id>.svg, else the placeholder
+const ICON_DIR: String = "res://assets/ui/icons/abilities/"
+const ICON_PLACEHOLDER: String = "res://icon.svg"
+
 @export var id: StringName
 ## Localised name and description. The keys are ABILITY_<ID>_NAME / ABILITY_<ID>_DESC (localisation/strings.csv).
 ## Descriptions read "Prefix: effect" (see AbilityAction.describe), so translations must keep the ": " separator
@@ -18,15 +22,22 @@ var display_name: String:
 var description: String:
 	get: return tr("ABILITY_%s_DESC" % String(id).to_upper())
 @export var active: bool = false
-## ATTACK: armed from the turn plan, applies to the next attack the player plans. BLOCK: chosen from the block
-## prompt when the player is hit. ACTION: added to the turn plan as its own step and played out with the plan
-## ([method perform]). MOVE: armed from the turn plan, then a tile is chosen (see DashAbility).
+## Every active has a button beside the dice row (AbilityBar). ATTACK: armed while planning, applies to the next
+## attack the player plans. BLOCK: pressed while the block prompt is up, when the player is hit. ACTION: added to the
+## turn plan as its own step and played out with the plan ([method perform]). MOVE: armed while planning, then a tile
+## is chosen (see DashAbility).
 @export var use: Use = Use.ATTACK
 ## For actives: uses per level (when [member cooldown] is 0)
 @export var uses_per_level: int = 0
 ## For actives: once used, ready again this many turns later (used in turn 2 with a cooldown of 3: ready in turn 5).
 ## Every cooldown is reset when a level starts. 0: limited by [member uses_per_level] instead
 @export var cooldown: int = 0
+
+
+## The ability's button icon (see [constant ICON_DIR]).
+func get_icon() -> Texture2D:
+	var path := ICON_DIR + String(id) + ".svg"
+	return load(path) if ResourceLoader.exists(path) else load(ICON_PLACEHOLDER)
 
 
 ## A rolled die once the row forms. Returns true if it changed the result (the face is redrawn).

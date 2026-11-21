@@ -25,6 +25,8 @@ const DESIGN_VIEW_DISTANCE: float = 16.7
 ## Screen x (0-1) of the row centre
 @export var row_screen_x: float = 0.5
 @export var row_spacing_px: float = 112.0
+## Room kept clear at each end of the row (the ability and turn order buttons); a row wider than the rest closes up to fit
+@export var row_side_margin_px: float = 340.0
 @export var group_gap_px: float = 56.0
 ## Distance from the camera to the row (tray units); sets how big row dice look
 @export var row_depth: float = 15.0
@@ -293,14 +295,6 @@ func _sort_row(results: Array[DieResult]) -> void:
 		return a.index < b.index)
 
 
-## Screen position of the right-most die in the row, or (-1, -1) if the row is empty.
-func row_end_screen() -> Vector2:
-	# The slot layout divides by the row's width, so it can't be built before the first roll
-	if _row_order.is_empty():
-		return Vector2(-1.0, -1.0)
-	return camera.unproject_position(_row_targets().back().origin)
-
-
 ## Slides the row dice to their slots again, e.g. after the layout or camera changed.
 func refresh_row() -> void:
 	if rolling or dice.is_empty():
@@ -326,10 +320,13 @@ func _row_targets() -> Array[Transform3D]:
 				x += group_gap_px
 		xs.append(x)
 	var screen := get_viewport().get_visible_rect().size
-	var offset: float = screen.x * row_screen_x - xs.back() / 2.0
+	var fit := 1.0
+	if xs.back() > 0.0:
+		fit = minf(1.0, (screen.x - 2.0 * row_side_margin_px) / xs.back())
+	var offset: float = screen.x * row_screen_x - xs.back() * fit / 2.0
 	var targets: Array[Transform3D] = []
 	for i in _row_order.size():
-		var target := camera.project_position(Vector2(offset + xs[i], screen.y * row_screen_y), row_depth * _scale)
+		var target := camera.project_position(Vector2(offset + xs[i] * fit, screen.y * row_screen_y), row_depth * _scale)
 		targets.append(Transform3D(Die3D.basis_facing(_row_order[i].face_index, _facing_camera(target)), target))
 	return targets
 

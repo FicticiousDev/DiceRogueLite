@@ -173,7 +173,7 @@ func _exit_tree() -> void:
 
 
 ## Puts the turn plan (and the attack preview under it) on the chosen side, the debug menu on the other, and centres
-## the board, tray, dice row and tile info in the rest of the screen.
+## the board and tray in the rest of the screen. The dice row and the tile info above it stay centred on the whole screen.
 func _apply_layout() -> void:
 	var left := SaveManager.settings_data.turn_plan_side == SettingsData.SIDE_LEFT
 	action_list.set_side(left)
@@ -184,8 +184,6 @@ func _apply_layout() -> void:
 	camera_rig.frame_margins.z = margin_right
 	var centre := (margin_left + 1.0 - margin_right) / 2.0
 	dice_tray.tray_screen_point.x = centre
-	dice_tray.row_screen_x = centre
-	_tile_info.center_x = centre
 	if board:
 		camera_rig.frame_points(_frame_points(), false)
 	dice_tray.refresh_row()

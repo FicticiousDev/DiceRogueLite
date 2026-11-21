@@ -9,8 +9,6 @@ signal delete_requested(index: int)
 signal commit_pressed
 ## LEAVE LEVEL, shown in place of COMMIT by [method show_leave]
 signal leave_pressed
-## The [index]th button of [method set_abilities]
-signal ability_pressed(index: int)
 
 enum Option { REWIND, EDIT, DELETE }
 
@@ -18,7 +16,6 @@ enum Option { REWIND, EDIT, DELETE }
 @onready var hint: Label = %Hint
 @onready var entries: VBoxContainer = %Entries
 @onready var commit_button: Button = %CommitButton
-@onready var ability_button: Button = %AbilityButton
 @onready var menu: PopupMenu = %EntryMenu
 
 var _menu_index: int = -1
@@ -39,7 +36,6 @@ func _ready() -> void:
 	_leave_button.visible = false
 	_leave_button.pressed.connect(leave_pressed.emit)
 	commit_button.add_sibling(_leave_button)
-	ability_button.visible = false
 	menu.add_item(tr("ACTION_REWIND"), Option.REWIND)
 	menu.add_item(tr("ACTION_EDIT"), Option.EDIT)
 	menu.add_item(tr("ACTION_DELETE"), Option.DELETE)
@@ -114,34 +110,6 @@ func set_header(text: String) -> void:
 
 func set_hint(text: String) -> void:
 	hint.text = text
-
-
-## One button per active usable from the plan (character and equipment), above COMMIT. Each entry:
-## { text, tooltip, enabled, armed }. The scene's AbilityButton is the template.
-func set_abilities(buttons: Array[Dictionary]) -> void:
-	var parent := ability_button.get_parent()
-	var existing: Array[Button] = []
-	for child in parent.get_children():
-		if child is Button and child.has_meta("ability"):
-			existing.append(child)
-	while existing.size() > buttons.size():
-		existing.pop_back().queue_free()
-	while existing.size() < buttons.size():
-		var button: Button = ability_button.duplicate()
-		button.unique_name_in_owner = false
-		button.set_meta("ability", true)
-		var index := existing.size()
-		button.pressed.connect(func(): ability_pressed.emit(index))
-		parent.add_child(button)
-		parent.move_child(button, ability_button.get_index() + index + 1)
-		existing.append(button)
-	for i in buttons.size():
-		var button := existing[i]
-		button.visible = true
-		button.text = buttons[i].text
-		button.tooltip_text = buttons[i].tooltip
-		button.disabled = not buttons[i].enabled
-		button.modulate = Color(1.0, 0.8, 0.35) if buttons[i].armed else Color.WHITE
 
 
 ## Screen rect of entry [index] (or just under the last entry), e.g. for things flying into the plan.

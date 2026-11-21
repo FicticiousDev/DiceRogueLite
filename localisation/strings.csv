@@ -5,7 +5,6 @@ MENU_DICE,DICE,
 MENU_NEW_RUN,NEW RUN,
 MENU_QUIT,QUIT,
 MENU_SETTINGS,SETTINGS,
-BTN_ABILITY,ABILITY,
 BTN_BACK,BACK,
 BTN_CLOSE,CLOSE,
 BTN_COLLECT,COLLECT  (%d / %d),Placeholders: %d %d
@@ -233,6 +232,7 @@ BLOCK_ENEMY_ATTACKS,ENEMY ATTACKS!,
 BLOCK_INSTRUCTIONS,Click held defence dice in the row to block with them.,
 BLOCK_TAKE_HIT,TAKE HIT,
 BLOCK_TITLE,%s ATTACKS!,Placeholders: %s
+BLOCK_ABILITY_HINT,Or use %s from the ability buttons on the left.,Placeholders: %s (ability names separated by commas)
 BANNER_CHALLENGE,CHALLENGE,
 BANNER_CLEARED_ON_TURN,Cleared on turn %d of %d,Placeholders: %d %d
 BANNER_COMPLETE,CHALLENGE COMPLETE,
@@ -661,3 +661,9 @@ CHALLENGE_UNLOCK_SNIPER_DESC,Kill 100 ranged enemies.,
 CHALLENGE_UNLOCK_TANK_DESC,Defeat a boss with only 1 health left and fewer dice than your pool can hold.,
 CHALLENGE_UNLOCK_VOID_DANCER_DESC,Win a run.,
 TIP_ENEMIES_FIRST,Enemies move and attack now. Those that attack can't retaliate on your turn.,
+TIP_ENEMIES_FIRST_UNAVAILABLE,"Only at the start of your turn, before you plan anything, and once per round.",
+TIP_ABILITY_TITLE,%s  ·  %s,"Placeholders: %s ability name, %s status (READY / 2 TURNS / 1/2)"
+TIP_ABILITY_USE_ATTACK,Press to arm it while planning: it applies to the next attack you plan. Press again to disarm.,
+TIP_ABILITY_USE_ACTION,Press while planning to add it to your turn plan as its own step.,
+TIP_ABILITY_USE_MOVE,"Press while planning, then click the tile to go to. Press again to cancel.",
+TIP_ABILITY_USE_BLOCK,Press when an enemy hits you to use it on that hit.,

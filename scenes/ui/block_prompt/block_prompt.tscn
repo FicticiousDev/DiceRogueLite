@@ -58,6 +58,7 @@ text = "Hits you for 0 damage."
 horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="Center/Panel/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.75, 0.8, 1)
 theme_override_font_sizes/font_size = 24
@@ -75,15 +76,6 @@ custom_minimum_size = Vector2(190, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
 text = "BLOCK_BUTTON"
-
-[node name="AbilityButton" type="Button" parent="Center/Panel/VBox/Buttons"]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(190, 56)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.45, 1)
-theme_override_font_sizes/font_size = 34
-text = "BTN_ABILITY"
 
 [node name="TakeButton" type="Button" parent="Center/Panel/VBox/Buttons"]
 unique_name_in_owner = true

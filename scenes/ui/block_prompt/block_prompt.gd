@@ -2,42 +2,32 @@ class_name BlockPrompt
 extends CanvasLayer
 
 ## Centre-screen prompt when an enemy's attack lands in the enemy turn: block with held defence dice or take
-## the hit, or use a block active (one button each). Doesn't block the mouse, so dice in the row can still be clicked.
+## the hit. Block actives that can answer the hit are named here and used from their buttons beside the dice row
+## (AbilityBar). Doesn't block the mouse, so dice in the row and the ability buttons can still be clicked.
 
 signal block_pressed
 signal take_pressed
-## The [index]th block active named in [method show_prompt]
-signal ability_pressed(index: int)
 
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %Title
 @onready var damage_label: Label = %Damage
+@onready var hint_label: Label = %Hint
 @onready var block_button: Button = %BlockButton
 @onready var take_button: Button = %TakeButton
-@onready var ability_button: Button = %AbilityButton
 
 
 func _ready() -> void:
 	block_button.pressed.connect(block_pressed.emit)
 	take_button.pressed.connect(take_pressed.emit)
-	ability_button.visible = false
 
 
 ## [abilities] name the block actives the player can use instead.
 func show_prompt(attacker: String, damage: int, abilities: Array = []) -> void:
-	for child in ability_button.get_parent().get_children():
-		if child.has_meta("ability"):
-			child.queue_free()
-	for i in abilities.size():
-		var button: Button = ability_button.duplicate()
-		button.unique_name_in_owner = false
-		button.set_meta("ability", true)
-		button.visible = true
-		button.text = String(abilities[i]).to_upper()
-		button.pressed.connect(ability_pressed.emit.bind(i))
-		ability_button.add_sibling(button)
 	title_label.text = tr("BLOCK_TITLE") % attacker.to_upper()
 	damage_label.text = tr("BLOCK_DAMAGE") % damage
+	hint_label.text = tr("BLOCK_INSTRUCTIONS")
+	if abilities.size() > 0:
+		hint_label.text += "\n" + tr("BLOCK_ABILITY_HINT") % ", ".join(PackedStringArray(abilities))
 	set_block_value(0)
 	visible = true
 	panel.pivot_offset = panel.size / 2.0
