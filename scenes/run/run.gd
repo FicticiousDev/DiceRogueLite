@@ -603,8 +603,8 @@ func _update_hover() -> void:
 			hovered.set_hovered(true)
 
 
-## Folds the level away around the player's tile, offers the levels the map leads on to (top to bottom as on the map)
-## and carries the tile into the chosen one.
+## Folds the level away around the player's tile, offers the levels the map leads on to (left to right in the map's
+## top-to-bottom order) and carries the tile into the chosen one.
 func _leave_level() -> void:
 	_loading = true
 	if is_instance_valid(_hovered):
