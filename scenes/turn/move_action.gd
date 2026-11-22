@@ -9,6 +9,7 @@ var target: int
 ## Tiles walked, recalculated from the simulated start position each time the plan changes
 var path: Array[int] = []
 var teleport: bool = false
+var _detail: String = ""
 
 
 func _init(move_dice: Array[int], target_id: int) -> void:
@@ -21,6 +22,7 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	teleport = ctx.teleport
 	if not turn.board.find_reachable(ctx).has(target):
 		return false
+	_detail = turn.move_breakdown(dice, ctx, target)
 	path = ctx.path_to(target)
 	state.player_tile = target
 	state.used_dice.append_array(dice)
@@ -39,8 +41,12 @@ func describe(turn: TurnController) -> String:
 	return "%s %d  →  %s" % [tr("PLAN_TELEPORT") if teleport else tr("PLAN_MOVE"), turn.dice_value(dice), Hex.coords(target)]
 
 
-func warning(turn: TurnController) -> String:
-	return tr("NOTE_TELEPORT_LOST") if turn.is_teleport_lost(dice) else ""
+func detail(_turn: TurnController) -> String:
+	return _detail
+
+
+func kind() -> DieFace.Category:
+	return DieFace.Category.MOVE
 
 
 func target_tile() -> int:

@@ -42,8 +42,14 @@ func describe(_turn: TurnController) -> String:
 	return "%s  →  %s" % [ability.display_name, Hex.coords(target)]
 
 
-func warning(_turn: TurnController) -> String:
-	return " · ".join(_notes)
+func detail(_turn: TurnController) -> String:
+	var parts: PackedStringArray = [tr("DETAIL_DASH") % ability.reach]
+	parts.append_array(_notes)
+	return " · ".join(parts)
+
+
+func kind() -> DieFace.Category:
+	return DieFace.Category.MOVE
 
 
 func target_tile() -> int:

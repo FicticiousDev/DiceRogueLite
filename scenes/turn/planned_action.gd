@@ -16,14 +16,20 @@ func resolve(_turn: TurnController) -> void:
 	pass
 
 
-## Short text for the action list.
+## Top line of the action's entry in the turn plan.
 func describe(_turn: TurnController) -> String:
 	return ""
 
 
-## Warning shown under the action in the list, or "" for none.
-func warning(_turn: TurnController) -> String:
+## Second line of the entry: how the values add up and everything that changes them (abilities, enemy defence,
+## retaliation, lost teleport...), or "" for none.
+func detail(_turn: TurnController) -> String:
 	return ""
+
+
+## Colour of the entry once it's set (MOVE / ATTACK / OTHER).
+func kind() -> DieFace.Category:
+	return DieFace.Category.OTHER
 
 
 ## Tile the action targets, for previews (-1 if none).

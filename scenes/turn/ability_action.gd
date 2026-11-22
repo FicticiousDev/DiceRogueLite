@@ -23,4 +23,8 @@ func resolve(turn: TurnController) -> void:
 
 
 func describe(_turn: TurnController) -> String:
-	return "%s  (%s)" % [ability.display_name, ability.description.get_slice(": ", 1).trim_suffix(".") if ability.description.contains(": ") else ability.description]
+	return ability.display_name
+
+
+func detail(_turn: TurnController) -> String:
+	return ability.description.get_slice(": ", 1).trim_suffix(".") if ability.description.contains(": ") else ability.description

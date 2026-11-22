@@ -8,7 +8,6 @@ MENU_SETTINGS,SETTINGS,
 BTN_BACK,BACK,
 BTN_CLOSE,CLOSE,
 BTN_COLLECT,COLLECT  (%d / %d),Placeholders: %d %d
-BTN_COMMIT,COMMIT,
 BTN_CONTINUE,CONTINUE,
 BTN_DONE,DONE,
 BTN_ENEMIES_FIRST,ENEMIES GO FIRST,
@@ -21,6 +20,7 @@ BTN_REPLACE,REPLACE,
 BTN_REPLACE_PAIR,REPLACE  %s → %s,Placeholders: %s %s
 BTN_SWAP,SWAP,
 BTN_SWAP_PAIR,SWAP  %s → %s,Placeholders: %s %s
+BTN_PLAY_TURN,PLAY TURN,
 PROMPT_ADJUST,Adjust,
 PROMPT_BACK,Back,
 PROMPT_BROWSE,Browse,
@@ -123,14 +123,14 @@ HINT_DASH,"%s: click a highlighted tile (up to %d away, in line of sight).  Righ
 HINT_DEFEATED,Defeated.,
 HINT_DEFENCE_NOT_PLANNED,Defence dice aren't planned: they're kept to block hits this turn.,
 HINT_EDITING,"Editing: choose dice, then a target.  Right-click to cancel.",
-HINT_ENEMIES_ACTED,"The enemies have acted.  Click dice to plan moves and attacks, then COMMIT.  Defence dice are kept to block retaliation.",
+HINT_ENEMIES_ACTED,"The enemies have acted.  Click dice to plan moves and attacks, then PLAY TURN.  Defence dice are kept to block retaliation.",
 HINT_ENEMY_TURN,Enemy turn...,
 HINT_FROZEN_NOTE,(frozen: half of %d),
 HINT_LEVEL_CLEAR,Level clear!,
 HINT_MOVE,Move %d%s: click a highlighted tile.  Click more movement dice to combine them.  Right-click to cancel.,Placeholders: %d %s
 HINT_MOVE_TELEPORT_LOST,Move %d: teleport lost by combining with normal movement.  Click a highlighted tile.  Right-click to cancel.,Placeholders: %d
-HINT_PLAN,"Click dice to plan moves and attacks, then COMMIT.  Defence dice are kept to block hits.",
-HINT_PLAN_OR_ENEMIES_FIRST,"Click dice to plan moves and attacks, then COMMIT, or let the enemies go first.  Defence dice are kept to block hits.",
+HINT_PLAN,"Click dice to plan moves and attacks, then PLAY TURN.  Defence dice are kept to block hits.",
+HINT_PLAN_OR_ENEMIES_FIRST,"Click dice to plan moves and attacks, then PLAY TURN, or let the enemies go first.  Defence dice are kept to block hits.",
 HINT_RANGE_LOST_NOTE,Range lost by combining with dice without it.,
 HINT_RESOLVING,Resolving your actions...,
 HINT_ROLLING,Rolling...,
@@ -211,12 +211,15 @@ NOTE_STRIKES_FIRST,Strikes first,
 NOTE_STUNNED_NO_STRIKE,Stunned: no %s,Placeholders: %s
 NOTE_STUNS_IT,Stuns it,
 NOTE_TELEPORT_LOST,Teleport lost: combined with normal movement,
-PLAN_ATTACK,Attack %d  →  %s  (%d dmg%s),Placeholders: %d %s %d %s
-PLAN_EXTRA_CRIT,", crit",
-PLAN_EXTRA_PIERCE,", pierce %d",Placeholders: %d
+PLAN_ATTACK,Attack %d  →  %s  (%d dmg),Placeholders: %d %s %d
 PLAN_INSTA_KILL,Insta-kill  →  %s,Placeholders: %s
 PLAN_MOVE,Move,
 PLAN_TELEPORT,Teleport,
+PLAN_INSTA_KILL_SHORT,Insta-kill,
+PLAN_DRAFT_MOVE,Move %d  →  …,Placeholders: %d
+PLAN_DRAFT_TELEPORT,Teleport %d  →  …,Placeholders: %d
+PLAN_DRAFT_ATTACK,Attack %d  →  …,Placeholders: %d
+PLAN_DRAFT_DASH,%s  →  …,Placeholders: %s
 PREVIEW_AREA,+ area,
 PREVIEW_ARMED,%s armed: choose attack dice,Placeholders: %s
 PREVIEW_BYPASSES_DEFENCE,bypasses defence,
@@ -668,3 +671,16 @@ TIP_ABILITY_USE_ATTACK,Press to arm it while planning: it applies to the next at
 TIP_ABILITY_USE_ACTION,Press while planning to add it to your turn plan as its own step.,
 TIP_ABILITY_USE_MOVE,"Press while planning, then click the tile to go to. Press again to cancel.",
 TIP_ABILITY_USE_BLOCK,Press when an enemy hits you to use it on that hit.,
+DETAIL_ABILITY_TELEPORTS,%s: every move teleports,Placeholders: %s
+DETAIL_FROZEN,Frozen: halved to %d,Placeholders: %d
+DETAIL_BUFFED,+%d from buffs,Placeholders: %d
+DETAIL_TELEPORT,"Teleport: line of sight, terrain ignored",
+DETAIL_PATH_COST,Path cost %d of %d,Placeholders: %d %d
+DETAIL_PENETRATE,Pierce %d,Placeholders: %d
+DETAIL_DEFENCE,vs defence %d,Placeholders: %d
+DETAIL_DEFENCE_PIERCED,vs defence %d (%d pierced),Placeholders: %d %d
+DETAIL_DEFENCE_IGNORED,Defence %d ignored,Placeholders: %d
+DETAIL_SHIELD,Ice shield %d,Placeholders: %d
+DETAIL_SHIELD_PIERCED,Ice shield %d (takes double),Placeholders: %d
+DETAIL_HP,HP %d → %d,Placeholders: %d %d
+DETAIL_DASH,"Blink up to %d, hitting enemies on the line",Placeholders: %d

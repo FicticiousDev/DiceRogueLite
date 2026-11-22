@@ -12,6 +12,9 @@ var actives: Array[Ability] = []
 var damage: int
 var _ctx: AttackContext
 var _notes: PackedStringArray = []
+## How the dice add up (AttackContext breakdown) and what the target's defence, shield and health do with it
+var _sum: String = ""
+var _against: String = ""
 
 
 func _init(attack_dice: Array[int], target: Enemy, armed: Array[Ability] = []) -> void:
@@ -26,8 +29,6 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	if not turn.board.in_attack_range(state.player_tile, enemy.tile_id, turn.attack_range(dice)):
 		return false
 	_notes.clear()
-	if turn.is_range_lost(dice):
-		_notes.append(tr("NOTE_RANGE_LOST"))
 	var enemy_first := enemy.data.attacks_first and not turn.player_strikes_first()
 	if enemy_first:
 		_add_strike_note(state, turn, "NOTE_STRIKES_FIRST")
@@ -40,8 +41,12 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 	# A crit boost goes on the first attack after it
 	state.boosts.erase(&"crit")
 	damage = _ctx.damage()
-	_notes.append_array(_ctx.notes)
+	_sum = turn.attack_sum_text(_ctx, dice)
+	var against := _against_parts(state)
+	var hp_before: int = state.enemy_hp.get(enemy, 0)
 	state.hurt(enemy, damage, _ctx.shield_multiplier())
+	against.append(tr("DETAIL_HP") % [hp_before, maxi(state.enemy_hp[enemy], 0)])
+	_against = " · ".join(against)
 	for tile_id in _ctx.aoe_tiles:
 		var other := turn.board.get_piece(tile_id) as Enemy
 		if other and state.is_alive(other):
@@ -71,6 +76,24 @@ func simulate(state: TurnState, turn: TurnController) -> bool:
 		state.attacked.append(enemy)
 	state.used_dice.append_array(dice)
 	return true
+
+
+## The target's side of the sum: its defence (and how much of it the attack pierces) and ice shield.
+func _against_parts(state: TurnState) -> PackedStringArray:
+	var parts: PackedStringArray = []
+	var defence: int = state.enemy_defence.get(enemy, 0)
+	var shield: int = state.enemy_shield.get(enemy, 0)
+	if not _ctx.insta_kill:
+		if defence > 0:
+			if _ctx.ignore_defence:
+				parts.append(tr("DETAIL_DEFENCE_IGNORED") % defence)
+			elif _ctx.penetrate > 0:
+				parts.append(tr("DETAIL_DEFENCE_PIERCED") % [defence, mini(_ctx.penetrate, defence)])
+			else:
+				parts.append(tr("DETAIL_DEFENCE") % defence)
+		if shield > 0:
+			parts.append(tr("DETAIL_SHIELD_PIERCED") % shield if _ctx.pierces() else tr("DETAIL_SHIELD") % shield)
+	return parts
 
 
 ## Notes the enemy's attack back. Its hit (before crits) runs through the player's abilities, so a once-per-turn
@@ -105,18 +128,19 @@ func describe(turn: TurnController) -> String:
 	var target := enemy.data.display_name if is_instance_valid(enemy) else "?"
 	if _ctx and _ctx.insta_kill:
 		return tr("PLAN_INSTA_KILL") % target
-	var extras := ""
-	if _ctx and _ctx.crit:
-		extras += tr("PLAN_EXTRA_CRIT")
-	if _ctx and _ctx.penetrate > 0 and not _ctx.ignore_defence:
-		extras += tr("PLAN_EXTRA_PIERCE") % _ctx.penetrate
-	if _ctx and _ctx.multiplier > 1:
-		extras += ", ×%d" % _ctx.multiplier
-	return tr("PLAN_ATTACK") % [_ctx.base_damage if _ctx else turn.dice_value(dice), target, damage, extras]
+	return tr("PLAN_ATTACK") % [_ctx.base_damage if _ctx else turn.dice_value(dice), target, damage]
 
 
-func warning(_turn: TurnController) -> String:
-	return " · ".join(_notes)
+func detail(_turn: TurnController) -> String:
+	if _sum == "":
+		return " · ".join(_notes)
+	var parts: PackedStringArray = [_sum, _against]
+	parts.append_array(_notes)
+	return " · ".join(parts)
+
+
+func kind() -> DieFace.Category:
+	return DieFace.Category.ATTACK
 
 
 func target_tile() -> int:

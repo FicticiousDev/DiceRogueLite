@@ -119,6 +119,8 @@ var _order_prompt: TurnOrderPrompt
 var _ability_bar: AbilityBar
 var _equipment_bar: EquipmentBar
 var _editing: PlannedAction
+## Planned actions played out so far this turn (greyed out in the turn plan)
+var _played: int = 0
 var _edit_index: int = -1
 var _ghost: Cutout
 var _path_dots: Node3D
@@ -139,8 +141,8 @@ func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionLis
 	if not block_prompt.block_pressed.is_connected(_block_confirmed.emit):
 		block_prompt.block_pressed.connect(_block_confirmed.emit)
 		block_prompt.take_pressed.connect(_take_hit)
-	if not action_list.commit_pressed.is_connected(commit):
-		action_list.commit_pressed.connect(commit)
+	if not action_list.play_pressed.is_connected(commit):
+		action_list.play_pressed.connect(commit)
 		action_list.rewind_requested.connect(rewind_to)
 		action_list.edit_requested.connect(edit)
 		action_list.delete_requested.connect(delete)
@@ -157,6 +159,7 @@ func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionLis
 		_equipment_bar.equipment_changed.connect(_refresh_controls)
 		state_changed.connect(func(_s: State): _refresh_controls())
 	_order_prompt.row_y = dice_tray.row_screen_y
+	action_list.row_y = dice_tray.row_screen_y
 	_ability_bar.row_y = dice_tray.row_screen_y
 	_equipment_bar.row_y = dice_tray.row_screen_y
 	_create_previews()
@@ -186,6 +189,7 @@ func start_turn(new_turn: bool = true) -> void:
 	_editing = null
 	_dashing = null
 	_attacks_made = 0
+	_played = 0
 	# Levels without enemies are clear from the start
 	if board.get_enemies(true).is_empty():
 		_set_state(State.LEVEL_CLEAR)
@@ -242,11 +246,83 @@ func move_context(sim: TurnState, dice: Array[int]) -> MoveContext:
 	ctx.teleport = dice.size() > 0 and dice.all(_has_teleport)
 	ctx.ignored = sim.dead_enemies()
 	for ability in abilities():
+		var budget := ctx.budget
+		var teleport := ctx.teleport
+		var cost := ctx.cost_func
 		ability.modify_move(ctx)
+		# Name every ability that changed the move, for the turn plan
+		if ctx.budget != budget:
+			ctx.notes.append("%s %+d" % [ability.display_name, ctx.budget - budget])
+		elif ctx.teleport and not teleport:
+			ctx.notes.append(tr("DETAIL_ABILITY_TELEPORTS") % ability.display_name)
+		elif ctx.cost_func != cost:
+			ctx.notes.append(ability.display_name)
 	# Frozen: half the movement, rounded up - teleports aren't slowed
 	if player.frozen and not ctx.teleport:
 		ctx.budget = ceili(ctx.budget / 2.0)
+		ctx.notes.append(tr("DETAIL_FROZEN") % ctx.budget)
 	return ctx
+
+
+## The dice values summed, e.g. "3 + 2 = 5" (just "5" for one die), with buffs noted.
+func dice_sum_text(dice: Array[int]) -> String:
+	if dice.is_empty():
+		return ""
+	var values: PackedStringArray = []
+	for i in dice:
+		values.append(str(results[i].value()))
+	var text := values[0] if values.size() == 1 else "%s = %d" % [" + ".join(values), dice_value(dice)]
+	var buffed := 0
+	for i in dice:
+		buffed += results[i].applied_bonus()
+	if buffed > 0:
+		text += "  (" + tr("DETAIL_BUFFED") % buffed + ")"
+	return text
+
+
+## Second line of a movement entry in the turn plan: how the dice add up and everything that changes the move.
+func move_breakdown(dice: Array[int], ctx: MoveContext, target: int = -1) -> String:
+	var parts: PackedStringArray = [dice_sum_text(dice)]
+	if is_teleport_lost(dice):
+		parts.append(tr("NOTE_TELEPORT_LOST"))
+	elif ctx.teleport:
+		parts.append(tr("DETAIL_TELEPORT"))
+	parts.append_array(ctx.notes)
+	if target != -1 and not ctx.teleport and ctx.costs.has(target):
+		parts.append(tr("DETAIL_PATH_COST") % [ctx.costs[target], ctx.budget])
+	return " · ".join(parts)
+
+
+## How an attack adds up, for the turn plan: each die (×n where a crit or ability doubles it), flat bonuses, the total.
+func attack_sum_text(ctx: AttackContext, dice: Array[int]) -> String:
+	if ctx.insta_kill:
+		return tr("PLAN_INSTA_KILL_SHORT")
+	var values: PackedStringArray = []
+	for i in ctx.parts.size():
+		values.append(str(ctx.parts[i]) if ctx.part_multipliers[i] == 1 else "%d×%d" % [ctx.parts[i], ctx.part_multipliers[i]])
+	var text := " + ".join(values)
+	if ctx.bonus != 0:
+		text += " %s %d" % ["+" if ctx.bonus > 0 else "−", absi(ctx.bonus)]
+	if ctx.multiplier > 1:
+		text = "(%s) ×%d" % [text, ctx.multiplier]
+	if values.size() > 1 or ctx.bonus != 0 or ctx.multiplier > 1 or ctx.part_multipliers.any(func(m: int): return m > 1):
+		text += " = %d" % ctx.raw()
+	var notes: PackedStringArray = [text]
+	var buffed := 0
+	var face_crits := 0
+	for i in dice:
+		buffed += results[i].applied_bonus()
+		face_crits += results[i].face().count(Symbol.Type.CRIT)
+	if buffed > 0:
+		notes.append(tr("DETAIL_BUFFED") % buffed)
+	if face_crits > 0:
+		notes.append(tr("NOTE_CRIT") if face_crits == 1 else "%s ×%d" % [tr("NOTE_CRIT"), face_crits])
+	if ctx.penetrate > 0 and not ctx.ignore_defence:
+		notes.append(tr("DETAIL_PENETRATE") % ctx.penetrate)
+	if is_range_lost(dice):
+		notes.append(tr("NOTE_RANGE_LOST"))
+	notes.append_array(ctx.notes)
+	return " · ".join(notes)
 
 
 # ===========================================================================================================================================
@@ -710,15 +786,18 @@ func _resolve() -> void:
 	_set_state(State.RESOLVE)
 	_refresh()
 	_retaliated.clear()
+	_played = 0
 	for action in actions:
 		# Stunned during the plan (e.g. by a retaliation): the rest of it is lost
 		if _stun_blocks(player):
 			await get_tree().create_timer(Anim.t(0.4)).timeout
-			continue
-		await action.resolve(self)
-		if _player_dead():
-			await _game_over()
-			return
+		else:
+			await action.resolve(self)
+			if _player_dead():
+				await _game_over()
+				return
+		_played += 1
+		_refresh_list()
 	await _finish_turn()
 
 
@@ -2158,24 +2237,63 @@ func _add_marker(mesh: Mesh, at: Vector3, facing: Basis = Basis.IDENTITY) -> voi
 
 
 func _refresh_list() -> void:
-	var listed := actions.duplicate()
-	if _editing:
-		listed.insert(_edit_index, _editing)
-	var lines: Array[String] = []
-	var warnings: Array[String] = []
-	for action in listed:
-		lines.append(action.describe(self))
-		warnings.append(action.warning(self))
+	var list: Array[Dictionary] = []
+	var draft := _draft_entry()
+	for i in actions.size():
+		if _editing and i == _edit_index and not draft.is_empty():
+			list.append(draft)
+		list.append(_action_entry(actions[i], ActionList.PLAYED if i < _played else ActionList.SET))
+	if not draft.is_empty() and (not _editing or _edit_index >= actions.size()):
+		list.append(draft)
 	# Enemy attacks follow the plan as read-only entries
 	for entry in _enemy_log:
 		if entry[0] != "":
-			lines.append(entry[0])
-			warnings.append(entry[1])
-	action_list.show_actions(lines, warnings, _edit_index if _editing else -1, listed.size(), state == State.PLAN)
+			list.append({title = entry[0], detail = entry[1], kind = DieFace.Category.OTHER, status = ActionList.LOG})
+	action_list.show_entries(list, state == State.PLAN)
 	action_list.set_header(tr("HUD_TURN_HEADER") % [turn_number, tr(STATE_NAMES[state])])
-	action_list.set_commit_enabled(state == State.PLAN)
+	action_list.set_play_enabled(state == State.PLAN)
 	action_list.set_hint(_hint())
 	_refresh_attack_preview()
+
+
+func _action_entry(action: PlannedAction, status: StringName) -> Dictionary:
+	return {title = action.describe(self), detail = action.detail(self), kind = action.kind(), status = status}
+
+
+## The entry being made (dice clicked, a dash armed) or edited, in white: as it would be planned on the hovered tile
+## or target, else the dice value and breakdown so far. Empty if nothing is being made.
+func _draft_entry() -> Dictionary:
+	if state != State.PLAN or _insert_state == null:
+		return {}
+	var probe: PlannedAction
+	if _dashing:
+		if _reachable.has(hovered_tile):
+			probe = DashAction.new(_dashing, hovered_tile)
+		else:
+			return {title = tr("PLAN_DRAFT_DASH") % _dashing.display_name, detail = tr("DETAIL_DASH") % _dashing.reach,
+					kind = DieFace.Category.MOVE, status = ActionList.ACTIVE}
+	else:
+		match _selected_category():
+			DieFace.Category.MOVE:
+				if _reachable.has(hovered_tile):
+					probe = MoveAction.new(selected, hovered_tile)
+				elif _move_ctx:
+					var teleport := _move_ctx.teleport
+					return {title = tr("PLAN_DRAFT_TELEPORT" if teleport else "PLAN_DRAFT_MOVE") % dice_value(selected),
+							detail = move_breakdown(selected, _move_ctx), kind = DieFace.Category.MOVE, status = ActionList.ACTIVE}
+			DieFace.Category.ATTACK:
+				if _targets.has(hovered_tile):
+					probe = AttackAction.new(selected, board.get_piece(hovered_tile), _armed)
+				else:
+					var ctx := player_attack_context(null, selected, _armed, _first_planned(), _insert_state.player_tile, _insert_state.boosts)
+					return {title = tr("PLAN_DRAFT_ATTACK") % dice_value(selected), detail = attack_sum_text(ctx, selected),
+							kind = DieFace.Category.ATTACK, status = ActionList.ACTIVE}
+	if probe and probe.simulate(_insert_state.copy(), self):
+		return _action_entry(probe, ActionList.ACTIVE)
+	# Editing with every die put down: the action as it was
+	if _editing:
+		return _action_entry(_editing, ActionList.ACTIVE)
+	return {}
 
 
 ## The attack being planned (selected attack dice and armed actives), aimed at the hovered target if any.

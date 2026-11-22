@@ -1,21 +1,22 @@
 class_name AttackPreview
 extends Control
 
-## Shows how the attack being planned adds up, just under the turn plan and as wide as it: each selected die's face
+## Shows how the attack being planned adds up, at the bottom of the turn plan (just above PLAY TURN, in room the plan
+## makes for it - see ActionList.reserve_preview) and as wide as its entries: each selected die's face
 ## with its value (and ×2 / ×4 where a crit or ability doubles it), the attack's modifiers and armed actives, then the
 ## total. Lines wrap to fit. Hovering a target adds its defence, the damage dealt and its health after. Once the target
 ## is chosen the panel flies into its entry in the turn plan ([method fly_to]). Fed by TurnController._refresh_attack_preview.
 
-## Gap between the turn plan and the panel
-const GAP: float = 12.0
+## Gap kept between the panel and PLAY TURN
+const GAP: float = 10.0
 const FACE_SIZE: float = 54.0
 const GOLD: Color = Color(1.0, 0.82, 0.35)
 const SHIELD: Texture2D = preload("res://assets/ui/icons/shield.png")
 const HEART: Texture2D = preload("res://assets/ui/icons/heart.png")
 const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 
-## The turn plan panel it sits under
-var anchor: Control
+## The turn plan it sits in
+var anchor: ActionList
 var _panel: PanelContainer
 var _rows: VBoxContainer
 var _key: String = ""
@@ -45,10 +46,11 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _panel.visible and not _flying and anchor:
-		var rect := anchor.get_global_rect()
+		var rect := anchor.preview_rect()
 		_panel.custom_minimum_size.x = rect.size.x
 		_panel.size = _panel.get_combined_minimum_size()
-		_panel.position = Vector2(rect.position.x, rect.end.y + GAP)
+		anchor.reserve_preview(_panel.size.y + GAP)
+		_panel.position = rect.position
 
 
 ## Shows [ctx], made from [results] (the selected dice, in the context's part order) and the [armed] actives.
@@ -105,6 +107,8 @@ func hide_preview() -> void:
 		return
 	_panel.visible = false
 	_key = ""
+	if anchor:
+		anchor.reserve_preview(0.0)
 
 
 ## The attack was planned: flies the panel into entry [index] of [list], shrinking and fading, then hides it.
@@ -123,6 +127,8 @@ func fly_to(list: ActionList, index: int) -> void:
 	tween.tween_property(_panel, "scale", Vector2.ONE * scale_to, Anim.t(0.4)).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(_panel, "modulate:a", 0.0, Anim.t(0.2)).set_delay(Anim.t(0.25))
 	await tween.finished
+	if anchor:
+		anchor.reserve_preview(0.0)
 	_panel.visible = false
 	_panel.scale = Vector2.ONE
 	_panel.modulate.a = 1.0

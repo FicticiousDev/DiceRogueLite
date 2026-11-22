@@ -14,6 +14,8 @@ var cost_func: Callable
 var teleport: bool = false
 ## Pieces treated as absent, e.g. enemies killed earlier in the plan
 var ignored: Array[BoardPiece] = []
+## What changed the move (abilities, frozen), for the turn plan's breakdown line
+var notes: PackedStringArray = []
 
 ## Filled by Board.find_reachable: tile id -> total cost, and the previous tile on the cheapest path
 var costs: Dictionary[int, int] = {}
