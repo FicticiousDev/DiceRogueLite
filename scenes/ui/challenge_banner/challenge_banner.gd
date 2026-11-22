@@ -9,7 +9,7 @@ const GOLD: Color = Color(1.0, 0.82, 0.3)
 const WARN: Color = Color(1.0, 0.6, 0.25)
 const FAIL: Color = Color(1.0, 0.35, 0.3)
 ## Where the banner settles: its top centre, in canvas pixels (just under the top bar)
-const DOCK: Vector2 = Vector2(960, 54)
+const DOCK: Vector2 = Vector2(960, 76)
 
 ## True / false once the challenge is decided (read by Phase 14 rewards), null until then
 var won: Variant = null

@@ -117,6 +117,7 @@ var _attacked_first: Array[Enemy] = []
 var _enemies_acted: bool = false
 var _order_prompt: TurnOrderPrompt
 var _ability_bar: AbilityBar
+var _equipment_bar: EquipmentBar
 var _editing: PlannedAction
 var _edit_index: int = -1
 var _ghost: Cutout
@@ -150,9 +151,14 @@ func setup(run_board: Board, run_player: Player, tray: DiceTray, list: ActionLis
 		_ability_bar = AbilityBar.new()
 		add_child(_ability_bar)
 		_ability_bar.pressed.connect(_ability_pressed)
+		_equipment_bar = EquipmentBar.new()
+		add_child(_equipment_bar)
+		_equipment_bar.pressed.connect(_ability_pressed)
+		_equipment_bar.equipment_changed.connect(_refresh_controls)
 		state_changed.connect(func(_s: State): _refresh_controls())
 	_order_prompt.row_y = dice_tray.row_screen_y
 	_ability_bar.row_y = dice_tray.row_screen_y
+	_equipment_bar.row_y = dice_tray.row_screen_y
 	_create_previews()
 
 
@@ -1204,22 +1210,82 @@ func _enemies_first_pressed() -> void:
 		_replan()
 
 
-## Shows the round controls beside the dice row while a level is being fought: the abilities on the left, "enemies go
-## first" on the right. They stay up all round and are greyed out while they can't be used.
+## Shows the round controls beside the dice row while a level is being fought: the character's abilities on the left
+## (passives first), "enemies go first" on the right, and the equipped items in a column on the side away from the turn
+## plan (kept up once the level is cleared too). They stay up all round and are greyed out while they can't be used.
 func _refresh_controls() -> void:
-	if state == State.IDLE or state == State.LEVEL_CLEAR or state == State.GAME_OVER:
+	if _ability_bar == null:
+		return
+	if state == State.IDLE or state == State.GAME_OVER or not is_instance_valid(player):
+		_order_prompt.hide_button()
+		_ability_bar.hide_bar()
+		_equipment_bar.hide_bar()
+		return
+	_equipment_bar.set_items(_equipment_entries())
+	_equipment_bar.show_bar()
+	if state == State.LEVEL_CLEAR:
 		_order_prompt.hide_button()
 		_ability_bar.hide_bar()
 		return
 	_order_prompt.show_button(state == State.PLAN and _end_state != null and actions.is_empty() and not _editing and not _enemies_acted)
 	var entries: Array[Dictionary] = []
-	for ability in actives():
-		entries.append(_ability_entry(ability))
+	if player.character:
+		for ability in player.character.abilities:
+			if not ability.active:
+				entries.append(_passive_entry(ability))
+		for ability in player.character.abilities:
+			if ability.active:
+				entries.append(_ability_entry(ability))
 	_ability_bar.set_abilities(entries)
 	_ability_bar.show_bar()
 
 
-## [AbilityBar] entry for [ability]: block actives can be used while the block prompt offers them, the rest while planning.
+## [EquipmentBar] entries, one per equipped item: its active's entry (if it has one) in the item's name, icon and
+## rarity colour, else a passive entry.
+func _equipment_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for item in SaveManager.run_data.equipped():
+		var active: Ability = null
+		for ability in item.abilities:
+			if ability.active:
+				active = ability
+				break
+		var entry: Dictionary
+		if active:
+			entry = _ability_entry(active)
+			entry.title = tr("TIP_ABILITY_TITLE") % [item.display_name, active_status(active)]
+			var rows: Array[Dictionary] = item.info_rows()
+			rows.append(InfoPanel.row(item.get_icon(), CircleButton.HIGHLIGHT, tr(USE_HINTS[active.use])))
+			entry.rows = rows
+		else:
+			entry = {
+				"ability": null,
+				"title": tr("TIP_ABILITY_TITLE") % [item.display_name, item.kind()],
+				"rows": item.info_rows(),
+				"enabled": true,
+				"passive": true,
+			}
+		entry.icon = item.get_icon()
+		entry.icon_color = Rarity.COLORS[item.rarity]
+		entries.append(entry)
+	return entries
+
+
+## [AbilityBar] entry for a passive: always on, so never greyed out and never pressed.
+func _passive_entry(ability: Ability) -> Dictionary:
+	var rows: Array[Dictionary] = [InfoPanel.row(ability.get_icon(), Color.WHITE, ability.description)]
+	return {
+		"ability": ability,
+		"title": tr("TIP_ABILITY_TITLE") % [ability.display_name, tr("HUD_ABILITY_PASSIVE")],
+		"rows": rows,
+		"enabled": true,
+		"passive": true,
+	}
+
+
+## [AbilityBar] / [EquipmentBar] entry for an active: block actives can be used while the block prompt offers them, the
+## rest while planning. Its recharge ring shows the uses left of the level's total, or for a cooldown active the turns
+## passed since it was used (counting a use planned this turn).
 func _ability_entry(ability: Ability) -> Dictionary:
 	var left: int = uses_preview().get(ability.id, 0)
 	var armed := _armed.has(ability) or _dashing == ability
@@ -1227,11 +1293,16 @@ func _ability_entry(ability: Ability) -> Dictionary:
 	var enabled := offered if ability.use == Ability.Use.BLOCK else state == State.PLAN and (left > 0 or armed)
 	# Uses left for items, turns to wait for a cooldown active that isn't ready
 	var badge := ""
+	var progress := 1.0
 	if ability.cooldown <= 0:
 		badge = str(left)
+		var total: int = new_uses().get(ability.id, 0)
+		progress = float(left) / total if total > 0 else 0.0
 	elif left <= 0:
 		var ready_on: int = _ready_on.get(ability.id, turn_number + ability.cooldown)
-		badge = str(maxi(ready_on - turn_number, 1))
+		var wait := maxi(ready_on - turn_number, 1)
+		badge = str(wait)
+		progress = 1.0 - float(wait) / ability.cooldown
 	var rows: Array[Dictionary] = [InfoPanel.row(ability.get_icon(), Color.WHITE, ability.description)]
 	rows.append(InfoPanel.row(ability.get_icon(), CircleButton.HIGHLIGHT, tr(USE_HINTS[ability.use])))
 	return {
@@ -1242,6 +1313,7 @@ func _ability_entry(ability: Ability) -> Dictionary:
 		"enabled": enabled,
 		"highlighted": armed or offered,
 		"pulse": offered,
+		"progress": progress,
 	}
 
 
@@ -2226,6 +2298,7 @@ func reset() -> void:
 	_set_state(State.IDLE)
 	if _order_prompt:
 		_order_prompt.hide_button()
+		_equipment_bar.hide_bar()
 	if dice_tray:
 		await dice_tray.clear()
 

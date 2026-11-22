@@ -20,7 +20,8 @@ const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 const PLAYER_SCENE: PackedScene = preload("res://scenes/pieces/player.tscn")
 ## Screen fraction kept clear for the turn plan panel
 const PANEL_MARGIN: float = 0.22
-const EDGE_MARGIN: float = 0.04
+## Screen fraction kept clear on the other side, for the equipment column
+const EDGE_MARGIN: float = 0.07
 ## A level has at most this share of ranged enemies (rounded up), and each ranged type is this much less likely to be
 ## drawn than a melee one
 const MAX_RANGED_SHARE: float = 0.25

@@ -99,6 +99,7 @@ DIALOG_UNUSED_DICE_TITLE,UNUSED DICE,
 HUD_ABILITY_READY,READY,
 HUD_ABILITY_WAIT_MANY,%d TURNS,
 HUD_ABILITY_WAIT_ONE,1 TURN,
+HUD_ABILITY_PASSIVE,PASSIVE,Status of an always-on ability in its button tooltip
 HUD_ATTACK_RANGE,Attack range,
 HUD_TURN,TURN,
 HUD_TURN_HEADER,TURN %d  ·  %s,
@@ -232,7 +233,7 @@ BLOCK_ENEMY_ATTACKS,ENEMY ATTACKS!,
 BLOCK_INSTRUCTIONS,Click held defence dice in the row to block with them.,
 BLOCK_TAKE_HIT,TAKE HIT,
 BLOCK_TITLE,%s ATTACKS!,Placeholders: %s
-BLOCK_ABILITY_HINT,Or use %s from the ability buttons on the left.,Placeholders: %s (ability names separated by commas)
+BLOCK_ABILITY_HINT,Or use %s - press its highlighted button.,Placeholders: %s (ability names separated by commas)
 BANNER_CHALLENGE,CHALLENGE,
 BANNER_CLEARED_ON_TURN,Cleared on turn %d of %d,Placeholders: %d %d
 BANNER_COMPLETE,CHALLENGE COMPLETE,

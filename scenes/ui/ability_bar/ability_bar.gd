@@ -1,8 +1,9 @@
 class_name AbilityBar
 extends CanvasLayer
 
-## The player's active abilities (character and items) as round buttons along the left edge of the screen, level with
-## the dice row. The turn controller fills it with [method set_abilities] every refresh.
+## The character's abilities as round buttons along the left edge of the screen, level with the dice row: its passives
+## first (edge-most), then its actives. Equipped items have their own column ([EquipmentBar]). The turn controller fills
+## it with [method set_abilities] every refresh.
 
 signal pressed(ability: Ability)
 
@@ -27,7 +28,8 @@ func _ready() -> void:
 	hide_bar()
 
 
-## One button per entry, in order. Each entry: { ability, title, rows, badge, enabled, highlighted, pulse }.
+## One button per entry, in order. Each entry: { ability, title, rows, enabled, highlighted, pulse }, plus the optional
+## keys of [method CircleButton.apply].
 func set_abilities(entries: Array[Dictionary]) -> void:
 	var wanted: Array[Ability] = []
 	for entry in entries:
@@ -44,12 +46,10 @@ func set_abilities(entries: Array[Dictionary]) -> void:
 			var ability: Ability = entry.ability
 			button.pressed.connect(func(): pressed.emit(ability))
 			_box.add_child(button)
+			button.set_progress(entry.get("progress", 1.0), false)
 			_buttons[ability] = button
 		_box.move_child(button, i)
-		button.set_info(entry.title, entry.rows)
-		button.set_badge(entry.badge)
-		button.disabled = not entry.enabled
-		button.set_highlighted(entry.highlighted, entry.pulse)
+		button.apply(entry)
 	_place()
 
 
