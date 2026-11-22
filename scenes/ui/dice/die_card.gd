@@ -45,6 +45,7 @@ static func create(type: DieType, view_size: float = 110.0, button_text: String 
 	name_label.custom_minimum_size.x = view_size
 	box.add_child(name_label)
 	if button_text != "":
+		box.add_child(_spacer())
 		card.button = Button.new()
 		card.button.text = button_text
 		card.button.custom_minimum_size = Vector2(0, 38)
@@ -58,6 +59,14 @@ static func create(type: DieType, view_size: float = 110.0, button_text: String 
 		card.focus_exited.connect(card._refresh_border)
 		card.gui_input.connect(card._on_gui_input)
 	return card
+
+
+## Keeps the button at the bottom when the card is stretched (e.g. same-sized shop tiles).
+static func _spacer() -> Control:
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return spacer
 
 
 func _refresh_border() -> void:

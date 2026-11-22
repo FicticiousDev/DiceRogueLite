@@ -1,5 +1,9 @@
 [gd_resource type="Theme" format=3 uid="uid://sssp0nnnlup0"]
 
+[ext_resource type="Texture2D" path="res://assets/ui/slider_handle.png" id="slider_handle"]
+[ext_resource type="Texture2D" path="res://assets/ui/slider_handle_disabled.png" id="slider_handle_disabled"]
+[ext_resource type="Texture2D" path="res://assets/ui/slider_handle_highlight.png" id="slider_handle_highlight"]
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gvdxl"]
 texture_margin_left = 32.0
 texture_margin_top = 14.0
@@ -108,18 +112,30 @@ image = SubResource("Image_f7v51")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nu6un"]
 bg_color = Color(0, 0.764706, 1, 1)
-expand_margin_top = 8.0
-expand_margin_bottom = 8.0
+expand_margin_top = 10.0
+expand_margin_bottom = 10.0
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o5res"]
 bg_color = Color(0.706845, 0.903474, 1, 1)
-expand_margin_top = 8.0
-expand_margin_bottom = 8.0
+expand_margin_top = 10.0
+expand_margin_bottom = 10.0
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pkhon"]
 bg_color = Color(0.533333, 0.533333, 0.533333, 1)
-expand_margin_top = 6.0
-expand_margin_bottom = 6.0
+expand_margin_top = 10.0
+expand_margin_bottom = 10.0
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l3ebx"]
 
@@ -235,9 +251,9 @@ CheckButton/styles/normal = SubResource("StyleBoxEmpty_0pwps")
 CheckButton/styles/normal_mirrored = SubResource("StyleBoxEmpty_k4sqh")
 CheckButton/styles/pressed = SubResource("StyleBoxEmpty_qlif0")
 CheckButton/styles/pressed_mirrored = SubResource("StyleBoxEmpty_hkhjc")
-HSlider/icons/grabber = null
-HSlider/icons/grabber_disabled = null
-HSlider/icons/grabber_highlight = null
+HSlider/icons/grabber = ExtResource("slider_handle")
+HSlider/icons/grabber_disabled = ExtResource("slider_handle_disabled")
+HSlider/icons/grabber_highlight = ExtResource("slider_handle_highlight")
 HSlider/styles/grabber_area = SubResource("StyleBoxFlat_nu6un")
 HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_o5res")
 HSlider/styles/slider = SubResource("StyleBoxFlat_pkhon")

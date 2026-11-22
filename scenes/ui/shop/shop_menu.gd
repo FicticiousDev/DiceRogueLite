@@ -1,9 +1,9 @@
 class_name ShopMenu
 extends CanvasLayer
 
-## Opened by clicking the shop: its offers side by side, each die or item on its card (dice turn and open the
-## inspector as anywhere else) with a BUY button showing the price - greyed out when the player can't afford it,
-## SOLD once bought. The run does the buying (through DieAward / EquipmentAward) and opens the menu again after.
+## Opened by clicking the shop: its offers side by side in same-sized tiles, each die or item on its card (dice turn
+## and open the inspector as anywhere else) with a BUY button showing the price - greyed out when the player can't
+## afford it, SOLD once bought. The run does the buying (through DieAward / EquipmentAward) and opens the menu again after.
 ## Use: var index := await menu.choose(shop.stock, shop.sold) - the offer to buy, or -1 once closed
 ## (CLOSE, Esc, right-click or a click outside).
 
@@ -73,6 +73,12 @@ func choose(stock: Array[Resource], sold: Array[bool]) -> int:
 			card.modulate = Color(1, 1, 1, 0.45)
 		card.button_pressed.connect(_chosen.emit.bind(i))
 		row.add_child(card)
+	# Same-sized tiles: every card grows to the largest card's size
+	var tile := Vector2.ZERO
+	for card: Control in row.get_children():
+		tile = tile.max(card.get_combined_minimum_size())
+	for card: Control in row.get_children():
+		card.custom_minimum_size = tile
 
 	var close_button := Button.new()
 	close_button.text = tr("BTN_CLOSE")

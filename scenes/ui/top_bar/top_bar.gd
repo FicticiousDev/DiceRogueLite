@@ -30,6 +30,10 @@ const HEART_COLOR: Color = Color(1, 0.35, 0.35)
 const RANGE_COLOR: Color = Color(0.95, 0.85, 0.6)
 const GOLD_COLOR: Color = Color(1, 0.82, 0.3)
 const BANK_COLOR: Color = Color(0.75, 0.8, 0.9)
+## Contents sized to fill ~85% of the bar's 66px height
+const ICON_SIZE: float = 56.0
+const FONT_SIZE: int = 44
+const DIE_SIZE: float = 52.0
 
 @onready var stats: HBoxContainer = %Stats
 
@@ -59,7 +63,7 @@ var _health_tip: Array = []
 
 func _ready() -> void:
 	_character = Label.new()
-	_character.add_theme_font_size_override("font_size", 34)
+	_character.add_theme_font_size_override("font_size", FONT_SIZE)
 	_character.add_theme_constant_override("outline_size", 6)
 	_character.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	stats.add_child(_character)
@@ -75,7 +79,7 @@ func _ready() -> void:
 	Tooltip.set_info(_pool_box, tr("HUD_YOUR_DICE"), _pool_rows())
 	stats.add_child(_pool_box)
 	_pool_label = Label.new()
-	_pool_label.add_theme_font_size_override("font_size", 34)
+	_pool_label.add_theme_font_size_override("font_size", FONT_SIZE)
 	_pool_label.add_theme_constant_override("outline_size", 6)
 	_pool_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_pool_label.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -165,7 +169,7 @@ func _update_pool() -> void:
 	if _pool_label.get_parent():
 		_pool_box.remove_child(_pool_label)
 	if dice.size() > 0:
-		_pool_view = DieView.create(DicePoolView.sorted_types(dice)[0], 40.0)
+		_pool_view = DieView.create(DicePoolView.sorted_types(dice)[0], DIE_SIZE)
 		_pool_view.inspect_on_click = false
 		_pool_view.clicked.connect(pool_pressed.emit)
 		Tooltip.set_info(_pool_view, tr("HUD_YOUR_DICE"), _pool_rows())
@@ -182,7 +186,7 @@ func _status(texture: Texture2D, color: Color, title: String, explanation: Strin
 	icon.set_info(title, rows)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(32, 32)
+	icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
 	icon.visible = false
 	stats.add_child(icon)
 	return icon
@@ -190,7 +194,7 @@ func _status(texture: Texture2D, color: Color, title: String, explanation: Strin
 
 ## A stat with a tooltip: [param title_key] and [param tip_key] beside its icon.
 func _add(texture: Texture2D, color: Color, title_key: String, tip_key: String) -> StatIcon:
-	var stat := StatIcon.create(texture, color, 34, 30)
+	var stat := StatIcon.create(texture, color, FONT_SIZE, ICON_SIZE)
 	var rows: Array[Dictionary] = [InfoPanel.row(texture, color, tr(tip_key))]
 	Tooltip.set_info(stat, tr(title_key), rows)
 	stats.add_child(stat)

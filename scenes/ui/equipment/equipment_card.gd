@@ -48,6 +48,11 @@ static func create(equipment: EquipmentData, width: float = 420.0, button_text: 
 	info.add_child(kind)
 	info.add_child(InfoPanel.content("", equipment.info_rows(), width - icon_size - 70.0, 21))
 	if button_text != "":
+		# Keeps the button at the bottom when the card is stretched (e.g. same-sized shop tiles)
+		var spacer := Control.new()
+		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		info.add_child(spacer)
 		card.button = Button.new()
 		card.button.text = button_text
 		card.button.custom_minimum_size = Vector2(0, 38)
