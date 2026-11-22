@@ -205,6 +205,22 @@ layout_mode = 2
 size_flags_horizontal = 2
 size_flags_stretch_ratio = 2.0
 
+[node name="ShowTooltips" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ShowTooltips"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SETTINGS_SHOW_TOOLTIPS"
+horizontal_alignment = 2
+
+[node name="CheckButton" type="CheckButton" parent="Menu/Margin/Layout/Tabs/General/Center/Rows/ShowTooltips"]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+
 [node name="ConfirmUnusedDice" type="HBoxContainer" parent="Menu/Margin/Layout/Tabs/General/Center/Rows"]
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
@@ -810,6 +826,7 @@ script = ExtResource("3_fps")
 [connection signal="pressed" from="Menu/Margin/Layout/Footer/DoneButton" to="." method="_on_done_button_pressed"]
 [connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/FastDice/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_fast_dice_toggled"]
 [connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ScreenShake/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_screen_shake_toggled"]
+[connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ShowTooltips/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_show_tooltips_toggled"]
 [connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/ConfirmUnusedDice/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_confirm_unused_dice_toggled"]
 [connection signal="toggled" from="Menu/Margin/Layout/Tabs/General/Center/Rows/AutoSpendDefence/CheckButton" to="Menu/Margin/Layout/Tabs" method="_on_auto_spend_defence_toggled"]
 [connection signal="item_selected" from="Menu/Margin/Layout/Tabs/General/Center/Rows/TurnPlanSide/OptionButton" to="Menu/Margin/Layout/Tabs" method="_on_turn_plan_side_selected"]

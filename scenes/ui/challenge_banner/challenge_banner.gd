@@ -2,7 +2,8 @@ class_name ChallengeBanner
 extends CanvasLayer
 
 ## Challenge levels: announces the turn limit in the centre of the screen as the level starts, then sits under the
-## top bar counting the turns. Gold once the level is cleared in time, red once the limit has passed.
+## top bar counting the turns, its [Tooltip] restating the goal. Gold once the level is cleared in time, red once the
+## limit has passed.
 
 const STAR: Texture2D = preload("res://assets/ui/icons/levels/challenge.png")
 const GOLD: Color = Color(1.0, 0.82, 0.3)
@@ -69,6 +70,8 @@ func start(turn_controller: TurnController, turn_limit: int) -> void:
 		return
 	_title.text = tr("BANNER_CHALLENGE")
 	_status.text = tr("BANNER_DEFEAT_WITHIN") % limit
+	var rows: Array[Dictionary] = [InfoPanel.row(STAR, GOLD, tr("TIP_CHALLENGE") % limit)]
+	Tooltip.set_info(_panel, tr("BANNER_CHALLENGE"), rows)
 	_status.modulate = Color.WHITE
 	await get_tree().process_frame
 	var viewport := _panel.get_viewport_rect().size

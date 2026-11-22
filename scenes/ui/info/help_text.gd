@@ -83,3 +83,25 @@ static func face_rows(face: DieFace) -> Array[Dictionary]:
 		rows.append(InfoPanel.row(Symbol.ICONS[face_symbol.symbol], Symbol.INK[face_symbol.symbol].lightened(0.35),
 			symbol(face_symbol.symbol, face_symbol.count, face), true))
 	return rows
+
+
+## A die's tooltip title: its name and rarity.
+static func die_title(type: DieType) -> String:
+	return TranslationServer.translate("TIP_DIE_TITLE") % [type.display_name, Rarity.display_name(type.rarity)]
+
+
+## Tooltip rows for a die: each different face once, with how many it has.
+static func die_rows(type: DieType) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var counts: Dictionary[String, int] = {}
+	var firsts: Array[DieFace] = []
+	for face in type.faces:
+		var summary := face_summary(face)
+		if not counts.has(summary):
+			firsts.append(face)
+		counts[summary] = counts.get(summary, 0) + 1
+	for face in firsts:
+		var summary := face_summary(face)
+		var text := summary if counts[summary] == 1 else TranslationServer.translate("TIP_DIE_FACES") % [summary, counts[summary]]
+		rows.append(InfoPanel.row(DieFaceTextures.get_textures(face)[0], Color.WHITE, text))
+	return rows

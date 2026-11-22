@@ -4,6 +4,7 @@ extends Control
 ## A die in its own small 3D world, used wherever dice are shown outside the result row. Drag to turn it in place
 ## (a flick keeps it spinning for a moment); a click without dragging opens the [DieInspector] with all six faces,
 ## or only emits [signal clicked] when [member inspect_on_click] is off. Turns slowly on its own until dragged.
+## [method Tooltip.set_info] gives it a tooltip ([method HelpText.die_rows] lists its faces).
 ## Use: var view := DieView.create(type, 120.0)
 
 signal clicked
@@ -222,3 +223,7 @@ func _set_hovered(hovered: bool) -> void:
 	if die:
 		create_tween().tween_property(die.visual, "scale", Vector3.ONE * (HOVER_SCALE if hovered else 1.0), Anim.t(0.12)) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _make_custom_tooltip(_for_text: String) -> Object:
+	return Tooltip.make(self)

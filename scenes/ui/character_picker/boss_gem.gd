@@ -2,7 +2,7 @@ class_name BossGem
 extends Control
 
 ## A socket on a character card for one biome's boss (CharacterPicker): empty until the character has beaten that boss,
-## then holding a faceted gem in the biome's colour, glowing and slowly pulsing. Hover for the boss's name.
+## then holding a faceted gem in the biome's colour, glowing and slowly pulsing. Its [Tooltip] names the boss.
 
 const RADIUS: float = 13.0
 ## Room around the socket for its rim
@@ -30,14 +30,14 @@ var glow: float = 1.0:
 var _phase: float = 0.0
 
 
-static func create(gem_color: Color, is_filled: bool, tooltip: String, phase: float = 0.0) -> BossGem:
+static func create(gem_color: Color, is_filled: bool, title: String, rows: Array[Dictionary], phase: float = 0.0) -> BossGem:
 	var gem := BossGem.new()
 	gem.color = gem_color
 	gem.filled = is_filled
-	gem.tooltip_text = tooltip
 	gem.custom_minimum_size = Vector2.ONE * 2.0 * (RADIUS + PADDING)
 	# Clicks still reach the card
 	gem.mouse_filter = Control.MOUSE_FILTER_PASS
+	Tooltip.set_info(gem, title, rows)
 	gem._phase = phase
 	return gem
 
@@ -93,3 +93,7 @@ func _draw_gem(centre: Vector2) -> void:
 	draw_polyline(outline, color.darkened(0.6), 1.2, true)
 	# Glint on the table, brighter as the gem pulses up
 	draw_circle(centre + Vector2(-table * 0.35, -table * 0.4), table * 0.32, Color(1, 1, 1, 0.55 + 0.35 * glow), true, -1.0, true)
+
+
+func _make_custom_tooltip(_for_text: String) -> Object:
+	return Tooltip.make(self)

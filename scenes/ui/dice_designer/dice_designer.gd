@@ -179,14 +179,19 @@ func _refresh() -> void:
 		view.set_look(design, main, trim)
 	for card in _cards:
 		var title: String = card.content.display_name
-		var tip := ""
+		# Tooltip rows, only for cards that can't be picked
+		var tip: Array[Dictionary] = []
 		match card.row:
 			Row.DESIGN:
 				card.selected = card.content == design
 				card.enabled = progression.is_design_unlocked(card.content)
 				if not card.enabled:
 					var challenge := progression.challenge_for(card.content.id)
-					tip = tr("DESIGNER_LOCKED_TIP") % [challenge.description, challenge.progress_text(progression)] if challenge else tr("DESIGNER_LOCKED")
+					if challenge:
+						tip.append(InfoPanel.row(null, Color.WHITE, tr("CHARACTER_TO_UNLOCK") % challenge.description))
+						tip.append(InfoPanel.row(null, Color.WHITE, tr("CHARACTER_PROGRESS") % challenge.progress_text(progression)))
+					else:
+						tip.append(InfoPanel.row(null, Color.WHITE, tr("DESIGNER_LOCKED")))
 					title = tr("DESIGNER_LOCKED_TITLE") % title
 				card.view.set_look(card.content, main, trim)
 			Row.FINISH:
@@ -195,11 +200,14 @@ func _refresh() -> void:
 			Row.TRIM:
 				card.selected = card.content == trim
 				card.enabled = has_trim
+				if not has_trim:
+					tip.append(InfoPanel.row(null, Color.WHITE, tr("TIP_DESIGNER_NO_TRIM")))
 				card.view.set_look(design, main, card.content)
 		card.label.text = title
 		card.label.add_theme_color_override("font_color", GOLD if card.selected else Color.WHITE)
-		card.panel.tooltip_text = tip
-		card.view.tooltip_text = tip
+		var tip_title := title if not tip.is_empty() else ""
+		Tooltip.set_info(card.panel, tip_title, tip)
+		Tooltip.set_info(card.view, tip_title, tip)
 		card.view.idle_spin = card.selected
 		# Locked designs can still take focus, to read how to unlock them; the trim row can't while greyed out
 		card.panel.focus_mode = Control.FOCUS_NONE if card.row == Row.TRIM and not card.enabled else Control.FOCUS_ALL

@@ -3,7 +3,7 @@ extends Button
 
 ## Round icon button for the controls beside the dice row (abilities, equipment, enemies go first). Greys out when
 ## disabled, can be highlighted (an armed ability, or one usable right now) with a gold ring, and shows an optional badge
-## (uses left, turns to wait). Its tooltip is an [InfoPanel], like [InfoIcon]'s.
+## (uses left, turns to wait). Its tooltip is a [Tooltip].
 ## Borders: a pale grey ring, and for actives ([member timed]) a blue ring in front of it that fills clockwise from the
 ## top as the ability recharges ([method set_progress]: 0 just used, 1 ready). Passives ([member passive]) only show
 ## what they are - they can't be pressed.
@@ -20,8 +20,6 @@ const TIMER_COLOR: Color = Color(0.25, 0.65, 1.0)
 const HIGHLIGHT: Color = Color(1.0, 0.8, 0.35)
 const ICON_DISABLED: Color = Color(0.45, 0.45, 0.48, 0.7)
 
-var info_title: String
-var info_rows: Array[Dictionary] = []
 ## Shown, never pressed: no recharge ring, no hover bounce
 var passive: bool = false:
 	set(value):
@@ -99,10 +97,7 @@ func apply(entry: Dictionary) -> void:
 
 ## Tooltip content: [param title] and rows from [method InfoPanel.row].
 func set_info(title: String, rows: Array[Dictionary]) -> void:
-	info_title = title
-	info_rows = rows
-	# Built-in tooltips only open when there's some text
-	tooltip_text = title
+	Tooltip.set_info(self, title, rows)
 
 
 func set_badge(text: String) -> void:
@@ -141,7 +136,7 @@ func set_highlighted(on: bool, pulse: bool = false) -> void:
 
 
 func _make_custom_tooltip(_for_text: String) -> Object:
-	return InfoPanel.content(info_title, info_rows)
+	return Tooltip.make(self)
 
 
 ## Rings, over the background and icon the button has drawn: grey (gold while highlighted), then the recharge ring.

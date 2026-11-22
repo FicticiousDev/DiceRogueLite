@@ -68,6 +68,7 @@ SETTINGS_SCREEN_SHAKE,Screen Shake,
 SETTINGS_SFX_VOLUME,SFX Volume,
 SETTINGS_SHADOW_QUALITY,Shadow Quality,
 SETTINGS_SHOW_FPS,Show FPS Counter,
+SETTINGS_SHOW_TOOLTIPS,Show Tooltips,
 SETTINGS_SKIP_SPLASH,Skip Splash Screen,
 SETTINGS_SSAA,Screen Space Anti Aliasing,
 SETTINGS_TAB_AUDIO,Audio,Settings tab
@@ -101,6 +102,9 @@ HUD_ABILITY_WAIT_MANY,%d TURNS,
 HUD_ABILITY_WAIT_ONE,1 TURN,
 HUD_ABILITY_PASSIVE,PASSIVE,Status of an always-on ability in its button tooltip
 HUD_ATTACK_RANGE,Attack range,
+HUD_BANK,Bank,Tooltip title
+HUD_GOLD,Gold,Tooltip title
+HUD_HEALTH,Health,Tooltip title
 HUD_TURN,TURN,
 HUD_TURN_HEADER,TURN %d  ·  %s,
 HUD_YOUR_DICE,Your dice,
@@ -311,9 +315,6 @@ DICE_SWAP_OUT,SWAP OUT,
 DESIGNER_DESIGN,DESIGN,
 DESIGNER_FINISH,FINISH,
 DESIGNER_LOCKED,Locked,
-DESIGNER_LOCKED_TIP,"Locked
-%s
-Progress: %s",Placeholders: %s %s
 DESIGNER_LOCKED_TITLE,%s  (locked),Placeholders: %s
 DESIGNER_TITLE,DICE DESIGNER,
 DESIGNER_TRIM_FINISH,TRIM FINISH,
@@ -372,11 +373,12 @@ CHARACTER_PICKER_INFO,"Every character starts with a Movement, a Defence and an 
 CHARACTER_PICKER_TITLE,CHOOSE YOUR CHARACTER,
 CHARACTER_RANGE,Range %d,Placeholders: %d
 CHARACTER_MELEE,Melee,
+CHARACTER_HP,%d HP,Character card max health. Placeholders: %d
 CHARACTER_LOCKED_HEADING,LOCKED,
 CHARACTER_TO_UNLOCK,To unlock: %s,Placeholders: %s
 CHARACTER_PROGRESS,Progress: %s,Placeholders: %s
-CHARACTER_BOSS_DEFEATED,%s (%s) - defeated,"Placeholders: %s boss name, %s biome name"
-CHARACTER_BOSS_UNDEFEATED,%s (%s) - not yet defeated,"Placeholders: %s boss name, %s biome name"
+CHARACTER_BOSS_DEFEATED,Boss of %s – defeated with this character.,Boss gem tooltip. Placeholders: %s biome name
+CHARACTER_BOSS_UNDEFEATED,Boss of %s – not yet defeated with this character.,Boss gem tooltip. Placeholders: %s biome name
 TILE_IMPASSABLE,Impassable,
 TILE_MOVE_COST,Move cost %d,Placeholders: %d
 PIECE_BANK,Bank,
@@ -671,6 +673,33 @@ TIP_ABILITY_USE_ATTACK,Press to arm it while planning: it applies to the next at
 TIP_ABILITY_USE_ACTION,Press while planning to add it to your turn plan as its own step.,
 TIP_ABILITY_USE_MOVE,"Press while planning, then click the tile to go to. Press again to cancel.",
 TIP_ABILITY_USE_BLOCK,Press when an enemy hits you to use it on that hit.,
+TIP_ATTACK_RANGE,How many tiles away you can attack: 1 is next to you. Range symbols on dice add to it for that attack.,
+TIP_BANK,Gold kept between runs. Deposit or withdraw it at a bank.,
+TIP_CHALLENGE,Defeat every enemy within %d turns to earn the challenge reward.,Placeholders: %d
+TIP_CHARACTER_HEALTH,Starts every run with %d health. The run ends when it reaches 0.,Placeholders: %d
+TIP_DESIGNER_NO_TRIM,This design has no trim. Pick one with a trim to choose its finish.,
+TIP_DIE_FACES,%s  ×%d,"A die face summary and how many faces show it. Placeholders: %s summary, %d count"
+TIP_DIE_TITLE,%s  ·  %s,"Placeholders: %s die name, %s rarity"
+TIP_GOLD,Spend it in shops during this run. Bank it to keep it for later runs.,
+TIP_HEALTH,%d / %d health. The run ends when it reaches 0.,"Placeholders: %d health, %d max health"
+TIP_SETTINGS_ANIMATION_SPEED,"How fast pieces, dice and menus animate.",
+TIP_SETTINGS_ANTI_ALIASING,Smooths the jagged edges of 3D shapes (MSAA). Higher settings cost more performance.,
+TIP_SETTINGS_AUTO_SPEND_DEFENCE,"When an enemy hits you, your held defence and dodge dice are spent automatically instead of you choosing them.",
+TIP_SETTINGS_BORDERLESS,Removes the window's frame and title bar.,
+TIP_SETTINGS_CONFIRM_UNUSED_DICE,Asks before you play a turn that leaves rolled dice unused.,
+TIP_SETTINGS_CONTROLLER_TYPE,Which button icons to show for a gamepad. Auto matches the connected controller.,
+TIP_SETTINGS_FAST_DICE,Dice land almost at once instead of being thrown into the tray.,
+TIP_SETTINGS_MAX_FPS,Caps the frame rate to save power. Unlimited runs as fast as your computer allows.,
+TIP_SETTINGS_RESOLUTION_SCALING,Draws the 3D scene at a lower or higher resolution than the screen. Lower is faster; FSR keeps it sharper.,
+TIP_SETTINGS_SCREEN_SHAKE,Shakes the camera on heavy impacts.,
+TIP_SETTINGS_SHADOW_QUALITY,How detailed shadows are. Lower is faster.,
+TIP_SETTINGS_SHOW_FPS,Shows the frame rate in the corner of the screen.,
+TIP_SETTINGS_SHOW_TOOLTIPS,"Explains dice, stats, abilities, items and settings when you hover over them.",
+TIP_SETTINGS_SKIP_SPLASH,Goes straight to the main menu when the game starts.,
+TIP_SETTINGS_SSAA,"Smooths edges across the whole picture (FXAA, SMAA). Cheap, but can soften the image slightly.",
+TIP_SETTINGS_TURN_PLAN_SIDE,Which side of the screen the turn plan sits on. Your equipment moves to the other side.,
+TIP_SETTINGS_VSYNC,Matches the frame rate to your monitor to stop tearing. Can add a little input delay.,
+TIP_YOUR_DICE,Every die you can roll this run. Click to see them all.,
 DETAIL_ABILITY_TELEPORTS,%s: every move teleports,Placeholders: %s
 DETAIL_FROZEN,Frozen: halved to %d,Placeholders: %d
 DETAIL_BUFFED,+%d from buffs,Placeholders: %d

@@ -30,6 +30,7 @@ const SELECTED_SCALE: float = 1.06
 const HIGHLIGHT: Color = Color(1.0, 0.82, 0.35)
 const HEART: Texture2D = preload("res://assets/ui/icons/heart.png")
 const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
+const GEM: Texture2D = preload("res://assets/ui/disc.png")
 ## The dice every character starts with; any other starting die is the character's own
 const SHARED_DICE: Array[StringName] = [&"movement", &"defence", &"attack"]
 const FACE_SIZE: float = 44.0
@@ -406,10 +407,14 @@ func _card(character: CharacterData) -> Control:
 	stats.alignment = BoxContainer.ALIGNMENT_CENTER
 	stats.add_theme_constant_override("separation", 24)
 	var hp := StatIcon.create(HEART, Color(1, 0.35, 0.35), 28, 26.0)
-	hp.label.text = "%d HP" % character.max_hp
+	hp.label.text = tr("CHARACTER_HP") % character.max_hp
+	var hp_rows: Array[Dictionary] = [InfoPanel.row(HEART, Color(1, 0.35, 0.35), tr("TIP_CHARACTER_HEALTH") % character.max_hp)]
+	Tooltip.set_info(hp, tr("HUD_HEALTH"), hp_rows)
 	stats.add_child(hp)
 	var range_stat := StatIcon.create(BOW, Color(0.95, 0.85, 0.6), 28, 26.0)
 	range_stat.label.text = tr("CHARACTER_RANGE") % character.attack_range if character.attack_range > 1 else tr("CHARACTER_MELEE")
+	var range_rows: Array[Dictionary] = [InfoPanel.row(BOW, Color(0.95, 0.85, 0.6), tr("TIP_ATTACK_RANGE"))]
+	Tooltip.set_info(range_stat, tr("HUD_ATTACK_RANGE"), range_rows)
 	stats.add_child(range_stat)
 	box.add_child(stats)
 	box.add_child(_gap(4))
@@ -464,8 +469,9 @@ func _boss_gems(character: CharacterData) -> Control:
 		var boss: EnemyData = Database.get_content("enemies", biome.boss_id)
 		var boss_name := boss.display_name if boss else String(biome.boss_id)
 		var beaten := SaveManager.progression_data.has_defeated(character.id, biome.boss_id)
-		var tooltip := tr("CHARACTER_BOSS_DEFEATED" if beaten else "CHARACTER_BOSS_UNDEFEATED") % [boss_name, biome.display_name]
-		row.add_child(BossGem.create(biome.color, beaten, tooltip, float(i) / biomes.size()))
+		var status := tr("CHARACTER_BOSS_DEFEATED" if beaten else "CHARACTER_BOSS_UNDEFEATED") % biome.display_name
+		var rows: Array[Dictionary] = [InfoPanel.row(GEM, biome.color if beaten else BossGem.RIM_COLOR, status)]
+		row.add_child(BossGem.create(biome.color, beaten, boss_name, rows, float(i) / biomes.size()))
 	return row
 
 

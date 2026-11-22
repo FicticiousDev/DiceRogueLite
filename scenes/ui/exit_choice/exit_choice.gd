@@ -24,8 +24,6 @@ const HIGHLIGHT_SCALE: float = 1.18
 const DIMMED: Color = Color(0.72, 0.72, 0.72)
 ## Delay between the gates popping in
 const STAGGER: float = 0.07
-## Seconds a gate must be highlighted before its tooltip fades in
-const TIP_DELAY: float = 0.2
 ## Gap between a gate and its tooltip
 const TIP_GAP: float = 10.0
 
@@ -151,7 +149,7 @@ func _option(run: RunData, target: int) -> Button:
 	_gates[button] = gate
 
 	var rows: Array[Dictionary] = [InfoPanel.row(DISC, biome.color, biome.display_name)]
-	var tip := InfoPanel.create(tr(LevelData.NAMES[type]), rows, 200.0, 24)
+	var tip := Tooltip.panel(tr(LevelData.NAMES[type]), rows)
 	tip.visible = false
 	add_child(tip)
 	_tips[button] = tip
@@ -222,20 +220,20 @@ func _raise(gate: Control, raised: bool) -> void:
 # ===========================================================================================================================================
 
 
-## Hides the current tooltip and fades in [param tip] (if any) after [constant TIP_DELAY].
+## Hides the current tooltip and fades in [param tip] (if any, and tooltips are on) after [method Tooltip.delay].
 func _show_tip(tip: InfoPanel) -> void:
 	if _tip_tween:
 		_tip_tween.kill()
 	if _tip:
 		_tip.visible = false
 	_tip = tip
-	if tip == null:
+	if tip == null or not Tooltip.enabled():
 		return
 	tip.modulate.a = 0.0
 	tip.visible = true
 	_place_tip()
 	_tip_tween = create_tween()
-	_tip_tween.tween_property(tip, "modulate:a", 1.0, Anim.t(0.15)).set_delay(Anim.t(TIP_DELAY))
+	_tip_tween.tween_property(tip, "modulate:a", 1.0, Anim.t(0.15)).set_delay(Tooltip.delay())
 
 
 ## Centres the tooltip under the highlighted gate (as scaled), kept on screen.

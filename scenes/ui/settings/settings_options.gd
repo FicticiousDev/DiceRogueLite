@@ -10,6 +10,7 @@ extends TabContainer
 @onready var animation_speed_label = $General/Center/Rows/AnimationSpeed/HBoxContainer/Label
 @onready var fast_dice_checkbutton = $General/Center/Rows/FastDice/CheckButton
 @onready var screen_shake_checkbutton = $General/Center/Rows/ScreenShake/CheckButton
+@onready var show_tooltips_checkbutton = $General/Center/Rows/ShowTooltips/CheckButton
 @onready var confirm_unused_dice_checkbutton = $General/Center/Rows/ConfirmUnusedDice/CheckButton
 @onready var auto_spend_defence_checkbutton = $General/Center/Rows/AutoSpendDefence/CheckButton
 @onready var turn_plan_side_options = $General/Center/Rows/TurnPlanSide/OptionButton
@@ -54,6 +55,27 @@ var environment: Environment = preload("res://assets/default_environment.tres")
 
 ## Preview die: the first of these that exists
 const PREVIEW_DICE: Array[StringName] = [&"attack", &"all_rounder"]
+
+## Explanations for the settings that need one (localisation keys), by row; the row's label is the tooltip's title
+const ROW_TIPS: Dictionary[String, String] = {
+	"General/Center/Rows/ShowFPS": "TIP_SETTINGS_SHOW_FPS",
+	"General/Center/Rows/SkipSplashScreen": "TIP_SETTINGS_SKIP_SPLASH",
+	"General/Center/Rows/AnimationSpeed": "TIP_SETTINGS_ANIMATION_SPEED",
+	"General/Center/Rows/FastDice": "TIP_SETTINGS_FAST_DICE",
+	"General/Center/Rows/ScreenShake": "TIP_SETTINGS_SCREEN_SHAKE",
+	"General/Center/Rows/ShowTooltips": "TIP_SETTINGS_SHOW_TOOLTIPS",
+	"General/Center/Rows/ConfirmUnusedDice": "TIP_SETTINGS_CONFIRM_UNUSED_DICE",
+	"General/Center/Rows/AutoSpendDefence": "TIP_SETTINGS_AUTO_SPEND_DEFENCE",
+	"General/Center/Rows/TurnPlanSide": "TIP_SETTINGS_TURN_PLAN_SIDE",
+	"General/Center/Rows/ControllerType": "TIP_SETTINGS_CONTROLLER_TYPE",
+	"Graphics/Scroll/Center/Rows/ResolutionScaling": "TIP_SETTINGS_RESOLUTION_SCALING",
+	"Graphics/Scroll/Center/Rows/AntiAliasing": "TIP_SETTINGS_ANTI_ALIASING",
+	"Graphics/Scroll/Center/Rows/ScreenSpaceAA": "TIP_SETTINGS_SSAA",
+	"Graphics/Scroll/Center/Rows/Borderless": "TIP_SETTINGS_BORDERLESS",
+	"Graphics/Scroll/Center/Rows/VSync": "TIP_SETTINGS_VSYNC",
+	"Graphics/Scroll/Center/Rows/MaxFPS": "TIP_SETTINGS_MAX_FPS",
+	"Graphics/Scroll/Center/Rows/ShadowQuality": "TIP_SETTINGS_SHADOW_QUALITY",
+}
 
 const MAX_FPS: Array[int] = [0, 30, 60, 120, 144]
 const SHADOW_ATLAS_SIZES: Array[int] = [1024, 2048, 4096]
@@ -147,17 +169,30 @@ func _ready() -> void:
 	_on_animation_speed_value_changed(animation_speed_slider.value)
 	fast_dice_checkbutton.set_pressed(SaveManager.settings_data.fast_dice)
 	screen_shake_checkbutton.set_pressed(SaveManager.settings_data.screen_shake)
+	show_tooltips_checkbutton.set_pressed(SaveManager.settings_data.show_tooltips)
 	confirm_unused_dice_checkbutton.set_pressed(SaveManager.settings_data.confirm_unused_dice)
 	auto_spend_defence_checkbutton.set_pressed(SaveManager.settings_data.auto_spend_defence)
 	turn_plan_side_options.select(SaveManager.settings_data.turn_plan_side)
 	controller_scheme_options.select(SaveManager.settings_data.controller_scheme)
 	_on_controller_scheme_selected(SaveManager.settings_data.controller_scheme)
 
+	_add_row_tips()
+
 	# Prompts with a "Don't show this again" box change settings behind this menu's back
 	visibility_changed.connect(_sync_prompt_toggles)
 	preview_holder.visibility_changed.connect(_ensure_preview)
 
 	centre_window()
+
+
+## Gives each row in [constant ROW_TIPS], and everything in it, a tooltip titled by the row's label.
+func _add_row_tips() -> void:
+	for path in ROW_TIPS:
+		var row: Control = get_node(path)
+		var title := tr(row.get_node("Label").text)
+		var rows: Array[Dictionary] = [InfoPanel.row(null, Color.WHITE, tr(ROW_TIPS[path]))]
+		for control in [row] + row.find_children("*", "Control", true, false):
+			Tooltip.set_info(control, title, rows)
 
 
 ## Keeps the checkbuttons for settings that in-game prompts can flip in step with the saved values
@@ -202,6 +237,12 @@ func _on_fast_dice_toggled(toggled_on: bool) -> void:
 ## Reacting to screen shake button press
 func _on_screen_shake_toggled(toggled_on: bool) -> void:
 	SaveManager.settings_data.screen_shake = toggled_on
+
+
+## Reacting to show tooltips button press: switches every tooltip on or off at once
+func _on_show_tooltips_toggled(toggled_on: bool) -> void:
+	SaveManager.settings_data.show_tooltips = toggled_on
+	Tooltip.refresh(get_tree())
 
 
 ## Reacting to confirm unused dice button press

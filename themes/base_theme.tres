@@ -180,6 +180,22 @@ border_color = Color(0.45, 0.5, 0.58, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabfocus"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.07, 0.07, 0.1, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.25)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [resource]
 default_font_size = 50
 Button/colors/font_focus_color = Color(0, 0.764706, 1, 1)
@@ -254,4 +270,6 @@ TabBar/styles/tab_focus = SubResource("StyleBoxEmpty_tabfocus")
 TabBar/styles/tab_hovered = SubResource("StyleBoxFlat_tabhov")
 TabBar/styles/tab_selected = SubResource("StyleBoxFlat_tabsel")
 TabBar/styles/tab_unselected = SubResource("StyleBoxFlat_tabun")
-TooltipLabel/font_sizes/font_size = 22
+TooltipLabel/colors/font_color = Color(1, 0.85, 0.45, 1)
+TooltipLabel/font_sizes/font_size = 31
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_tooltip")

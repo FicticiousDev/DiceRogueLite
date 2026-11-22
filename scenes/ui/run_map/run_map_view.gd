@@ -2,7 +2,7 @@ class_name RunMapView
 extends CanvasLayer
 
 ## The run map, toggled with [M]: every level entered, plus the levels each one offered on. Each shows the same
-## symbol as in the exit choice, in its biome's colour. Choices not taken are greyed out; levels never offered are hidden.
+## symbol as in the exit choice, in its biome's colour, and the same [Tooltip]. Choices not taken are greyed out; levels never offered are hidden.
 
 const DISC: Texture2D = preload("res://assets/ui/disc.png")
 const ARROW: Texture2D = preload("res://assets/ui/map_arrow.png")
@@ -106,7 +106,9 @@ func _add_node(index: int, centre: Vector2, greyed: bool) -> void:
 	disc.size = Vector2.ONE * NODE_SIZE
 	disc.position = centre - disc.size / 2.0
 	disc.modulate = color
-	disc.tooltip_text = "%s: %s" % [biome.display_name, tr(LevelData.NAMES[type])]
+	# Same tooltip as the exit choice's gates
+	var rows: Array[Dictionary] = [InfoPanel.row(DISC, biome.color, biome.display_name)]
+	Tooltip.set_info(disc, tr(LevelData.NAMES[type]), rows)
 	_graph.add_child(disc)
 	var icon := TextureRect.new()
 	icon.texture = LevelData.ICONS[type]

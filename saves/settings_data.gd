@@ -10,6 +10,8 @@ const SIDE_RIGHT: int = 1
 @export var animation_speed: float = 1.0
 @export var fast_dice: bool = false
 @export var screen_shake: bool = true
+## Hover explanations everywhere (Tooltip)
+@export var show_tooltips: bool = true
 @export var confirm_unused_dice: bool = true
 @export var auto_spend_defence: bool = false
 ## Side of the board the turn plan panel sits on (SIDE_LEFT / SIDE_RIGHT, the option button order)

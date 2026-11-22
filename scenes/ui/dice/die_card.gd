@@ -1,8 +1,8 @@
 class_name DieCard
 extends PanelContainer
 
-## A die on a small card: a turnable [DieView] (click it for all six faces), its name in its rarity colour and an
-## optional button. [member selected] thickens the border in the highlight colour.
+## A die on a small card: a turnable [DieView] (hover it for its faces, click it for all six), its name in its rarity
+## colour and an optional button. [member selected] thickens the border in the highlight colour.
 
 signal button_pressed
 
@@ -35,6 +35,7 @@ static func create(type: DieType, view_size: float = 110.0, button_text: String 
 	card.add_child(box)
 	card.view = DieView.create(type, view_size)
 	card.view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	Tooltip.set_info(card.view, HelpText.die_title(type), HelpText.die_rows(type))
 	box.add_child(card.view)
 	var name_label := Label.new()
 	name_label.text = type.display_name

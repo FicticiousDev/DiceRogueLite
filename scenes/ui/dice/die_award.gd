@@ -85,6 +85,7 @@ func present(type: DieType, source: String, max_size: int) -> bool:
 	var view := DieView.create(type, view_size)
 	view.position = Vector2.ONE * view_size * 0.125
 	view.size = Vector2.ONE * view_size
+	Tooltip.set_info(view, HelpText.die_title(type), HelpText.die_rows(type))
 	stage.add_child(view)
 
 	_content.add_child(_label(type.display_name, 50, Rarity.COLORS[type.rarity].lightened(0.2)))

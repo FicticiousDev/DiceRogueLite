@@ -5,12 +5,13 @@ extends Control
 ## while the bank is empty) and the dice pool - the pool's rarest die, turning, with the pool size; clicking it opens the
 ## pool viewer. The bar is a trapezoid hanging from the top edge, and its background is the health bar: one section per
 ## HP, filled dark red for each the player has left. Abilities and equipment are buttons beside the dice row
-## ([AbilityBar], [EquipmentBar]).
+## ([AbilityBar], [EquipmentBar]). Hovering the bar names the character and its health; every stat has a [Tooltip].
 
 signal pool_pressed
 
 const COIN: Texture2D = preload("res://assets/ui/icons/coin.png")
 const BANK: Texture2D = preload("res://assets/ui/icons/bank.png")
+const HEART: Texture2D = preload("res://assets/ui/icons/heart.png")
 const BOW: Texture2D = preload("res://assets/ui/icons/bow.png")
 const STUN: Texture2D = preload("res://assets/ui/icons/stun.png")
 const POISON: Texture2D = preload("res://assets/ui/icons/poison.png")
@@ -25,6 +26,10 @@ const BACKGROUND: Color = Color(0.17, 0.17, 0.19, 0.95)
 const HEALTH: Color = Color(0.4, 0.04, 0.08)
 const BORDER_COLOR: Color = Color.BLACK
 const DIVIDER_COLOR: Color = Color(0, 0, 0, 0.75)
+const HEART_COLOR: Color = Color(1, 0.35, 0.35)
+const RANGE_COLOR: Color = Color(0.95, 0.85, 0.6)
+const GOLD_COLOR: Color = Color(1, 0.82, 0.3)
+const BANK_COLOR: Color = Color(0.75, 0.8, 0.9)
 
 @onready var stats: HBoxContainer = %Stats
 
@@ -48,6 +53,8 @@ var _shown_health: float = -1.0
 var _health_target: int = -1
 var _sections: int = 0
 var _health_tween: Tween
+## The health tooltip as last set: [name, health, max]
+var _health_tip: Array = []
 
 
 func _ready() -> void:
@@ -60,15 +67,12 @@ func _ready() -> void:
 	_poison = _status(POISON, Color(0.55, 1.0, 0.45), tr("STATUS_POISONED"), tr(HelpText.PLAYER_POISONED))
 	_frozen = _status(FREEZE, Color(0.55, 0.85, 1.0), tr("STATUS_FROZEN"), tr(HelpText.PLAYER_FROZEN))
 	_burning = _status(FIRE, Color(1.0, 0.55, 0.2), tr("STATUS_BURNING"), tr(HelpText.PLAYER_BURNING))
-	_range = _add(BOW, Color(0.95, 0.85, 0.6))
-	_range.tooltip_text = tr("HUD_ATTACK_RANGE")
-	_range.mouse_filter = Control.MOUSE_FILTER_PASS
-	_gold = _add(COIN, Color(1, 0.82, 0.3))
-	_bank = _add(BANK, Color(0.75, 0.8, 0.9))
+	_range = _add(BOW, RANGE_COLOR, "HUD_ATTACK_RANGE", "TIP_ATTACK_RANGE")
+	_gold = _add(COIN, GOLD_COLOR, "HUD_GOLD", "TIP_GOLD")
+	_bank = _add(BANK, BANK_COLOR, "HUD_BANK", "TIP_BANK")
 	_pool_box = HBoxContainer.new()
 	_pool_box.add_theme_constant_override("separation", 4)
-	_pool_box.tooltip_text = tr("HUD_YOUR_DICE")
-	_pool_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	Tooltip.set_info(_pool_box, tr("HUD_YOUR_DICE"), _pool_rows())
 	stats.add_child(_pool_box)
 	_pool_label = Label.new()
 	_pool_label.add_theme_font_size_override("font_size", 34)
@@ -91,6 +95,7 @@ func _process(_delta: float) -> void:
 	var has_player := turn != null and turn.player != null and is_instance_valid(turn.player)
 	if has_player and turn.player.character:
 		_character.text = turn.player.character.display_name
+	_update_health_tip(run.health, run.max_health)
 	_range.visible = has_player
 	if has_player:
 		_range.set_value(str(turn.player.attack_range))
@@ -163,6 +168,7 @@ func _update_pool() -> void:
 		_pool_view = DieView.create(DicePoolView.sorted_types(dice)[0], 40.0)
 		_pool_view.inspect_on_click = false
 		_pool_view.clicked.connect(pool_pressed.emit)
+		Tooltip.set_info(_pool_view, tr("HUD_YOUR_DICE"), _pool_rows())
 		_pool_box.add_child(_pool_view)
 	_pool_box.add_child(_pool_label)
 
@@ -182,7 +188,28 @@ func _status(texture: Texture2D, color: Color, title: String, explanation: Strin
 	return icon
 
 
-func _add(texture: Texture2D, color: Color) -> StatIcon:
+## A stat with a tooltip: [param title_key] and [param tip_key] beside its icon.
+func _add(texture: Texture2D, color: Color, title_key: String, tip_key: String) -> StatIcon:
 	var stat := StatIcon.create(texture, color, 34, 30)
+	var rows: Array[Dictionary] = [InfoPanel.row(texture, color, tr(tip_key))]
+	Tooltip.set_info(stat, tr(title_key), rows)
 	stats.add_child(stat)
 	return stat
+
+
+func _pool_rows() -> Array[Dictionary]:
+	return [InfoPanel.row(null, Color.WHITE, tr("TIP_YOUR_DICE"))]
+
+
+## The bar's own tooltip: the character (shown on the bar) and its health, updated when either changes.
+func _update_health_tip(health: int, max_health: int) -> void:
+	var tip := [_character.text, health, max_health]
+	if tip == _health_tip:
+		return
+	_health_tip = tip
+	var rows: Array[Dictionary] = [InfoPanel.row(HEART, HEART_COLOR, tr("TIP_HEALTH") % [health, max_health])]
+	Tooltip.set_info(self, _character.text if _character.text != "" else tr("HUD_HEALTH"), rows)
+
+
+func _make_custom_tooltip(_for_text: String) -> Object:
+	return Tooltip.make(self)

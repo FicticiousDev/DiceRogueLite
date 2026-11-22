@@ -1,7 +1,7 @@
 class_name StatIcon
 extends HBoxContainer
 
-## Icon + value pair used by the top bar and enemy info.
+## Icon + value pair used by the top bar, character cards and shops. [method Tooltip.set_info] gives it a tooltip.
 
 const ICON_SIZE: float = 22.0
 
@@ -39,3 +39,7 @@ func set_value(text: String, color: Color = Color.WHITE) -> void:
 		pivot_offset = size / 2.0
 		scale = Vector2.ONE * 1.35
 		create_tween().tween_property(self, "scale", Vector2.ONE, Anim.t(0.3)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _make_custom_tooltip(_for_text: String) -> Object:
+	return Tooltip.make(self)

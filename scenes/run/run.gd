@@ -787,13 +787,10 @@ func _on_exit_pressed() -> void:
 		SceneManager.change_scene(MAIN_MENU_SCENE)
 
 
-## Seconds a die must be hovered before its tooltip shows
-const DIE_TIP_DELAY: float = 0.35
-
-
-## Shows what the hovered die's symbols do, next to the mouse, while it stays hovered.
+## Shows what the hovered die's symbols do, next to the mouse, while it stays hovered (dice in the tray aren't Controls,
+## so its [Tooltip] is placed by hand).
 func _update_die_tip(delta: float) -> void:
-	var index := turn.hovered_die if turn.hovered_die < turn.results.size() else -1
+	var index := turn.hovered_die if Tooltip.enabled() and turn.hovered_die < turn.results.size() else -1
 	if index != _die_tip_index:
 		_die_tip_index = index
 		_die_tip_time = 0.0
@@ -803,10 +800,9 @@ func _update_die_tip(delta: float) -> void:
 	if index == -1:
 		return
 	_die_tip_time += delta
-	if _die_tip == null and _die_tip_time >= DIE_TIP_DELAY:
+	if _die_tip == null and _die_tip_time >= Tooltip.delay():
 		var result := turn.results[index]
-		var title := "%s  ·  %s" % [result.die_type.display_name, Rarity.display_name(result.die_type.rarity)]
-		_die_tip = InfoPanel.create(title, HelpText.face_rows(result.display_face()), 340.0, 24)
+		_die_tip = Tooltip.panel(HelpText.die_title(result.die_type), HelpText.face_rows(result.display_face()))
 		_die_tip_layer.add_child(_die_tip)
 	if _die_tip:
 		# Above and to the right of the mouse, kept on screen
