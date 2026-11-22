@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/pieces/enemies/badlands/stalker.svg" id="tex"]
+[ext_resource type="Texture2D" path="res://assets/pieces/enemies/badlands/stalker.png" id="tex"]
 
 [resource]
 script = ExtResource("1")

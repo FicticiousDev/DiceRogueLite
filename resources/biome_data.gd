@@ -13,9 +13,10 @@ var display_name: String:
 @export var difficulty: int = 1
 ## Exit choices and map symbols leading into this biome
 @export var color: Color = Color.WHITE
-## Tile texture per Terrain.Type, laid out as in assets/tiles/uv_templates
+## Tile texture per Terrain.Type (assets/tiles/<biome>/<type>.png), mapped onto the shared models in
+## assets/tiles/models; laid out as in assets/tiles/uv_templates
 @export var terrain_textures: Array[Texture2D] = []
-## Tile model per Terrain.Type; a missing or empty entry uses Terrain.MESHES
+## Tile model per Terrain.Type; a missing or empty entry uses the shared one in Terrain.MESHES
 @export var terrain_meshes: Array[Mesh] = []
 ## Tile colour per Terrain.Type, used when there is no texture for it
 @export var terrain_colors: Array[Color] = []

@@ -26,7 +26,7 @@ Implementation follows `Dice_Roguelike_Development_Plan.md` (Obsidian vault `Gam
 - Debug-only text may stay unlocalised.
 
 ## Assets
-- Placeholder texture: Godot's built-in icon (`icon.svg`, as created with every new project). Tint it with `modulate` to tell placeholders apart.
+- Placeholder texture: Godot's built-in icon (`icon.png`, rasterised from the `icon.svg` created with every new project). Tint it with `modulate` to tell placeholders apart.
 - Assets from `DiceRogueLite` and `MiceAndDice` may also be used as placeholders (UI buttons, splash images, tile highlights, `dice.glb`, grass tile art).
 - Theme/setting is undecided. Never hard-code theme-specific names in code – use generic terms (player, enemy, gold, tile).
 

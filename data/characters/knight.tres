@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
 [ext_resource type="Script" path="res://resources/abilities/block_attack_ability.gd" id="3_block_attack_ability"]
 [ext_resource type="Script" path="res://resources/abilities/defence_bonus_ability.gd" id="4_defence_bonus_ability"]
-[ext_resource type="Texture2D" path="res://assets/pieces/characters/knight.svg" id="tex"]
+[ext_resource type="Texture2D" path="res://assets/pieces/characters/knight.png" id="tex"]
 
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_defence_bonus_ability")

@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://resources/enemy_data.gd" id="1"]
 [ext_resource type="Script" path="res://resources/bosses/teleport_phase_behaviour.gd" id="2"]
 [ext_resource type="Resource" path="res://data/enemies/overlord_minion.tres" id="3"]
-[ext_resource type="Texture2D" path="res://assets/pieces/enemies/abyss/overlord.svg" id="tex"]
+[ext_resource type="Texture2D" path="res://assets/pieces/enemies/abyss/overlord.png" id="tex"]
 
 [sub_resource type="Resource" id="Resource_behaviour"]
 script = ExtResource("2")

@@ -10,9 +10,9 @@ extends Resource
 ## How an active ability is used
 enum Use { ATTACK, BLOCK, ACTION, MOVE }
 
-## Button icons for actives are found by id: ICON_DIR/<id>.svg, else the placeholder
+## Button icons for actives are found by id: ICON_DIR/<id>.png, else the placeholder
 const ICON_DIR: String = "res://assets/ui/icons/abilities/"
-const ICON_PLACEHOLDER: String = "res://icon.svg"
+const ICON_PLACEHOLDER: String = "res://icon.png"
 
 @export var id: StringName
 ## Localised name and description. The keys are ABILITY_<ID>_NAME / ABILITY_<ID>_DESC (localisation/strings.csv).
@@ -36,7 +36,7 @@ var description: String:
 
 ## The ability's button icon (see [constant ICON_DIR]).
 func get_icon() -> Texture2D:
-	var path := ICON_DIR + String(id) + ".svg"
+	var path := ICON_DIR + String(id) + ".png"
 	return load(path) if ResourceLoader.exists(path) else load(ICON_PLACEHOLDER)
 
 

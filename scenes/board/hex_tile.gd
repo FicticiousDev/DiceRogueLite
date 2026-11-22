@@ -32,7 +32,7 @@ var id: int
 var coords: Vector2i
 var terrain: Terrain.Type
 var radius: float
-## Supplies the tile's model, texture and fallback colour. Null uses the Terrain defaults.
+## Supplies the tile's texture and fallback colour (and optionally its model). Null uses the Terrain defaults.
 var biome: BiomeData
 var highlight: Highlight = Highlight.NONE
 ## Piece standing on this tile, if any. Set by BoardPiece.
@@ -65,6 +65,7 @@ func _ready() -> void:
 
 func _apply_terrain() -> void:
 	body.mesh = biome.terrain_mesh(terrain) if biome else Terrain.MESHES[terrain]
+	# Always overridden: the models' own .mtl material is only a preview for editing
 	body.material_override = _get_body_material()
 	var fit := radius * BODY_SCALE / MODEL_RADIUS
 	body.scale = Vector3(fit, 1.0, fit)

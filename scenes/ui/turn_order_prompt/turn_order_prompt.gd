@@ -7,7 +7,7 @@ extends CanvasLayer
 
 signal pressed
 
-const ICON_PATH: String = "res://assets/ui/icons/enemies_first.svg"
+const ICON_PATH: String = "res://assets/ui/icons/enemies_first.png"
 const MARGIN: float = 28.0
 
 ## Height of the dice row as a fraction of the screen (DiceTray.row_screen_y)

@@ -8,7 +8,7 @@ extends Node3D
 const SHADER: Shader = preload("res://shaders/cutout.gdshader")
 const PADDING: float = 0.08
 
-@export var texture: Texture2D = preload("res://icon.svg"):
+@export var texture: Texture2D = preload("res://icon.png"):
 	set(value):
 		texture = value
 		_rebuild()

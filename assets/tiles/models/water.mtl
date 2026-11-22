@@ -1,0 +1,9 @@
+# Preview material for water.obj. In game the biome's texture replaces it (BiomeData.terrain_textures)
+newmtl tile_water
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ns 100.000000
+d 1.000000
+illum 1
+map_Kd ../grasslands/water.png

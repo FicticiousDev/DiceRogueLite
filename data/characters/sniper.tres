@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
 [ext_resource type="Script" path="res://resources/abilities/boost_ability.gd" id="3_boost_ability"]
 [ext_resource type="Script" path="res://resources/abilities/range_damage_ability.gd" id="4_range_damage_ability"]
-[ext_resource type="Texture2D" path="res://assets/pieces/characters/sniper.svg" id="tex"]
+[ext_resource type="Texture2D" path="res://assets/pieces/characters/sniper.png" id="tex"]
 
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_range_damage_ability")

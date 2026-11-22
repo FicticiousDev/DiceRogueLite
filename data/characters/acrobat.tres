@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://resources/character_data.gd" id="2_character"]
 [ext_resource type="Script" path="res://resources/abilities/dash_ability.gd" id="3_dash_ability"]
 [ext_resource type="Script" path="res://resources/abilities/die_bonus_ability.gd" id="4_die_bonus_ability"]
-[ext_resource type="Texture2D" path="res://assets/pieces/characters/acrobat.svg" id="tex"]
+[ext_resource type="Texture2D" path="res://assets/pieces/characters/acrobat.png" id="tex"]
 
 [sub_resource type="Resource" id="Ability_passive"]
 script = ExtResource("4_die_bonus_ability")

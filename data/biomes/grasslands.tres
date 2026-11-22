@@ -1,21 +1,19 @@
-[gd_resource type="Resource" script_class="BiomeData" format=3]
+[gd_resource type="Resource" script_class="BiomeData" format=3 uid="uid://cppkqa1fxho00"]
 
-[ext_resource type="Script" path="res://resources/biome_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://d0mh0m265nbmy" path="res://resources/biome_data.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/grasslands/grass_blades.tscn" id="fx_0"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/grasslands/dust_puff.tscn" id="fx_1"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/grasslands/stone_chips.tscn" id="fx_2"]
 [ext_resource type="PackedScene" path="res://scenes/board/effects/grasslands/water_splash.tscn" id="fx_3"]
-[ext_resource type="Texture2D" path="res://assets/tiles/grasslands/normal.png" id="tex_0"]
-[ext_resource type="Texture2D" path="res://assets/tiles/grasslands/difficult.png" id="tex_1"]
-[ext_resource type="Texture2D" path="res://assets/tiles/grasslands/extreme.png" id="tex_2"]
-[ext_resource type="Texture2D" path="res://assets/tiles/grasslands/water.png" id="tex_3"]
-[ext_resource type="Texture2D" path="res://assets/tiles/grasslands/wall.png" id="tex_4"]
+[ext_resource type="Texture2D" uid="uid://b5t46dhsdvu36" path="res://assets/tiles/grasslands/normal.png" id="tex_0"]
+[ext_resource type="Texture2D" uid="uid://cnm6h5kl86s3j" path="res://assets/tiles/grasslands/difficult.png" id="tex_1"]
+[ext_resource type="Texture2D" uid="uid://1gxiocw0vaud" path="res://assets/tiles/grasslands/extreme.png" id="tex_2"]
+[ext_resource type="Texture2D" uid="uid://dwuuk63ttbx6" path="res://assets/tiles/grasslands/water.png" id="tex_3"]
+[ext_resource type="Texture2D" uid="uid://ckdr1qogq6olh" path="res://assets/tiles/grasslands/wall.png" id="tex_4"]
 
 [resource]
 script = ExtResource("1")
 id = &"grasslands"
-order = 1
-difficulty = 1
 color = Color(0.45, 0.9, 0.35, 1)
 terrain_textures = Array[Texture2D]([ExtResource("tex_0"), ExtResource("tex_1"), ExtResource("tex_2"), ExtResource("tex_3"), ExtResource("tex_4")])
 terrain_colors = Array[Color]([Color(0.45, 0.62, 0.35, 1), Color(0.59, 0.47, 0.31, 1), Color(0.47, 0.31, 0.41, 1), Color(0.31, 0.51, 0.75, 1), Color(0.45, 0.45, 0.5, 1)])
@@ -23,4 +21,3 @@ terrain_effects = Array[PackedScene]([ExtResource("fx_0"), ExtResource("fx_1"), 
 enemy_ids = Array[StringName]([&"grunt", &"archer", &"runt"])
 boss_id = &"warlord"
 boss_level = &"boss_grasslands"
-enemy_count = Vector2i(3, 4)

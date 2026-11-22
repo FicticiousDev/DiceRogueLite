@@ -8,8 +8,8 @@ extends BoardPiece
 enum Kind { SHOP, BANK }
 
 const TEXTURES: Dictionary[Kind, Texture2D] = {
-	Kind.SHOP: preload("res://assets/pieces/buildings/shop.svg"),
-	Kind.BANK: preload("res://assets/pieces/buildings/bank.svg"),
+	Kind.SHOP: preload("res://assets/pieces/buildings/shop.png"),
+	Kind.BANK: preload("res://assets/pieces/buildings/bank.png"),
 }
 const ICONS: Dictionary[Kind, Texture2D] = {
 	Kind.SHOP: preload("res://assets/pieces/buildings/shop_symbol.png"),

@@ -7,7 +7,7 @@ extends Resource
 ## Localised name. The key is CHARACTER_<ID>_NAME (localisation/strings.csv)
 var display_name: String:
 	get: return tr("CHARACTER_%s_NAME" % String(id).to_upper())
-@export var texture: Texture2D = preload("res://icon.svg")
+@export var texture: Texture2D = preload("res://icon.png")
 @export var tint: Color = Color.WHITE
 @export var max_hp: int = 5
 @export var attack_range: int = 1

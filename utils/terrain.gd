@@ -31,7 +31,8 @@ const HEIGHTS: Dictionary[Type, float] = {
 	Type.WALL: 0.9,
 }
 
-## Default tile model per type; a biome can override it (BiomeData.terrain_meshes)
+## Tile model per type, shared by every biome (each biome textures it, see BiomeData.terrain_textures).
+## A biome can swap in its own model through BiomeData.terrain_meshes
 const MESHES: Dictionary[Type, Mesh] = {
 	Type.NORMAL: preload("res://assets/tiles/models/normal.obj"),
 	Type.DIFFICULT: preload("res://assets/tiles/models/difficult.obj"),

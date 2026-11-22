@@ -22,7 +22,7 @@ const SET: StringName = &"set"
 const PLAYED: StringName = &"played"
 const LOG: StringName = &"log"
 
-const PLAY_ICON: String = "res://assets/ui/icons/play_turn.svg"
+const PLAY_ICON: String = "res://assets/ui/icons/play_turn.png"
 ## Height of the top bar (scenes/ui/top_bar/top_bar.tscn) and the gap kept to it and to the dice row's buttons
 const TOP_BAR_HEIGHT: float = 66.0
 const GAP: float = 12.0
