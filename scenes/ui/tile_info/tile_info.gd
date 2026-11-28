@@ -1,7 +1,8 @@
 class_name TileInfo
 extends PanelContainer
 
-## Strip just above the dice row naming the hovered tile: its terrain, the cost to move onto it and the piece on it.
+## Strip just above the dice row naming the hovered tile: its terrain, the cost to move onto it, any hazard damage and
+## the piece on it.
 
 const MOVE: Texture2D = preload("res://assets/ui/icons/move.png")
 ## Gap between the strip and the centre of the dice row, in pixels
@@ -15,6 +16,8 @@ var _swatch: Panel
 var _swatch_style: StyleBoxFlat
 var _terrain: Label
 var _cost: Label
+var _hazard_dot: Label
+var _hazard: Label
 var _piece_dot: Label
 var _piece: Label
 
@@ -55,6 +58,9 @@ func _ready() -> void:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.add_child(icon)
 	_cost = _label(line, Color(0.75, 0.85, 1.0))
+	_hazard_dot = _label(line, Color(0.55, 0.55, 0.6))
+	_hazard_dot.text = "·"
+	_hazard = _label(line, TurnController.HAZARD_COLOR)
 	_piece_dot = _label(line, Color(0.55, 0.55, 0.6))
 	_piece_dot.text = "·"
 	_piece = _label(line, InfoPanel.TITLE_COLOR)
@@ -74,6 +80,10 @@ func show_tile(board: Board, tile_id: int) -> void:
 	_terrain.text = tr("TERRAIN_" + Terrain.Type.keys()[tile.terrain])
 	var cost := board.move_cost(tile_id)
 	_cost.text = tr("TILE_MOVE_COST") % cost if cost > 0 else tr("TILE_IMPASSABLE")
+	var hazard := board.hazard_damage(tile_id)
+	_hazard.text = tr("TILE_HAZARD") % hazard
+	_hazard.visible = hazard > 0
+	_hazard_dot.visible = _hazard.visible
 	var piece_name := piece_name(board, tile_id)
 	_piece.text = piece_name
 	_piece.visible = piece_name != ""

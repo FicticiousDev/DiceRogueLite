@@ -413,6 +413,11 @@ func move_cost(tile_id: int) -> int:
 	return Terrain.cost(tiles[tile_id].terrain) if tiles.has(tile_id) else -1
 
 
+## Damage to a piece starting its turn on [tile_id] (hazardous terrain), or 0.
+func hazard_damage(tile_id: int) -> int:
+	return Terrain.hazard_damage(tiles[tile_id].terrain) if tiles.has(tile_id) else 0
+
+
 func get_marker_cells(marker: Marker) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	for cell in markers.get_used_cells():

@@ -158,6 +158,7 @@ POPUP_FLAME_BURST,FLAME BURST,
 POPUP_FREEZE_RESISTED,FREEZE RESISTED,
 POPUP_FROZEN,FROZEN,
 POPUP_GOLD,+%d gold,Placeholders: %d
+POPUP_HAZARD,HAZARD,
 POPUP_IMMUNE,IMMUNE,
 POPUP_KILL,KILL,
 POPUP_KNOCKED_ASIDE,KNOCKED ASIDE,
@@ -379,6 +380,7 @@ CHARACTER_TO_UNLOCK,To unlock: %s,Placeholders: %s
 CHARACTER_PROGRESS,Progress: %s,Placeholders: %s
 CHARACTER_BOSS_DEFEATED,Boss of %s – defeated with this character.,Boss gem tooltip. Placeholders: %s biome name
 CHARACTER_BOSS_UNDEFEATED,Boss of %s – not yet defeated with this character.,Boss gem tooltip. Placeholders: %s biome name
+TILE_HAZARD,%d damage each turn,Placeholders: %d. Hazardous terrain: damage to a piece that starts its turn there
 TILE_IMPASSABLE,Impassable,
 TILE_MOVE_COST,Move cost %d,Placeholders: %d
 PIECE_BANK,Bank,
@@ -389,7 +391,7 @@ PIECE_OBSTACLE,Obstacle,Key is built from the piece scene file name
 PIECE_PLAYER,Player,
 PIECE_SHOP,Shop,
 TERRAIN_DIFFICULT,Difficult,Key is built from the Terrain.Type enum name
-TERRAIN_EXTREME,Extreme,Key is built from the Terrain.Type enum name
+TERRAIN_HAZARDOUS,Hazardous,Key is built from the Terrain.Type enum name
 TERRAIN_NORMAL,Normal,Key is built from the Terrain.Type enum name
 TERRAIN_WALL,Wall,Key is built from the Terrain.Type enum name
 TERRAIN_WATER,Water,Key is built from the Terrain.Type enum name

@@ -32,6 +32,8 @@ const GOLD_PER_DEPTH: float = 0.04
 ## Extra damage for a hit whose knockback has nowhere to go (a wall, an obstacle, another piece or the board's edge)
 const PIN_BONUS: int = 1
 const PIN_COLOR: Color = Color(1.0, 0.7, 0.4)
+## Popup for damage from hazardous terrain
+const HAZARD_COLOR: Color = Color(1.0, 0.45, 0.3)
 ## Localisation keys saying when each kind of active can be used, for the ability buttons' tooltips
 const USE_HINTS: Dictionary[Ability.Use, String] = {
 	Ability.Use.ATTACK: "TIP_ABILITY_USE_ATTACK", Ability.Use.BLOCK: "TIP_ABILITY_USE_BLOCK",
@@ -213,6 +215,14 @@ func start_turn(new_turn: bool = true) -> void:
 			return
 	# Poison and burning don't count against the end-of-turn heal, so a quiet turn can still cure the poison
 	_damage_taken = 0
+	# Starting on hazardous terrain hurts, past any defence (and it does count against the heal)
+	var hazard := board.hazard_damage(player.tile_id) if new_turn else 0
+	if hazard > 0:
+		player.popup(tr("POPUP_HAZARD"), HAZARD_COLOR)
+		await _hurt_player(hazard, "-%d" % hazard)
+		if _player_dead():
+			await _game_over()
+			return
 	# A freeze (from a hit in the last round) slows this turn's movement
 	player.frozen = player.frozen_next
 	player.frozen_next = false
@@ -1440,6 +1450,8 @@ func _enemy_phase() -> void:
 	for enemy in _enemy_order():
 		if not is_instance_valid(enemy) or enemy.is_dead():
 			continue
+		if await _hazard_tick(enemy):
+			continue
 		if _stun_blocks(enemy):
 			enemy.stunned = false
 			await get_tree().create_timer(Anim.t(0.3)).timeout
@@ -1620,6 +1632,29 @@ func _burn_tick() -> void:
 		await deaths[0].died
 	await _dismiss_minions(deaths)
 	await _react_to_damage(before)
+
+
+## [enemy] starting its turn on hazardous terrain takes the damage, ignoring defence and shield. Enemies don't steer
+## clear of it. Returns true if it died.
+func _hazard_tick(enemy: Enemy) -> bool:
+	var damage := 0 if enemy.submerged else board.hazard_damage(enemy.tile_id)
+	if damage <= 0:
+		return false
+	var before: Dictionary[Enemy, Vector2i] = {}
+	before[enemy] = Vector2i(enemy.hp, enemy.shield)
+	enemy.popup(tr("POPUP_HAZARD"), HAZARD_COLOR)
+	SaveManager.run_data.damage_dealt += mini(damage, enemy.hp)
+	enemy.take_direct_damage(damage)
+	if enemy.is_dead():
+		var dead: Array[Enemy] = [enemy]
+		_reward_kill(enemy)
+		enemy.play_death()
+		await enemy.died
+		await _dismiss_minions(dead)
+		return true
+	await get_tree().create_timer(Anim.t(0.3)).timeout
+	await _react_to_damage(before)
+	return not is_instance_valid(enemy) or enemy.is_dead()
 
 
 ## Hurts [enemy], counting the health it actually lost as damage dealt. [shield_multiplier]: shield taken per point (2

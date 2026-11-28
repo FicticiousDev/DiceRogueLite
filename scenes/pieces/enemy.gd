@@ -162,6 +162,15 @@ func take_damage(amount: int, shield_multiplier: int = 1) -> void:
 		popup(tr("POPUP_SHIELD_BROKEN"), Color(0.6, 0.85, 1.0))
 
 
+## Takes [amount] straight off health, ignoring defence and shield (hazardous terrain).
+func take_direct_damage(amount: int) -> void:
+	damaged_this_round = damaged_this_round or amount > 0
+	hp = maxi(hp - amount, 0)
+	preview_hp = hp
+	hurt()
+	popup("-%d" % amount, Color(1, 0.35, 0.25))
+
+
 ## Sets the defence segments left (a boss changing form refills them for the new form).
 func set_defence(value: int) -> void:
 	defence = clampi(value, 0, data.defence)
