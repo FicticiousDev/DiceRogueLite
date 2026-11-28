@@ -71,7 +71,7 @@ func _on_skip_toggled(toggled_on: bool) -> void:
 
 ## Before the GUI, so accept answers yes even with NO focused.
 func _input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed("ui_accept") and get_viewport().gui_get_focus_owner() != _skip_check:
+	if visible and event.is_action_pressed("ui_accept") and get_viewport().gui_get_focus_owner() != _skip_check and not DebugConsole.is_open():
 		get_viewport().set_input_as_handled()
 		answered.emit(true)
 

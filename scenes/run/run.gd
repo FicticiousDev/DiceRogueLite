@@ -13,7 +13,7 @@ extends Node3D
 ## (ShopMenu, BankMenu), and the level is only left when the player says so (the turn plan's LEAVE LEVEL button).
 ## Most biomes hide a Mystery piece on one of their levels (RunMap): moving onto or through it before the level is
 ## clear unlocks a locked loot die or item for good, celebrated by the UnlockReveal.
-## Hovering a tile names it above the dice row (TileInfo). Developer commands live in the DebugMenu.
+## Hovering a tile names it above the dice row (TileInfo). Developer commands come from the DebugConsole.
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu/main_menu.tscn"
 
@@ -35,6 +35,9 @@ const CARRY_DURATION: float = 0.9
 const VICTORY_DELAY: float = 1.2
 ## Headroom above the tiles for pieces, gates and their symbols
 const FRAME_HEADROOM: float = 1.8
+## Debug console replies
+const DEBUG_NOT_PLANNING: String = "Only while planning a turn."
+const DEBUG_NOT_READY: String = "Only while planning a turn or once the level is clear."
 
 ## Most dice the pool can hold at the start of a run (RunData.max_dice)
 @export var starting_max_dice: int = 5
@@ -93,7 +96,8 @@ var _ended: bool = false
 var _tile_info: TileInfo
 ## The board tile under the mouse, -1 for none (or while something covers the board)
 var _info_tile: int = -1
-var _debug: DebugMenu
+## Debug: the console's readout (rolled dice, hovered cell and path cost) is showing
+var _readout: bool = false
 
 
 func _ready() -> void:
@@ -109,9 +113,7 @@ func _ready() -> void:
 	_tile_info = TileInfo.new()
 	hud.add_child(_tile_info)
 	_tile_info.row_y = dice_tray.row_screen_y
-	_debug = DebugMenu.new()
-	hud.add_child(_debug)
-	_debug.command.connect(_on_debug_command)
+	DebugConsole.set_run_handler(_on_debug_command)
 	SaveManager.settings_data.changed.connect(_apply_layout)
 	_apply_layout()
 	_map_view = RunMapView.new()
@@ -171,14 +173,15 @@ func _start_run(character_id: StringName) -> void:
 
 func _exit_tree() -> void:
 	SaveManager.settings_data.changed.disconnect(_apply_layout)
+	DebugConsole.set_run_handler(Callable())
+	DebugConsole.set_readout("")
 
 
-## Puts the turn plan (and the attack preview under it) on the chosen side, the debug menu on the other, and centres
+## Puts the turn plan (and the attack preview under it) on the chosen side, and centres
 ## the board and tray in the rest of the screen. The dice row and the tile info above it stay centred on the whole screen.
 func _apply_layout() -> void:
 	var left := SaveManager.settings_data.turn_plan_side == SettingsData.SIDE_LEFT
 	action_list.set_side(left)
-	_debug.set_side(not left)
 	var margin_left := PANEL_MARGIN if left else EDGE_MARGIN
 	var margin_right := EDGE_MARGIN if left else PANEL_MARGIN
 	camera_rig.frame_margins.x = margin_left
@@ -680,7 +683,7 @@ func _process(delta: float) -> void:
 	if _grid_overlay:
 		_grid_overlay.show_pick(turn.hovered_tile, board.last_pick_point)
 	_update_tile_info()
-	_update_debug_menu()
+	_update_readout()
 	_check_challenges()
 
 
@@ -715,10 +718,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	elif event.is_action_pressed("select") and _hovered is Building:
 		_use_building(_hovered)
-	elif event.is_action_pressed("debug_menu"):
-		_debug.toggle()
-	elif _debug.command_for(event) != -1:
-		_on_debug_command(_debug.command_for(event))
 
 
 func _on_turn_state_changed(state: TurnController.State) -> void:
@@ -831,41 +830,98 @@ func _update_tile_info() -> void:
 # ===========================================================================================================================================
 
 
-func _on_debug_command(id: DebugMenu.Command) -> void:
-	if _overlay_open() or _map_view.visible or _pool_view.visible:
-		return
-	match id:
-		DebugMenu.Command.REROLL:
-			if _can_debug():
-				turn.debug_pool.clear()
-				turn.start_turn(false)
-		DebugMenu.Command.SHOWCASE:
-			if _can_debug():
-				_debug_showcase()
-		DebugMenu.Command.RESTART:
-			if _can_debug(true):
-				SaveManager.run_data.health = SaveManager.run_data.max_health
-				load_level()
-		DebugMenu.Command.SHOP_HERE:
-			if _can_debug(true):
-				_debug_shop()
-		DebugMenu.Command.BOSS:
-			if _can_debug(true):
-				_debug_boss()
-		DebugMenu.Command.NEXT_SHOP:
-			if _can_force_next():
-				_debug_next_shop(LevelData.Type.SHOP)
-		DebugMenu.Command.NEXT_SHOP_BANK:
-			if _can_force_next():
-				_debug_next_shop(LevelData.Type.SHOP_BANK)
-		DebugMenu.Command.MYSTERY:
-			if _can_debug():
-				_debug_mystery()
-		DebugMenu.Command.LINE_OF_SIGHT:
+## Answers the DebugConsole's run commands (see DebugConsole.COMMANDS for what each does). Returns the reply; one
+## starting with DebugConsole.ERROR_MARK is an error.
+func _on_debug_command(command: String, args: PackedStringArray) -> String:
+	if _ended:
+		return _debug_error("The run is over.")
+	if _overlay_open() or _map_view.visible or _pool_view.visible or character_picker.visible or not board:
+		return _debug_error("Close the open screen first.")
+	var run := SaveManager.run_data
+	match command:
+		"levelInfo":
+			return _debug_level_info()
+		"setLevel":
+			return _debug_set_level(args)
+		"setNextLevels":
+			return _debug_set_next_levels(args)
+		"restart":
+			if not _can_debug(true):
+				return _debug_error(DEBUG_NOT_READY)
+			run.health = run.max_health
+			load_level()
+			return "Restarted %s." % RunMap.level(run, RunMap.current_index(run)).id
+		"mystery":
+			if not _can_debug():
+				return _debug_error(DEBUG_NOT_PLANNING)
+			return _debug_mystery()
+		"listPool":
+			return _debug_pool_text()
+		"setDice":
+			var ids := _debug_die_ids(args)
+			if ids.is_empty():
+				return _debug_error("Unknown die id in '%s'. 'debug: listDice' lists them." % " ".join(args))
+			run.dice.assign(ids)
+			return _debug_pool_changed()
+		"addDie":
+			var ids := _debug_die_ids(args.slice(0, 1))
+			var count := _debug_count(args)
+			if ids.is_empty() or count < 1:
+				return _debug_error("Usage: debug: addDie <die id> [count], e.g. 'debug: addDie attack 2'.")
+			for i in count:
+				run.dice.append(ids[0])
+			return _debug_pool_changed()
+		"removeDie":
+			var id := args[0].to_lower()
+			var count := _debug_count(args)
+			if count < 1:
+				return _debug_error("Usage: debug: removeDie <die id> [count].")
+			if not run.dice.has(id):
+				return _debug_error("The player has no '%s' die." % id)
+			for i in count:
+				if run.dice.size() <= 1 or not run.dice.has(id):
+					break
+				run.dice.erase(id)
+			return _debug_pool_changed()
+		"reroll":
+			if not _can_debug():
+				return _debug_error(DEBUG_NOT_PLANNING)
+			turn.debug_pool.clear()
+			turn.start_turn(false)
+			return "Re-rolled."
+		"showcase":
+			if not _can_debug():
+				return _debug_error(DEBUG_NOT_PLANNING)
+			return _debug_showcase()
+		"heal":
+			run.health = run.max_health
+			return "Health %d / %d." % [run.health, run.max_health]
+		"addGold":
+			if not args[0].is_valid_int():
+				return _debug_error("Usage: debug: addGold <amount>, e.g. 'debug: addGold 100'.")
+			run.gold = maxi(run.gold + args[0].to_int(), 0)
+			return "Gold %d." % run.gold
+		"losOverlay":
 			turn.show_los = not turn.show_los
 			turn._refresh()
-		DebugMenu.Command.GRID:
+			return "Line of sight overlay %s." % _on_off(turn.show_los)
+		"tileOverlay":
 			_toggle_grid_overlay()
+			return "Tile overlay %s." % _on_off(_grid_overlay != null)
+		"readout":
+			_readout = not _readout
+			if not _readout:
+				DebugConsole.set_readout("")
+			return "Readout %s." % _on_off(_readout)
+	return _debug_error("'%s' isn't handled by the run." % command)
+
+
+static func _debug_error(text: String) -> String:
+	return DebugConsole.ERROR_MARK + text
+
+
+static func _on_off(on: bool) -> String:
+	return "on" if on else "off"
 
 
 func _can_debug(allow_cleared: bool = false) -> bool:
@@ -873,8 +929,149 @@ func _can_debug(allow_cleared: bool = false) -> bool:
 	return not _loading and (turn.state == TurnController.State.PLAN or (allow_cleared and cleared))
 
 
+func _can_force_next() -> bool:
+	return not _loading and not RunMap.next(SaveManager.run_data, RunMap.current_index(SaveManager.run_data)).is_empty()
+
+
+## "<index> <level id> (<type>, <biome id>)" for the map node at [index].
+static func _debug_node_text(run: RunData, index: int) -> String:
+	var level := RunMap.level(run, index)
+	return "[%d] %s (%s, %s)" % [index, level.id, DebugConsole.type_name(level.type), RunMap.biome(run, index).id]
+
+
+func _debug_level_info() -> String:
+	var run := SaveManager.run_data
+	var index := RunMap.current_index(run)
+	var lines := PackedStringArray(["Current: " + _debug_node_text(run, index)])
+	var links := RunMap.next(run, index)
+	if links.is_empty():
+		lines.append("Next: none (the run ends here)")
+	for target in links:
+		lines.append("Next:    " + _debug_node_text(run, target))
+	return "\n".join(lines)
+
+
+## Replaces the current level (and maybe its biome) for good in this run's map and its checkpoint, and restarts it
+## at full health. It still leads where the replaced level did.
+func _debug_set_level(args: PackedStringArray) -> String:
+	if not _can_debug(true):
+		return _debug_error(DEBUG_NOT_READY)
+	var run := SaveManager.run_data
+	var index := RunMap.current_index(run)
+	var biome := RunMap.biome(run, index)
+	if args.size() > 1:
+		biome = Database.get_content("biomes", StringName(args[1].to_lower()))
+		if not biome:
+			return _debug_error("Unknown biome '%s'. 'debug: listBiomes' lists them." % args[1])
+	var level := _debug_pick_level(args[0], biome)
+	if not level:
+		return _debug_error("No level '%s'. 'debug: listLevels' lists the ids; types are %s." % [args[0], ", ".join(DebugConsole.type_names())])
+	# A boss level id on its own brings its biome (and so its boss)
+	if args.size() == 1:
+		biome = _debug_boss_biome(level.id, biome)
+	for data: RunData in [run, SaveManager.run_checkpoint]:
+		if data:
+			RunMap.node(data, index).level = String(level.id)
+			RunMap.node(data, index).biome = String(biome.id)
+	run.health = run.max_health
+	load_level()
+	return "This level is now " + _debug_node_text(run, index) + "."
+
+
+## Replaces every level the current one leads to, for good in this run's map and its checkpoint (so it survives
+## quitting). Each keeps its biome unless [code]args[1][/code] names one.
+func _debug_set_next_levels(args: PackedStringArray) -> String:
+	if not _can_force_next():
+		return _debug_error("This level leads nowhere, or a level is loading.")
+	var run := SaveManager.run_data
+	var forced: BiomeData = null
+	if args.size() > 1:
+		forced = Database.get_content("biomes", StringName(args[1].to_lower()))
+		if not forced:
+			return _debug_error("Unknown biome '%s'. 'debug: listBiomes' lists them." % args[1])
+	var lines := PackedStringArray()
+	for target in RunMap.next(run, RunMap.current_index(run)):
+		var biome := forced if forced else RunMap.biome(run, target)
+		var level := _debug_pick_level(args[0], biome)
+		if not level:
+			return _debug_error("No level '%s'. 'debug: listLevels' lists the ids; types are %s." % [args[0], ", ".join(DebugConsole.type_names())])
+		if not forced and args[0].to_lower() not in DebugConsole.LEVEL_TYPES:
+			biome = _debug_boss_biome(level.id, biome)
+		for data: RunData in [run, SaveManager.run_checkpoint]:
+			if data:
+				RunMap.node(data, target).level = String(level.id)
+				RunMap.node(data, target).biome = String(biome.id)
+		lines.append("Next:    " + _debug_node_text(run, target))
+	return "\n".join(lines)
+
+
+## The level [text] names: a level id, or a type (see DebugConsole.LEVEL_TYPES) for a random level of it sized for
+## [biome] - a boss is the biome's own boss level. Null if there's none.
+func _debug_pick_level(text: String, biome: BiomeData) -> LevelData:
+	var key := text.to_lower()
+	if key not in DebugConsole.LEVEL_TYPES:
+		return Database.get_content("levels", StringName(key))
+	var type: LevelData.Type = DebugConsole.LEVEL_TYPES[key]
+	if type == LevelData.Type.BOSS and biome.boss_level != &"":
+		return Database.get_content("levels", biome.boss_level)
+	var levels := Database.get_all("levels").filter(func(level: LevelData): return level.type == type)
+	var sized := levels.filter(func(level: LevelData): return level.stage == 0 or level.stage == biome.stage())
+	if sized.size() > 0:
+		return sized.pick_random()
+	return levels.pick_random() if levels.size() > 0 else null
+
+
+## The biome whose boss level is [level_id], or [fallback].
+static func _debug_boss_biome(level_id: StringName, fallback: BiomeData) -> BiomeData:
+	for biome: BiomeData in Database.get_all("biomes"):
+		if biome.boss_level == level_id:
+			return biome
+	return fallback
+
+
+## [args] as die ids, or empty if any isn't a die.
+static func _debug_die_ids(args: PackedStringArray) -> Array[String]:
+	var ids: Array[String] = []
+	for arg in args:
+		var id := arg.to_lower()
+		if not Database.get_content("dice", StringName(id)):
+			return []
+		ids.append(id)
+	return ids
+
+
+## The optional count in [code]args[1][/code]: 1 if absent, 0 if it isn't a whole number.
+static func _debug_count(args: PackedStringArray) -> int:
+	if args.size() < 2:
+		return 1
+	return maxi(args[1].to_int(), 0) if args[1].is_valid_int() else 0
+
+
+## After the dice changed: raises the pool cap to fit, and re-rolls if planning.
+func _debug_pool_changed() -> String:
+	var run := SaveManager.run_data
+	run.max_dice = maxi(run.max_dice, run.dice.size())
+	var text := _debug_pool_text()
+	if _can_debug():
+		turn.debug_pool.clear()
+		turn.start_turn(false)
+		return text + "\nRe-rolled."
+	return text + "\nUsed from the next roll."
+
+
+static func _debug_pool_text() -> String:
+	var run := SaveManager.run_data
+	var counts: Dictionary[String, int] = {}
+	for id in run.dice:
+		counts[id] = counts.get(id, 0) + 1
+	var parts := PackedStringArray()
+	for id in counts:
+		parts.append(id if counts[id] == 1 else "%s x%d" % [id, counts[id]])
+	return "Dice (%d / %d): %s" % [run.dice.size(), run.max_dice, ", ".join(parts)]
+
+
 ## Re-rolls this turn with one showcase die per rarity, alternating designs.
-func _debug_showcase() -> void:
+func _debug_showcase() -> String:
 	var all := Database.get_all("dice_debug")
 	all.sort_custom(func(a: DieType, b: DieType): return a.rarity < b.rarity)
 	turn.debug_pool.assign(all)
@@ -882,64 +1079,20 @@ func _debug_showcase() -> void:
 	turn.debug_design = designs[_showcase_design % designs.size()]
 	_showcase_design += 1
 	turn.start_turn(false)
-
-
-## Turns the current level into the Shop & Bank (for good, in this run's map) with 100 extra gold, and restarts it.
-func _debug_shop() -> void:
-	var run := SaveManager.run_data
-	var node := RunMap.node(run, RunMap.current_index(run))
-	node.level = "shop_bank_01"
-	node.type = LevelData.Type.SHOP_BANK
-	run.gold += 100
-	load_level()
-
-
-## Turns the current level into a biome's boss level - the next biome's each press, in run order, starting with the
-## current biome's - for good in this run's map and its checkpoint, and restarts it at full health. It still leads where
-## the replaced level did, so it's only for trying a fight out.
-func _debug_boss() -> void:
-	var run := SaveManager.run_data
-	var index := RunMap.current_index(run)
-	var biomes := Database.get_all("biomes")
-	biomes.sort_custom(func(a: BiomeData, b: BiomeData): return a.order < b.order)
-	var at := biomes.find_custom(func(b: BiomeData): return b.id == RunMap.biome(run, index).id)
-	if RunMap.level(run, index).type == LevelData.Type.BOSS:
-		at += 1
-	var biome: BiomeData = biomes[at % biomes.size()]
-	for data: RunData in [run, SaveManager.run_checkpoint]:
-		if data:
-			RunMap.node(data, index).biome = String(biome.id)
-			RunMap.node(data, index).level = String(biome.boss_level)
-	run.health = run.max_health
-	load_level()
-	player.popup(tr("POPUP_NEXT_BOSS") % biome.display_name, Color(1.0, 0.45, 0.85))
-
-
-func _can_force_next() -> bool:
-	return not _loading and not RunMap.next(SaveManager.run_data, RunMap.current_index(SaveManager.run_data)).is_empty()
-
-
-## Turns every level the current one leads to into a level of [type] (Shop or Shop & Bank), for good in this run's map
-## and its checkpoint (so it survives quitting).
-func _debug_next_shop(type: LevelData.Type) -> void:
-	var levels := Database.get_all("levels").filter(func(level: LevelData): return level.type == type)
-	var index := RunMap.current_index(SaveManager.run_data)
-	for target in RunMap.next(SaveManager.run_data, index):
-		var level_id := String(levels.pick_random().id)
-		for run: RunData in [SaveManager.run_data, SaveManager.run_checkpoint]:
-			if run:
-				RunMap.node(run, target).level = level_id
-	player.popup(tr("POPUP_NEXT_LEVEL") % tr(LevelData.NAMES[type]), Color(1.0, 0.45, 0.85))
+	return "Showcase dice in the %s design." % turn.debug_design.id
 
 
 ## Puts a Mystery piece on this level now (where one would go), if anything is still locked and there isn't one already.
-func _debug_mystery() -> void:
-	var exists := board.pieces_root.get_children().any(func(piece: Node): return piece is Mystery)
+func _debug_mystery() -> String:
+	if board.pieces_root.get_children().any(func(piece: Node): return piece is Mystery):
+		return _debug_error("There's a Mystery piece here already.")
+	if SaveManager.progression_data.locked_content().is_empty():
+		return _debug_error("Nothing is left to unlock.")
 	var cells := _mystery_cells(player.tile_id)
-	if exists or cells.is_empty() or SaveManager.progression_data.locked_content().is_empty():
-		player.popup("Nothing to unlock" if not exists else "Already here", Color(0.8, 0.8, 0.85))
-		return
+	if cells.is_empty():
+		return _debug_error("No free tile for it.")
 	board.spawn_mystery(cells.pick_random()).play_intro()
+	return "Placed a Mystery piece."
 
 
 func _toggle_grid_overlay() -> void:
@@ -952,23 +1105,10 @@ func _toggle_grid_overlay() -> void:
 		_grid_overlay.setup(board)
 
 
-## Keeps the open debug menu's buttons, toggles and readout (rolled dice, hovered cell and path cost) current.
-func _update_debug_menu() -> void:
-	if not _debug.is_open():
+## Keeps the console's readout (rolled dice, hovered cell and path cost) current while it's on.
+func _update_readout() -> void:
+	if not _readout:
 		return
-	var plan := _can_debug()
-	var plan_or_clear := _can_debug(true)
-	var next := _can_force_next()
-	_debug.set_enabled(DebugMenu.Command.REROLL, plan)
-	_debug.set_enabled(DebugMenu.Command.SHOWCASE, plan)
-	_debug.set_enabled(DebugMenu.Command.RESTART, plan_or_clear)
-	_debug.set_enabled(DebugMenu.Command.SHOP_HERE, plan_or_clear)
-	_debug.set_enabled(DebugMenu.Command.BOSS, plan_or_clear)
-	_debug.set_enabled(DebugMenu.Command.NEXT_SHOP, next)
-	_debug.set_enabled(DebugMenu.Command.NEXT_SHOP_BANK, next)
-	_debug.set_enabled(DebugMenu.Command.MYSTERY, plan)
-	_debug.set_toggled(DebugMenu.Command.LINE_OF_SIGHT, turn.show_los)
-	_debug.set_toggled(DebugMenu.Command.GRID, _grid_overlay != null)
 	var lines := PackedStringArray()
 	if turn.results.size() > 0:
 		lines.append("Rolled: " + ", ".join(turn.results.map(func(r: DieResult): return r.describe())))
@@ -977,4 +1117,4 @@ func _update_debug_menu() -> void:
 		if turn._move_ctx and turn._move_ctx.costs.has(_info_tile):
 			line += "  |  path cost %d" % turn._move_ctx.costs[_info_tile]
 		lines.append(line)
-	_debug.set_info("\n".join(lines))
+	DebugConsole.set_readout("\n".join(lines) if lines.size() > 0 else "Readout")

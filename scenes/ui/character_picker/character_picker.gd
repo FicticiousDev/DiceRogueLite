@@ -102,7 +102,7 @@ func _pulse(arrow: Control) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or (event is InputEventKey and DebugConsole.is_open()):
 		return
 	if event is InputEventMouseMotion:
 		_hover(event)

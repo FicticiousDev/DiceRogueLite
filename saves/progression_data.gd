@@ -39,7 +39,10 @@ enum Outcome { DEFEAT, VICTORY, ABANDONED }
 @export var die_design: String = "classic"
 @export var die_finish: String = "plastic"
 @export var die_trim_finish: String = "brass"
+## Keep in step with [constant STARTING_DIE_DESIGNS]
 @export var unlocked_die_designs: Array[String] = ["classic", "sharp"]
+## Designs unlocked on a new save, and again after locking them all
+const STARTING_DIE_DESIGNS: Array[String] = ["classic", "sharp"]
 
 ## Order of the designs and finishes in the dice designer, least impressive first; designs unlocked last go last.
 ## Ids not listed follow, by id.
@@ -130,10 +133,90 @@ func unlock(content: Resource) -> void:
 
 ## Debug: unlocks every character, die, item and die design, whatever their challenges. Caller saves.
 func unlock_all() -> void:
+	unlock_all_characters()
+	unlock_all_dice()
+	unlock_all_items()
+	unlock_all_designs()
+
+
+## Debug: unlocks every character. Caller saves.
+func unlock_all_characters() -> void:
 	unlocked_characters.assign(_ids("characters"))
+
+
+## Debug: unlocks every die as loot. Caller saves.
+func unlock_all_dice() -> void:
 	unlocked_dice.assign(_ids("dice"))
+
+
+## Debug: unlocks every item as loot. Caller saves.
+func unlock_all_items() -> void:
 	unlocked_items.assign(_ids("equipment"))
+
+
+## Debug: unlocks every die design. Caller saves.
+func unlock_all_designs() -> void:
 	unlocked_die_designs.assign(_ids("die_designs"))
+
+
+## Debug: locks every character, die, item and die design again, leaving only those unlocked from the start.
+## Challenges already met unlock their reward again at the next check. Caller saves.
+func lock_all() -> void:
+	lock_all_characters()
+	lock_all_dice()
+	lock_all_items()
+	lock_all_designs()
+
+
+## Debug: locks every character not unlocked from the start. Caller saves.
+func lock_all_characters() -> void:
+	unlocked_characters.clear()
+
+
+## Debug: locks every die not unlocked from the start. Caller saves.
+func lock_all_dice() -> void:
+	unlocked_dice.clear()
+
+
+## Debug: locks every item not unlocked from the start. Caller saves.
+func lock_all_items() -> void:
+	unlocked_items.clear()
+
+
+## Debug: locks every die design but the starting ones; the player's design goes back to classic if it's now locked.
+## Caller saves.
+func lock_all_designs() -> void:
+	unlocked_die_designs.assign(STARTING_DIE_DESIGNS)
+	_keep_design_unlocked()
+
+
+## Debug: unlocks or locks the content [id] in [category] (a Database category: "characters", "dice", "equipment" or
+## "die_designs"). Content unlocked from the start stays unlocked. Caller saves.
+func set_unlocked(category: String, id: StringName, unlocked: bool) -> void:
+	var list: Array[String]
+	match category:
+		"characters":
+			list = unlocked_characters
+		"dice":
+			list = unlocked_dice
+		"equipment":
+			list = unlocked_items
+		"die_designs":
+			list = unlocked_die_designs
+		_:
+			return
+	if unlocked and not list.has(String(id)):
+		list.append(String(id))
+	elif not unlocked:
+		list.erase(String(id))
+	_keep_design_unlocked()
+
+
+## The player's die design back to classic if it has been locked.
+func _keep_design_unlocked() -> void:
+	var design: DieDesign = Database.get_content("die_designs", StringName(die_design))
+	if design and not is_design_unlocked(design):
+		die_design = "classic"
 
 
 func _ids(category: String) -> Array[String]:

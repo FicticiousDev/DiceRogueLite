@@ -18,7 +18,6 @@ const CARD_WIDTH: float = 150.0
 const SAMPLE_DIE: StringName = &"all_rounder"
 const GOLD: Color = Color(1.0, 0.82, 0.35)
 const GREYED: Color = Color(0.45, 0.45, 0.5)
-const DEBUG_MARGIN: float = 28.0
 
 ## Which progression property a row sets
 enum Row { DESIGN, FINISH, TRIM }
@@ -77,25 +76,7 @@ func _ready() -> void:
 	var prompts := ButtonPrompt.standard("PROMPT_PICK", "")
 	prompts.append([[&"cancel"], "PROMPT_CLOSE", close_designer])
 	ButtonPrompt.footer(self, prompts)
-	if OS.is_debug_build():
-		_add_debug_button()
-
-
-## Debug: an Unlock All button in the bottom left corner.
-func _add_debug_button() -> void:
-	var unlock_all := Button.new()
-	unlock_all.text = "DEBUG: UNLOCK ALL"
-	unlock_all.custom_minimum_size = Vector2(240, 50)
-	unlock_all.add_theme_font_size_override("font_size", 28)
-	unlock_all.modulate = Color(1.0, 0.45, 0.85)
-	unlock_all.pressed.connect(_unlock_all)
-	unlock_all.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	unlock_all.offset_left = DEBUG_MARGIN
-	unlock_all.offset_right = DEBUG_MARGIN
-	unlock_all.offset_top = -DEBUG_MARGIN
-	unlock_all.offset_bottom = -DEBUG_MARGIN
-	unlock_all.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	add_child(unlock_all)
+	DebugConsole.progression_changed.connect(_on_progression_changed)
 
 
 ## The first design card.
@@ -228,11 +209,10 @@ func _pick(card: Card) -> void:
 	_refresh()
 
 
-## Debug: unlocks all characters, dice, items and designs, saves and redraws.
-func _unlock_all() -> void:
-	SaveManager.progression_data.unlock_all()
-	SaveManager.save_data()
-	_refresh()
+## Debug console unlocks: redraws if open.
+func _on_progression_changed() -> void:
+	if visible:
+		_refresh()
 
 
 func _current_design() -> DieDesign:

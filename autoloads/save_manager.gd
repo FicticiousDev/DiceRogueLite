@@ -41,6 +41,14 @@ func end_run(outcome: ProgressionData.Outcome) -> RunData:
 	return finished
 
 
+## Debug: starts over as a new player - fresh progression (no stats, unlocks or banked gold) and no run. Settings are
+## kept. Saves.
+func reset_progress() -> void:
+	progression_data = PROGRESSION_DATA.new()
+	clear_run()
+	save_data()
+
+
 ## True if there's a run to continue.
 func has_run() -> bool:
 	return run_data.map.size() > 0
